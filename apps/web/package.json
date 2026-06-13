@@ -11,7 +11,8 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@formforge/db":"workspace:*",
+    "@clerk/nextjs": "^7.5.2",
+    "@formforge/db": "workspace:*",
     "@repo/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.0",
     "@trpc/client": "^11.17.0",
