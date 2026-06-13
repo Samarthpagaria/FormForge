@@ -12,6 +12,10 @@
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
+    "@tanstack/react-query": "^5.101.0",
+    "@trpc/client": "^11.17.0",
+    "@trpc/react-query": "^11.17.0",
+    "@trpc/server": "^11.17.0",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.0",
     "postgres": "^3.4.9",
