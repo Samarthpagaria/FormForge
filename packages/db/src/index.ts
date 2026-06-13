@@ -1,0 +1,1 @@
+// index.ts — exports everything (schemas, client) so other packages can import from @formforge/db
