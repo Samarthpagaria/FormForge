@@ -1,20 +1,21 @@
 {
-  "name": "db",
+  "name": "@formforge/db",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+"main": "./src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
+    "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10"
   }
 }
