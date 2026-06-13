@@ -1,7 +1,8 @@
 import { initTRPC } from "@trpc/server";
+import {db} from "@formforge/db"
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  return { userId: "user_123" }; // replace with real auth later
+  return {db, userId: "user_123" }; // replace with real auth later
 };
 
 const t = initTRPC
