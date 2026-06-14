@@ -19,7 +19,7 @@ export default function AuthLayout({
 
   return (
     <AuroraBackground className="w-screen p-4 md:p-8 overflow-hidden select-none bg-[#FDFCF8] dark:bg-zinc-950 text-slate-950">
-      <div className="flex w-full max-w-5xl h-[650px] items-center justify-center gap-12 md:gap-16 z-10 relative">
+      <div suppressHydrationWarning className="flex w-full max-w-5xl h-[650px] items-center justify-center gap-12 md:gap-16 z-10 relative">
         
         {/* Left Component: Curved vertical rectangular image container */}
         <div className="relative hidden md:block w-[400px] h-[600px] rounded-3xl overflow-hidden bg-[#F5F4EC] dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 shrink-0">

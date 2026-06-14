@@ -16,6 +16,7 @@ export const AuroraBackground = ({
   return (
     <main>
       <div
+        suppressHydrationWarning
         className={cn(
           "relative flex flex-col h-[100vh] items-center justify-center bg-[#FDFCF8] dark:bg-zinc-950 text-slate-950 transition-bg",
           className
