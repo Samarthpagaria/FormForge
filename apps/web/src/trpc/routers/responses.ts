@@ -4,6 +4,8 @@ import { submissions, submissionAnswers } from "@formforge/db/schema";
 import { forms, formVersions } from "@formforge/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { sendSubmissionEmail } from "../../services/email";
+import { users } from "@formforge/db/schema";
 
 export const responsesRouter = createTRPCRouter({
   /**
@@ -90,7 +92,24 @@ export const responsesRouter = createTRPCRouter({
               value: answer.value,
             }))
           );
-        }
+        } 
+
+        // email service to creator
+        const formOwner = await ctx.db
+  .select()
+  .from(users)
+  .where(eq(users.id, form[0].userId))
+  .limit(1);
+
+if (formOwner[0]?.email) {
+  await sendSubmissionEmail({
+    formOwnerEmail: formOwner[0].email,
+    formName: form[0].name,
+    submissionId: newSubmission[0].id,
+    answers: input.answers,
+    submittedAt: new Date(),
+  });
+}
 
         return newSubmission[0];
       } catch (err) {
