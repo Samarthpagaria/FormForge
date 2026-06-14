@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -25,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_dHJ1c3RlZC1tYWNhcXVlLTI5LmNsZXJrLmFjY291bnRzLmRldiQ"}>
+          {children}
+        </ClerkProvider>
       </body>
     </html>
   );
