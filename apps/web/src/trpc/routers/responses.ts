@@ -1,11 +1,9 @@
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "../init";
 import { z } from "zod";
-import { submissions, submissionAnswers } from "@formforge/db/schema";
-import { forms, formVersions } from "@formforge/db/schema";
+import { submissions, submissionAnswers, forms, formVersions, users } from "@formforge/db";
 import { eq, and, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendSubmissionEmail } from "../../services/email";
-import { users } from "@formforge/db/schema";
 
 export const responsesRouter = createTRPCRouter({
   /**

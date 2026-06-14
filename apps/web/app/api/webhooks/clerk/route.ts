@@ -1,8 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
-import { db } from "@formforge/db";
-import { users } from "@formforge/db/schema";
+import { db, users } from "@formforge/db";
 import { eq } from "drizzle-orm"; // FIX 1: Imported eq operator
 
 export async function POST(req: Request) {

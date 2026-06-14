@@ -3,14 +3,14 @@ import { formsRouter } from "./forms";
 import { responsesRouter } from "./responses";
 import { analyticsRouter } from "./analytics";
 import { templatesRouter } from "./templates";
-import { formVersionRouter } from "./formVersions"
+import { formVersionsRouter } from "./formVerisons"
 import {shareRouter} from "./share";
 export const appRouter = createTRPCRouter({
   forms: formsRouter,
   responses: responsesRouter,
   analytics: analyticsRouter,
   templates: templatesRouter,
-  formVersions: formVersionRouter,
+  formVersions: formVersionsRouter,
   share: shareRouter,
 });
 

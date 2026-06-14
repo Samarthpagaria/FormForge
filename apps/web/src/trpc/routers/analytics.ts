@@ -1,7 +1,6 @@
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "../init";
 import { z } from "zod";
-import { events } from "@formforge/db/schema";
-import { forms } from "@formforge/db/schema";
+import { events, forms } from "@formforge/db";
 import { eq, and, desc, count, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 

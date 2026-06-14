@@ -36,12 +36,13 @@ export const useFormBuilderStore = create<FormBuilderStore>((set) => ({
     set((state) => ({
       fields: state.fields.map((f) => (f.id === id ? { ...f, ...updates } : f)),
     })),
-
   reorderFields: (fromIndex, toIndex) =>
     set((state) => {
       const fields = [...state.fields];
       const [moved] = fields.splice(fromIndex, 1);
-      fields.splice(toIndex, 0, moved);
+      if (moved) {
+        fields.splice(toIndex, 0, moved);
+      }
       return { fields };
     }),
 

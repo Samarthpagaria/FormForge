@@ -42,7 +42,7 @@ export const formVersionsRouter = createTRPCRouter({
             }
             throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create version" })
         }
-    })
+    }),
     /**
      * @name getAll
    * @description gets all versions of a form

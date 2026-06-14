@@ -1,5 +1,5 @@
 import {pgTable,uuid,varchar,timestamp,jsonb,pgEnum} from "drizzle-orm/pg-core";
-import { users } from "./users.ts"
+import { users } from "./users";
 export const formStatusEnum = pgEnum("form_status", ["draft", "published"]);
 export const forms = pgTable("forms", {
     id: uuid("id").primaryKey().defaultRandom(),
