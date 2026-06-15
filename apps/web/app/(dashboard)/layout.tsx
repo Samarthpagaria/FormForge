@@ -1,10 +1,14 @@
+"use client";
+
+import React from "react";
 import { DashboardNavbar } from "@/components/dashboard-navbar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen flex-col bg-[#F8F7F4] dark:bg-zinc-950 text-[#1a1a1a] dark:text-zinc-50">
+    <div className="relative flex min-h-screen flex-col bg-white dark:bg-zinc-950 text-[#1a1a1a] dark:text-zinc-50 overflow-x-hidden">
       <DashboardNavbar />
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* max-w-screen-2xl keeps a sane max-width at large monitors */}
+      <main className="flex-1 w-full px-6 pt-20 pb-6">
         {children}
       </main>
     </div>

@@ -72,7 +72,7 @@ export function ExpandableTabs({
               custom={isExpanded}
               transition={transition}
               className={cn(
-                "relative flex items-center h-7 rounded-full px-2.5 text-xs font-medium transition-colors duration-300 cursor-pointer select-none",
+                "relative flex items-center h-9 rounded-full px-3 text-sm font-medium transition-colors duration-300 cursor-pointer select-none",
                 isActive
                   ? cn("bg-neutral-100 dark:bg-zinc-850", activeColor)
                   : "text-neutral-600 dark:text-zinc-400 hover:bg-neutral-100/60 dark:hover:bg-zinc-800/40 hover:text-neutral-900 dark:hover:text-zinc-200"
