@@ -14,13 +14,15 @@ import {
   GripVertical
 } from "lucide-react";
 
-type FieldItem = {
+import { useDraggable } from "@dnd-kit/core";
+
+export type FieldItem = {
   id: string;
   label: string;
   icon: React.ElementType;
 };
 
-type FieldSection = {
+export type FieldSection = {
   title: string;
   fields: FieldItem[];
 };
@@ -54,10 +56,25 @@ const FIELD_SECTIONS: FieldSection[] = [
   },
 ];
 
-function FieldDraggable({ field }: { field: FieldItem }) {
+export function FieldDraggable({ field }: { field: FieldItem }) {
   const Icon = field.icon;
+  
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `palette-${field.id}`,
+    data: {
+      type: "palette-item",
+      fieldType: field.id,
+      label: field.label,
+    },
+  });
+
   return (
-    <div className="group flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-grab hover:bg-white transition-all duration-200">
+    <div 
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`group flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-grab hover:bg-neutral-100 transition-all duration-200 ${isDragging ? 'opacity-50' : ''}`}
+    >
       {/* Visual drag handle */}
       <div className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity">
         <GripVertical size={14} className="stroke-[2]" />

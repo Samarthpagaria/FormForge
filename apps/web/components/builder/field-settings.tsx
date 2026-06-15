@@ -3,19 +3,18 @@ import {
   Type, 
   Trash2, 
   Copy, 
-  MoreVertical,
-  HelpCircle,
   Settings2,
   List,
-  EyeOff,
   Columns
 } from "lucide-react";
+import { useFormBuilderStore } from "@/stores/useFormBuilderStore";
 
 export function FieldSettings() {
-  // Using a local state just to show the populated view vs empty view for the skeleton
-  const [hasSelection, setHasSelection] = React.useState(true);
+  const { fields, activeElementId, setActiveField, updateFieldProps, removeField } = useFormBuilderStore();
+  
+  const activeField = fields.find(f => f.id === activeElementId);
 
-  if (!hasSelection) {
+  if (!activeField) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-neutral-400">
         <div className="w-12 h-12 bg-neutral-50 border border-neutral-100 rounded-full flex items-center justify-center mb-3">
@@ -23,12 +22,6 @@ export function FieldSettings() {
         </div>
         <p className="text-sm font-medium text-neutral-600">No field selected</p>
         <p className="text-xs mt-1">Select a field on the canvas to edit its settings</p>
-        <button 
-          onClick={() => setHasSelection(true)}
-          className="mt-4 text-xs text-neutral-900 font-medium hover:text-black"
-        >
-          (Show demo selected state)
-        </button>
       </div>
     );
   }
@@ -41,12 +34,12 @@ export function FieldSettings() {
           <div className="w-6 h-6 bg-neutral-100 text-neutral-900 rounded flex items-center justify-center">
             <Type size={13} strokeWidth={2.5} />
           </div>
-          <h2 className="text-sm font-bold tracking-tight text-neutral-900">
-            Short Text
+          <h2 className="text-sm font-bold tracking-tight text-neutral-900 capitalize">
+            {activeField.type.replace('_', ' ')}
           </h2>
         </div>
         <button 
-          onClick={() => setHasSelection(false)}
+          onClick={() => setActiveField(null)}
           className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 hover:text-neutral-600 transition-colors"
         >
           Deselect
@@ -63,7 +56,8 @@ export function FieldSettings() {
             </label>
             <input 
               type="text" 
-              defaultValue="Full Name"
+              value={activeField.label}
+              onChange={(e) => updateFieldProps(activeField.id, { label: e.target.value })}
               className="w-full text-sm text-neutral-900 placeholder-neutral-300 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all shadow-sm"
             />
           </div>
@@ -74,7 +68,8 @@ export function FieldSettings() {
             </label>
             <input 
               type="text" 
-              defaultValue="e.g. Jane Doe"
+              value={activeField.placeholder || ''}
+              onChange={(e) => updateFieldProps(activeField.id, { placeholder: e.target.value })}
               className="w-full text-sm text-neutral-900 placeholder-neutral-300 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all shadow-sm"
             />
           </div>
@@ -87,6 +82,8 @@ export function FieldSettings() {
             </div>
             <input 
               type="text" 
+              value={activeField.helpText || ''}
+              onChange={(e) => updateFieldProps(activeField.id, { helpText: e.target.value })}
               placeholder="Add description or instruction..."
               className="w-full text-sm text-neutral-900 placeholder-neutral-300 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all shadow-sm"
             />
@@ -99,15 +96,18 @@ export function FieldSettings() {
               </label>
               <span className="text-[11px] text-neutral-500">Prevent form submission if empty</span>
             </div>
-            <div className="w-8 h-5 bg-neutral-900 rounded-full flex items-center p-0.5 cursor-pointer shadow-inner">
-              <div className="w-4 h-4 bg-white rounded-full shadow-sm translate-x-3 transition-transform" />
+            <div 
+              onClick={() => updateFieldProps(activeField.id, { required: !activeField.required })}
+              className={`w-8 h-5 rounded-full flex items-center p-0.5 cursor-pointer shadow-inner transition-colors ${activeField.required ? 'bg-neutral-900' : 'bg-neutral-200'}`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${activeField.required ? 'translate-x-3' : 'translate-x-0'}`} />
             </div>
           </div>
         </section>
 
         <div className="h-px bg-neutral-200/60 w-full" />
 
-        {/* ── Validation ── */}
+        {/* ── Validation Placeholder ── */}
         <section className="flex flex-col gap-4">
           <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
             <Check size={14} /> Validation
@@ -136,23 +136,18 @@ export function FieldSettings() {
           <div className="flex flex-col gap-3">
             <label className="block text-xs font-semibold text-neutral-800">Field Width</label>
             <div className="flex items-center gap-2 p-1 bg-neutral-100 rounded-lg">
-              <button className="flex-1 py-1.5 text-xs font-semibold bg-white text-neutral-900 rounded shadow-sm">
+              <button 
+                onClick={() => updateFieldProps(activeField.id, { width: 'full' })}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded shadow-sm transition-colors ${activeField.width === 'full' ? 'bg-white text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
+              >
                 Full Width
               </button>
-              <button className="flex-1 py-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-700">
+              <button 
+                onClick={() => updateFieldProps(activeField.id, { width: 'half' })}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded shadow-sm transition-colors ${activeField.width === 'half' ? 'bg-white text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
+              >
                 Half Width
               </button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-neutral-800">
-                Hide Label
-              </label>
-            </div>
-            <div className="w-8 h-5 bg-neutral-200 rounded-full flex items-center p-0.5 cursor-pointer shadow-inner">
-              <div className="w-4 h-4 bg-white rounded-full shadow-sm transition-transform" />
             </div>
           </div>
         </section>
@@ -177,7 +172,10 @@ export function FieldSettings() {
           <Copy size={14} />
           Duplicate Field
         </button>
-        <button className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-red-200 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 shadow-sm transition-colors">
+        <button 
+          onClick={() => removeField(activeField.id)}
+          className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-red-200 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 shadow-sm transition-colors"
+        >
           <Trash2 size={14} />
           Delete Field
         </button>

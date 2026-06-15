@@ -1,10 +1,13 @@
 import React from "react";
 import { GripVertical, Copy, X, Calendar, UploadCloud, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type FieldType = "short_text" | "long_text" | "email" | "phone" | "number" | "dropdown" | "radio" | "checkbox" | "date" | "file" | "rating";
 
 interface FieldCardProps {
+  id?: string;
   type: FieldType;
   label: string;
   placeholder?: string;
@@ -12,9 +15,11 @@ interface FieldCardProps {
   required?: boolean;
   width?: "full" | "half";
   state?: "default" | "selected" | "dragging";
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export function FieldCard({
+  id,
   type,
   label,
   placeholder = "Placeholder...",
@@ -22,27 +27,54 @@ export function FieldCard({
   required = false,
   width = "full",
   state = "default",
+  onClick,
 }: FieldCardProps) {
   
   const isSelected = state === "selected";
-  const isDragging = state === "dragging";
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({
+    id: id || "temp-id",
+    data: { type: "field-card", fieldId: id },
+    disabled: !id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const isDragging = state === "dragging" || isSortableDragging;
 
   return (
     <div
+      ref={id ? setNodeRef : undefined}
+      style={style}
+      onClick={onClick}
       className={cn(
         "group relative flex flex-col p-4 min-h-[80px] bg-white rounded-xl transition-all duration-200",
-        width === "half" ? "w-[calc(50%-8px)]" : "w-full",
+        width === "half" ? "col-span-6" : "col-span-12",
         isSelected 
           ? "border-l-4 border-l-violet-600 border-y border-r border-neutral-200 shadow-md bg-violet-50/30" 
           : "border border-neutral-200/80 shadow-sm hover:shadow-md",
-        isDragging && "opacity-60 shadow-lg scale-[1.01] cursor-grabbing"
+        isDragging && "opacity-60 shadow-lg scale-[1.01] cursor-grabbing relative z-50"
       )}
     >
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           {/* Drag Handle */}
-          <div className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:text-neutral-500">
+          <div 
+            {...attributes}
+            {...listeners}
+            className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:text-neutral-500"
+          >
             <GripVertical size={16} />
           </div>
           {/* Label */}
@@ -151,7 +183,7 @@ export function FieldCard({
 
 export function EmptySlot() {
   return (
-    <div className="w-[calc(50%-8px)] min-h-[80px] bg-neutral-50/50 border-2 border-dashed border-neutral-200 rounded-xl flex items-center justify-center text-sm font-medium text-neutral-400 hover:bg-neutral-50 hover:border-violet-300 transition-colors cursor-pointer">
+    <div className="col-span-6 min-h-[80px] bg-neutral-50/50 border-2 border-dashed border-neutral-200 rounded-xl flex items-center justify-center text-sm font-medium text-neutral-400 hover:bg-neutral-50 hover:border-violet-300 transition-colors cursor-pointer">
       + Drop field here
     </div>
   );
