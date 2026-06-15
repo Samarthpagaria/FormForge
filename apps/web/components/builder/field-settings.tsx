@@ -1,18 +1,11 @@
-import React from "react";
-import { 
-  Type, 
-  Trash2, 
-  Copy, 
-  Settings2,
-  List,
-  Columns
-} from "lucide-react";
+"use client";
+import React, { useState } from "react";
+import { Type, Trash2, Copy, Settings2, List, Columns, Plus, X, Star } from "lucide-react";
 import { useFormBuilderStore } from "@/stores/useFormBuilderStore";
 
 export function FieldSettings() {
-  const { fields, activeElementId, setActiveField, updateFieldProps, removeField } = useFormBuilderStore();
-  
-  const activeField = fields.find(f => f.id === activeElementId);
+  const { fields, activeElementId, setActiveField, updateFieldProps, removeField, duplicateField } = useFormBuilderStore();
+  const activeField = fields.find((f) => f.id === activeElementId);
 
   if (!activeField) {
     return (
@@ -21,24 +14,29 @@ export function FieldSettings() {
           <Settings2 size={20} className="text-neutral-300" />
         </div>
         <p className="text-sm font-medium text-neutral-600">No field selected</p>
-        <p className="text-xs mt-1">Select a field on the canvas to edit its settings</p>
+        <p className="text-xs mt-1">Click a field on the canvas to edit it</p>
       </div>
     );
   }
 
+  const isChoiceField = ["dropdown", "radio", "checkbox"].includes(activeField.type);
+  const isNumberField = activeField.type === "number";
+  const isRatingField = activeField.type === "rating";
+  const isFileField = activeField.type === "file";
+
   return (
-    <div className="flex flex-col h-full overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col h-full overflow-y-auto">
       {/* ── Header ── */}
-      <div className="p-4 border-b border-neutral-200/60 sticky top-0 bg-white z-10 flex items-center justify-between">
+      <div className="p-4 border-b border-neutral-100 sticky top-0 bg-white z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-neutral-100 text-neutral-900 rounded flex items-center justify-center">
+          <div className="w-6 h-6 bg-neutral-100 rounded flex items-center justify-center">
             <Type size={13} strokeWidth={2.5} />
           </div>
-          <h2 className="text-sm font-bold tracking-tight text-neutral-900 capitalize">
-            {activeField.type.replace('_', ' ')}
+          <h2 className="text-sm font-bold text-neutral-900 capitalize">
+            {activeField.type.replace(/_/g, " ")}
           </h2>
         </div>
-        <button 
+        <button
           onClick={() => setActiveField(null)}
           className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 hover:text-neutral-600 transition-colors"
         >
@@ -46,161 +44,294 @@ export function FieldSettings() {
         </button>
       </div>
 
-      <div className="p-4 flex flex-col gap-6">
-        
+      <div className="p-4 flex flex-col gap-5 flex-1">
+
         {/* ── Basic Settings ── */}
-        <section className="flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-neutral-800 mb-1.5">
-              Field Label
-            </label>
-            <input 
-              type="text" 
-              value={activeField.label}
-              onChange={(e) => updateFieldProps(activeField.id, { label: e.target.value })}
-              className="w-full text-sm text-neutral-900 placeholder-neutral-300 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all shadow-sm"
-            />
-          </div>
+        <section className="flex flex-col gap-3">
+          <SettingsInput
+            label="Label"
+            value={activeField.label}
+            onChange={(v) => updateFieldProps(activeField.id, { label: v })}
+          />
 
-          <div>
-            <label className="block text-xs font-semibold text-neutral-800 mb-1.5">
-              Placeholder
-            </label>
-            <input 
-              type="text" 
-              value={activeField.placeholder || ''}
-              onChange={(e) => updateFieldProps(activeField.id, { placeholder: e.target.value })}
-              className="w-full text-sm text-neutral-900 placeholder-neutral-300 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all shadow-sm"
+          {!isChoiceField && !isRatingField && !isFileField && (
+            <SettingsInput
+              label="Placeholder"
+              value={activeField.placeholder || ""}
+              onChange={(v) => updateFieldProps(activeField.id, { placeholder: v })}
             />
-          </div>
+          )}
 
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-neutral-800">
-                Help Text
-              </label>
+          <SettingsInput
+            label="Help Text"
+            value={activeField.helpText || ""}
+            placeholder="Add description or instructions..."
+            onChange={(v) => updateFieldProps(activeField.id, { helpText: v })}
+          />
+
+          {/* Required toggle */}
+          <div className="flex items-center justify-between pt-1">
+            <div>
+              <p className="text-xs font-semibold text-neutral-800">Required</p>
+              <p className="text-[11px] text-neutral-400">Must be filled before submit</p>
             </div>
-            <input 
-              type="text" 
-              value={activeField.helpText || ''}
-              onChange={(e) => updateFieldProps(activeField.id, { helpText: e.target.value })}
-              placeholder="Add description or instruction..."
-              className="w-full text-sm text-neutral-900 placeholder-neutral-300 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all shadow-sm"
-            />
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold text-neutral-800">
-                Required
-              </label>
-              <span className="text-[11px] text-neutral-500">Prevent form submission if empty</span>
-            </div>
-            <div 
+            <div
+              role="switch"
+              aria-checked={activeField.required}
               onClick={() => updateFieldProps(activeField.id, { required: !activeField.required })}
-              className={`w-8 h-5 rounded-full flex items-center p-0.5 cursor-pointer shadow-inner transition-colors ${activeField.required ? 'bg-neutral-900' : 'bg-neutral-200'}`}
+              className={`w-9 h-5 rounded-full flex items-center p-0.5 cursor-pointer transition-colors ${activeField.required ? "bg-violet-600" : "bg-neutral-200"}`}
             >
-              <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${activeField.required ? 'translate-x-3' : 'translate-x-0'}`} />
+              <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${activeField.required ? "translate-x-4" : "translate-x-0"}`} />
             </div>
           </div>
         </section>
 
-        <div className="h-px bg-neutral-200/60 w-full" />
+        <Divider />
 
-        {/* ── Validation Placeholder ── */}
-        <section className="flex flex-col gap-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
-            <Check size={14} /> Validation
-          </h3>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Min Length</label>
-              <input type="number" placeholder="0" className="w-full text-sm text-neutral-900 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Max Length</label>
-              <input type="number" placeholder="255" className="w-full text-sm text-neutral-900 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all shadow-sm" />
-            </div>
-          </div>
-        </section>
+        {/* ── Choice Field Options ── */}
+        {isChoiceField && (
+          <OptionsEditor
+            options={activeField.options || []}
+            onChange={(opts) => updateFieldProps(activeField.id, { options: opts })}
+          />
+        )}
 
-        <div className="h-px bg-neutral-200/60 w-full" />
+        {/* ── Number Field ── */}
+        {isNumberField && (
+          <section className="flex flex-col gap-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500">Validation</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Min Value</label>
+                <input
+                  type="number"
+                  value={activeField.minValue ?? ""}
+                  onChange={(e) => updateFieldProps(activeField.id, { minValue: e.target.value ? Number(e.target.value) : undefined })}
+                  placeholder="No min"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Max Value</label>
+                <input
+                  type="number"
+                  value={activeField.maxValue ?? ""}
+                  onChange={(e) => updateFieldProps(activeField.id, { maxValue: e.target.value ? Number(e.target.value) : undefined })}
+                  placeholder="No max"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Rating Field ── */}
+        {isRatingField && (
+          <section className="flex flex-col gap-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+              <Star size={13} /> Rating Scale
+            </h3>
+            <div>
+              <label className="block text-xs font-semibold text-neutral-800 mb-2">Max Stars</label>
+              <div className="flex gap-2">
+                {[3, 5, 7, 10].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => updateFieldProps(activeField.id, { ratingMax: n })}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
+                      (activeField.ratingMax ?? 5) === n
+                        ? "bg-violet-600 text-white border-violet-600"
+                        : "bg-white text-neutral-600 border-neutral-200 hover:border-violet-300"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              {/* Preview */}
+              <div className="flex items-center gap-1 mt-3">
+                {Array.from({ length: activeField.ratingMax ?? 5 }).map((_, i) => (
+                  <svg key={i} width="18" height="18" viewBox="0 0 24 24" fill={i === 0 ? "#f59e0b" : "currentColor"} className={i === 0 ? "text-amber-400" : "text-neutral-200"}>
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── File Field ── */}
+        {isFileField && (
+          <section className="flex flex-col gap-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500">File Settings</h3>
+            <SettingsInput
+              label="Accepted File Types"
+              value={activeField.acceptedFiles || ""}
+              placeholder=".pdf, .png, .jpg"
+              onChange={(v) => updateFieldProps(activeField.id, { acceptedFiles: v })}
+            />
+            <p className="text-[11px] text-neutral-400">
+              ⚠️ File upload storage is not yet configured on the backend. Files will not be saved until a storage provider (S3, Cloudflare R2, etc.) is integrated.
+            </p>
+          </section>
+        )}
+
+        <Divider />
 
         {/* ── Appearance ── */}
-        <section className="flex flex-col gap-4">
+        <section className="flex flex-col gap-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
-            <Columns size={14} /> Appearance
+            <Columns size={13} /> Width
           </h3>
-
-          <div className="flex flex-col gap-3">
-            <label className="block text-xs font-semibold text-neutral-800">Field Width</label>
-            <div className="flex items-center gap-2 p-1 bg-neutral-100 rounded-lg">
-              <button 
-                onClick={() => updateFieldProps(activeField.id, { width: 'full' })}
-                className={`flex-1 py-1.5 text-xs font-semibold rounded shadow-sm transition-colors ${activeField.width === 'full' ? 'bg-white text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
-              >
-                Full Width
-              </button>
-              <button 
-                onClick={() => updateFieldProps(activeField.id, { width: 'half' })}
-                className={`flex-1 py-1.5 text-xs font-semibold rounded shadow-sm transition-colors ${activeField.width === 'half' ? 'bg-white text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
-              >
-                Half Width
-              </button>
-            </div>
+          <div className="flex items-center gap-2 p-1 bg-neutral-100 rounded-lg">
+            <button
+              onClick={() => updateFieldProps(activeField.id, { width: "full" })}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${activeField.width === "full" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"}`}
+            >
+              Full Width
+            </button>
+            <button
+              onClick={() => updateFieldProps(activeField.id, { width: "half" })}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${activeField.width === "half" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"}`}
+            >
+              Half Width
+            </button>
           </div>
         </section>
 
-        <div className="h-px bg-neutral-200/60 w-full" />
+        <Divider />
 
-        {/* ── Conditional Logic ── */}
-        <section className="flex flex-col gap-3">
+        {/* ── Conditional Logic note ── */}
+        <section className="flex flex-col gap-2">
           <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
-            <List size={14} /> Logic
+            <List size={13} /> Conditional Logic
           </h3>
-          <button className="w-full border border-dashed border-neutral-300 rounded-lg p-3 text-xs font-medium text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 hover:border-neutral-400 transition-colors flex items-center justify-center gap-2">
-            + Add conditional rule
+          <p className="text-[11px] text-neutral-400 leading-relaxed">
+            Conditional logic is stored in the form schema but not yet enforced server-side at submission time. Client-side evaluation is planned.
+          </p>
+          <button className="w-full border border-dashed border-neutral-300 rounded-lg p-2.5 text-xs font-medium text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 transition-colors flex items-center justify-center gap-1.5">
+            <Plus size={13} /> Add conditional rule
           </button>
         </section>
-        
+
       </div>
 
       {/* ── Bottom Actions ── */}
-      <div className="mt-auto p-4 border-t border-neutral-200/60 bg-neutral-50/50 flex flex-col gap-2">
-        <button className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition-colors">
-          <Copy size={14} />
-          Duplicate Field
+      <div className="p-4 border-t border-neutral-100 bg-neutral-50/50 flex flex-col gap-2">
+        <button
+          onClick={() => duplicateField(activeField.id)}
+          className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition-colors"
+        >
+          <Copy size={14} /> Duplicate Field
         </button>
-        <button 
+        <button
           onClick={() => removeField(activeField.id)}
           className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-red-200 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 shadow-sm transition-colors"
         >
-          <Trash2 size={14} />
-          Delete Field
+          <Trash2 size={14} /> Delete Field
         </button>
       </div>
-
     </div>
   );
 }
 
-// Just a local Check icon wrapper since it wasn't imported from lucide-react above
-function Check(props: any) {
+/* ── Sub-components ──────────────────────────────── */
+
+const inputClass = "w-full text-sm text-neutral-900 placeholder-neutral-300 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all shadow-sm";
+
+function SettingsInput({
+  label,
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  onChange: (v: string) => void;
+}) {
   return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
+    <div>
+      <label className="block text-xs font-semibold text-neutral-800 mb-1.5">{label}</label>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass}
+      />
+    </div>
+  );
+}
+
+function Divider() {
+  return <div className="h-px bg-neutral-100 w-full" />;
+}
+
+function OptionsEditor({
+  options,
+  onChange,
+}: {
+  options: string[];
+  onChange: (opts: string[]) => void;
+}) {
+  const [newOption, setNewOption] = useState("");
+
+  const addOption = () => {
+    const trimmed = newOption.trim();
+    if (trimmed && !options.includes(trimmed)) {
+      onChange([...options, trimmed]);
+      setNewOption("");
+    }
+  };
+
+  const removeOption = (i: number) => {
+    onChange(options.filter((_, idx) => idx !== i));
+  };
+
+  const updateOption = (i: number, val: string) => {
+    const updated = [...options];
+    updated[i] = val;
+    onChange(updated);
+  };
+
+  return (
+    <section className="flex flex-col gap-3">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+        <List size={13} /> Options
+      </h3>
+      <div className="flex flex-col gap-1.5">
+        {options.map((opt, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input
+              value={opt}
+              onChange={(e) => updateOption(i, e.target.value)}
+              className="flex-1 text-sm text-neutral-800 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-100 transition-all"
+            />
+            <button
+              onClick={() => removeOption(i)}
+              className="p-1 text-neutral-300 hover:text-red-500 transition-colors rounded"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          value={newOption}
+          onChange={(e) => setNewOption(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addOption(); } }}
+          placeholder="New option..."
+          className="flex-1 text-sm text-neutral-800 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 outline-none focus:border-violet-400 transition-all placeholder:text-neutral-300"
+        />
+        <button
+          onClick={addOption}
+          className="p-1.5 bg-violet-50 text-violet-600 hover:bg-violet-100 rounded-lg transition-colors"
+        >
+          <Plus size={16} />
+        </button>
+      </div>
+    </section>
   );
 }

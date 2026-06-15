@@ -73,6 +73,7 @@ export function FieldDraggable({ field }: { field: FieldItem }) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      style={{ touchAction: 'none' }}
       className={`group flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-grab hover:bg-neutral-100 transition-all duration-200 ${isDragging ? 'opacity-50' : ''}`}
     >
       {/* Visual drag handle */}

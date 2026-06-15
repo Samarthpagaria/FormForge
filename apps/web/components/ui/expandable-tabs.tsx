@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 
+const MotionLink = motion.create(Link);
+
 export interface TabItem {
   title: string;
   href: string;
@@ -62,39 +64,39 @@ export function ExpandableTabs({
         const isExpanded = isActive || isHovered;
 
         return (
-          <Link key={tab.title} href={tab.href} passHref legacyBehavior>
-            <motion.a
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              variants={buttonVariants}
-              initial={false}
-              animate="animate"
-              custom={isExpanded}
-              transition={transition}
-              className={cn(
-                "relative flex items-center h-9 rounded-full px-3 text-sm font-medium transition-colors duration-300 cursor-pointer select-none",
-                isActive
-                  ? cn("bg-neutral-100 dark:bg-zinc-850", activeColor)
-                  : "text-neutral-600 dark:text-zinc-400 hover:bg-neutral-100/60 dark:hover:bg-zinc-800/40 hover:text-neutral-900 dark:hover:text-zinc-200"
+          <MotionLink
+            key={tab.title}
+            href={tab.href}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+            variants={buttonVariants}
+            initial={false}
+            animate="animate"
+            custom={isExpanded}
+            transition={transition}
+            className={cn(
+              "relative flex items-center h-9 rounded-full px-3 text-sm font-medium transition-colors duration-300 cursor-pointer select-none",
+              isActive
+                ? cn("bg-neutral-100 dark:bg-zinc-850", activeColor)
+                : "text-neutral-600 dark:text-zinc-400 hover:bg-neutral-100/60 dark:hover:bg-zinc-800/40 hover:text-neutral-900 dark:hover:text-zinc-200"
+            )}
+          >
+            <Icon size={18} className="shrink-0" />
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.span
+                  variants={spanVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={transition}
+                  className="overflow-hidden whitespace-nowrap"
+                >
+                  {tab.title}
+                </motion.span>
               )}
-            >
-              <Icon size={18} className="shrink-0" />
-              <AnimatePresence initial={false}>
-                {isExpanded && (
-                  <motion.span
-                    variants={spanVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    transition={transition}
-                    className="overflow-hidden whitespace-nowrap"
-                  >
-                    {tab.title}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.a>
-          </Link>
+            </AnimatePresence>
+          </MotionLink>
         );
       })}
     </div>
