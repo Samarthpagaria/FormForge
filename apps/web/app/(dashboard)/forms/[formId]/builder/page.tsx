@@ -32,6 +32,14 @@ import {
   IconDeviceFloppy,
   IconUpload,
   IconForms,
+  IconMessageCircle,
+  IconTerminal2,
+  IconLayoutList,
+  IconDeviceMobile,
+  IconCards,
+  IconSlideshow,
+  IconLayoutKanban,
+  IconBook,
 } from "@tabler/icons-react";
 
 // ─── Droppable Empty Slot ─────────────────────────────────────────
@@ -165,7 +173,7 @@ function CanvasDropZone() {
 }
 
 // ─── Builder UI ──────────────────────────────────────────────────
-function BuilderUI() {
+function BuilderUI({ formId }: { formId: string }) {
   const { fields, addField, reorderFields } = useFormBuilderStore();
   const [formName, setFormName] = useState("Untitled Form");
 
@@ -178,22 +186,31 @@ function BuilderUI() {
     {
       title: "Build Mode",
       icon: <IconSettings className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: "#",
+      href: `/forms/${formId}/builder`,
     },
     {
       title: "Preview Form",
       icon: <IconEye className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: "#",
+      href: `/f/${formId}`,
+      subItems: [
+        { title: "Normal Mode", href: `/f/${formId}?mode=normal`, icon: <IconLayoutList /> },
+        { title: "Chat Mode", href: `/f/${formId}?mode=chat`, icon: <IconMessageCircle /> },
+        { title: "Terminal Mode", href: `/f/${formId}?mode=terminal`, icon: <IconTerminal2 /> },
+        { title: "One-by-One", href: `/f/${formId}?mode=one-by-one`, icon: <IconDeviceMobile /> },
+        { title: "Card Swipe", href: `/f/${formId}?mode=swipe`, icon: <IconCards /> },
+        { title: "Story Mode", href: `/f/${formId}?mode=story`, icon: <IconBook /> },
+        { title: "Slide Mode", href: `/f/${formId}?mode=slide`, icon: <IconSlideshow /> },
+      ]
     },
     {
       title: "Save Draft",
       icon: <IconDeviceFloppy className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: "#",
+      href: `#`,
     },
     {
-      title: "Publish",
+      title: "Publish & Share",
       icon: <IconUpload className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: "#",
+      href: `/forms/${formId}/share`,
     },
   ];
 
@@ -336,11 +353,12 @@ function BuilderUI() {
 }
 
 // ─── Page Entry ──────────────────────────────────────────────────
-export default function FormBuilderPage() {
+export default function FormBuilderPage({ params }: { params: Promise<{ formId: string }> }) {
+  const { formId } = React.use(params);
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => { setIsMounted(true); }, []);
   if (!isMounted) return null;
   // Portal renders directly into document.body — completely outside
   // the Framer Motion transform context of DashboardNavbar
-  return createPortal(<BuilderUI />, document.body);
+  return createPortal(<BuilderUI formId={formId} />, document.body);
 }

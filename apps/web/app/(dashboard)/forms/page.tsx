@@ -220,6 +220,11 @@ export default function FormsPage() {
                         <Edit2 size={12} />
                       </button>
                     </Link>
+                    <Link href={`/forms/${form.id}/share`}>
+                      <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Share Form">
+                        <Share2 size={12} />
+                      </button>
+                    </Link>
                     <Link href={`/forms/${form.id}/responses`}>
                       <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Analytics">
                         <BarChart2 size={12} />

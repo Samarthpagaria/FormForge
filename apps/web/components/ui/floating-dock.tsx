@@ -18,13 +18,16 @@ import {
 
 import { useRef, useState } from "react";
 
+export type DockSubItem = { title: string; href: string; icon?: React.ReactNode };
+export type DockItem = { title: string; icon: React.ReactNode; href: string; subItems?: DockSubItem[] };
+
 export const FloatingDock = ({
   items,
   desktopClassName,
   mobileClassName,
   children,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
+  items: DockItem[];
   desktopClassName?: string;
   mobileClassName?: string;
   children?: React.ReactNode;
@@ -46,7 +49,7 @@ const FloatingDockMobile = ({
   className,
   children,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
+  items: DockItem[];
   className?: string;
   children?: React.ReactNode;
 }) => {
@@ -104,7 +107,7 @@ const FloatingDockDesktop = ({
   className,
   children,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
+  items: DockItem[];
   className?: string;
   children?: React.ReactNode;
 }) => {
@@ -135,11 +138,13 @@ function IconContainer({
   title,
   icon,
   href,
+  subItems,
 }: {
   mouseX: MotionValue;
   title: string;
   icon: React.ReactNode;
   href: string;
+  subItems?: DockSubItem[];
 }) {
   let ref = useRef<HTMLDivElement>(null);
 
@@ -183,34 +188,64 @@ function IconContainer({
 
   const [hovered, setHovered] = useState(false);
 
-  return (
-    <a href={href}>
+  const innerContent = (
+    <motion.div
+      ref={ref}
+      style={{ width, height }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800"
+    >
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 2, x: "-50%" }}
+            className={`absolute left-1/2 -translate-x-1/2 ${
+              subItems ? "bottom-full mb-4 w-48 rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-neutral-800 dark:bg-neutral-900" : "-top-8 w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre dark:border-neutral-900 dark:bg-neutral-800"
+            } text-neutral-700 dark:text-white z-50`}
+          >
+            {subItems ? (
+              <div className="flex flex-col">
+                <div className="px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 mb-1">
+                  {title}
+                </div>
+                <div className="flex flex-col gap-1">
+                  {subItems.map((sub, i) => (
+                    <a
+                      key={i}
+                      href={sub.href}
+                      className="flex items-center gap-2.5 px-2 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+                    >
+                      {sub.icon && <span className="w-4 h-4 flex items-center justify-center text-neutral-500">{sub.icon}</span>}
+                      {sub.title}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              title
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
       <motion.div
-        ref={ref}
-        style={{ width, height }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        className="relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800"
+        style={{ width: widthIcon, height: heightIcon }}
+        className="flex items-center justify-center"
       >
-        <AnimatePresence>
-          {hovered && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, x: "-50%" }}
-              animate={{ opacity: 1, y: 0, x: "-50%" }}
-              exit={{ opacity: 0, y: 2, x: "-50%" }}
-              className="absolute -top-8 left-1/2 w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white"
-            >
-              {title}
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <motion.div
-          style={{ width: widthIcon, height: heightIcon }}
-          className="flex items-center justify-center"
-        >
-          {icon}
-        </motion.div>
+        {icon}
       </motion.div>
-    </a>
+    </motion.div>
+  );
+
+  return (
+    <div className="relative">
+      {!subItems ? (
+        <a href={href}>{innerContent}</a>
+      ) : (
+        innerContent
+      )}
+    </div>
   );
 }
