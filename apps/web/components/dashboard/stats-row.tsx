@@ -15,61 +15,28 @@ export function AnimatedNumber({ value, decimals = 0, prefix = "", suffix = "" }
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => {
     const formatted = latest.toFixed(decimals);
-    if (decimals === 0) {
-      return prefix + Number(formatted).toLocaleString() + suffix;
-    }
+    if (decimals === 0) return prefix + Number(formatted).toLocaleString() + suffix;
     return prefix + formatted + suffix;
   });
 
   useEffect(() => {
-    const controls = animate(count, value, {
-      duration: 1.5,
-      ease: "easeOut",
-    });
+    const controls = animate(count, value, { duration: 1.5, ease: "easeOut" });
     return controls.stop;
   }, [value, count]);
 
   return <motion.span>{rounded}</motion.span>;
 }
 
-export function StatsRow() {
-  const stats = [
-    {
-      title: "Forms created",
-      value: 12,
-      decimals: 0,
-      suffix: "",
-      icon: FileText,
-      trend: "+2 this week",
-    },
-    {
-      title: "Submitted responses",
-      value: 1248,
-      decimals: 0,
-      suffix: "",
-      icon: Inbox,
-      trend: "+18% vs last month",
-    },
-    {
-      title: "Unique views",
-      value: 3842,
-      decimals: 0,
-      suffix: "",
-      icon: Eye,
-      trend: "+12% vs last month",
-    },
-    {
-      title: "Avg. completion",
-      value: 68.2,
-      decimals: 1,
-      suffix: "%",
-      icon: Percent,
-      trend: "+2.1% this week",
-    },
-  ];
+const stats = [
+  { title: "Forms created",        value: 12,    decimals: 0, suffix: "", icon: FileText, trend: "+2 this week" },
+  { title: "Submitted responses",  value: 1248,  decimals: 0, suffix: "", icon: Inbox,    trend: "+18% vs last month" },
+  { title: "Unique views",         value: 3842,  decimals: 0, suffix: "", icon: Eye,      trend: "+12% vs last month" },
+  { title: "Avg. completion",      value: 68.2,  decimals: 1, suffix: "%", icon: Percent,  trend: "+2.1% this week" },
+];
 
+export function StatsRow() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
@@ -78,30 +45,31 @@ export function StatsRow() {
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
-            className="relative overflow-hidden bg-neutral-50/50 dark:bg-zinc-900/40 border border-neutral-200/80 dark:border-zinc-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-0.5 cursor-default"
+            transition={{ duration: 0.45, delay: index * 0.08, ease: "easeOut" }}
+            className="relative overflow-hidden bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-0.5 cursor-default"
           >
-            {/* Minimal left border in violet */}
-            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-violet-600 dark:bg-violet-500 rounded-l-2xl transition-transform duration-300 origin-left" />
+            {/* Thin top accent line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-neutral-300 via-neutral-500 to-neutral-300 dark:from-zinc-700 dark:via-zinc-400 dark:to-zinc-700" />
 
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[11px] font-medium text-neutral-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
+            <div className="flex h-full">
+              {/* Left — 70% info */}
+              <div className="flex-1 min-w-0 p-4 flex flex-col justify-between">
+                <span className="text-[10px] font-semibold text-neutral-400 dark:text-zinc-500 uppercase tracking-widest leading-none">
                   {stat.title}
                 </span>
-                <span className="text-2xl font-semibold text-neutral-900 dark:text-zinc-100 tracking-tight block">
-                  <AnimatedNumber
-                    value={stat.value}
-                    decimals={stat.decimals}
-                    suffix={stat.suffix}
-                  />
+                <span className="text-2xl font-bold text-neutral-900 dark:text-zinc-50 tracking-tight mt-2 block">
+                  <AnimatedNumber value={stat.value} decimals={stat.decimals} suffix={stat.suffix} />
                 </span>
-                <span className="text-xs font-normal text-neutral-400 dark:text-zinc-500 mt-1 block">
+                <span className="text-[10px] font-normal text-neutral-400 dark:text-zinc-500 mt-2 block">
                   {stat.trend}
                 </span>
               </div>
-              <div className="text-neutral-400 dark:text-zinc-500 p-2 bg-neutral-100/50 dark:bg-zinc-800/50 rounded-xl transition-colors duration-300 group-hover:text-violet-600 dark:group-hover:text-violet-400">
-                <Icon size={18} className="stroke-[1.75]" />
+
+              {/* Right — icon panel */}
+              <div className="flex items-center justify-center w-[30%] shrink-0 border-l border-neutral-100 dark:border-zinc-800 bg-neutral-50 dark:bg-zinc-800/40 rounded-r-2xl">
+                <div className="p-3 rounded-xl bg-neutral-100 dark:bg-zinc-800 group-hover:bg-neutral-200 dark:group-hover:bg-zinc-700 transition-colors duration-300">
+                  <Icon size={22} className="stroke-[1.5] text-neutral-600 dark:text-zinc-300" />
+                </div>
               </div>
             </div>
           </motion.div>

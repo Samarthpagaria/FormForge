@@ -2,12 +2,24 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Sparkles, RefreshCw } from "lucide-react";
+import { Sparkles, RefreshCw, Settings } from "lucide-react";
+import Link from "next/link";
 
 interface FloatingActionsProps {
   onRefresh: () => void;
   onAIClick?: () => void;
   isRefreshing?: boolean;
+}
+
+const btnBase =
+  "flex h-12 w-12 items-center justify-center rounded-full border border-neutral-200/80 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 text-neutral-500 dark:text-zinc-400 shadow-md backdrop-blur-md hover:text-neutral-900 dark:hover:text-zinc-100 hover:border-neutral-300 dark:hover:border-zinc-700 hover:shadow-lg transition-all duration-200 cursor-pointer";
+
+function Tooltip({ label }: { label: string }) {
+  return (
+    <div className="absolute right-14 top-1/2 -translate-y-1/2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out whitespace-nowrap bg-neutral-900 text-neutral-100 dark:bg-white dark:text-neutral-900 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1.5 rounded-lg shadow-sm select-none">
+      {label}
+    </div>
+  );
 }
 
 export function FloatingActions({
@@ -16,20 +28,30 @@ export function FloatingActions({
   isRefreshing = false,
 }: FloatingActionsProps) {
   return (
-    <div className="fixed bottom-6 right-6 flex flex-col gap-3.5 z-50">
-      
-      {/* 1. Refresh Button */}
-      <div className="group relative">
-        {/* Tooltip */}
-        <div className="absolute right-14 top-1/2 -translate-y-1/2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out whitespace-nowrap bg-neutral-900 text-neutral-100 dark:bg-neutral-50 dark:text-neutral-950 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1.5 rounded-lg shadow-sm border border-neutral-800 dark:border-neutral-200 select-none">
-          Refresh data
-        </div>
+    <div className="fixed bottom-6 right-6 flex flex-col gap-2.5 z-50">
 
+      {/* Settings */}
+      <div className="group relative">
+        <Tooltip label="Settings" />
+        <Link href="/settings">
+          <motion.div
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+            className={btnBase}
+          >
+            <Settings size={17} className="stroke-[1.75]" />
+          </motion.div>
+        </Link>
+      </div>
+
+      {/* Refresh */}
+      <div className="group relative">
+        <Tooltip label="Refresh data" />
         <motion.button
           onClick={onRefresh}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-neutral-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 text-neutral-600 dark:text-zinc-400 shadow-sm backdrop-blur-sm hover:text-neutral-900 dark:hover:text-zinc-100 hover:shadow-md transition-colors duration-300 cursor-pointer"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          className={btnBase}
         >
           <motion.div
             animate={isRefreshing ? { rotate: 360 } : { rotate: 0 }}
@@ -41,37 +63,29 @@ export function FloatingActions({
               duration: isRefreshing ? 1 : 0.5,
             }}
           >
-            <RefreshCw size={16} className="stroke-[1.75]" />
+            <RefreshCw size={17} className="stroke-[1.75]" />
           </motion.div>
         </motion.button>
       </div>
 
-      {/* 2. AI Assistant Button */}
+      {/* AI */}
       <div className="group relative">
-        {/* Tooltip */}
-        <div className="absolute right-14 top-1/2 -translate-y-1/2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out whitespace-nowrap bg-neutral-900 text-neutral-100 dark:bg-neutral-50 dark:text-neutral-950 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1.5 rounded-lg shadow-sm border border-neutral-800 dark:border-neutral-200 select-none">
-          AI Assistant
-        </div>
-
+        <Tooltip label="AI Assistant" />
         <motion.button
           onClick={onAIClick}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
           animate={{
             boxShadow: [
-              "0 0 0 0 rgba(91, 33, 182, 0)",
-              "0 0 0 8px rgba(91, 33, 182, 0.08)",
-              "0 0 0 0 rgba(91, 33, 182, 0)",
+              "0 0 0 0 rgba(15,15,15,0)",
+              "0 0 0 8px rgba(15,15,15,0.07)",
+              "0 0 0 0 rgba(15,15,15,0)",
             ],
           }}
-          transition={{
-            repeat: Infinity,
-            duration: 2.5,
-            ease: "easeInOut",
-          }}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-600 dark:bg-violet-500 text-white shadow-md shadow-violet-500/15 hover:bg-violet-700 dark:hover:bg-violet-600 transition-colors duration-300 cursor-pointer"
+          transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-neutral-900 to-neutral-700 dark:from-zinc-100 dark:to-zinc-300 text-white dark:text-neutral-900 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer"
         >
-          <Sparkles size={16} className="stroke-[1.75]" />
+          <Sparkles size={17} className="stroke-[1.75]" />
         </motion.button>
       </div>
 

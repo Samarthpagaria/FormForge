@@ -40,7 +40,7 @@ export function RecentSubmissions({ submissions }: RecentSubmissionsProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="bg-neutral-50/50 dark:bg-zinc-900/40 border border-neutral-200/80 dark:border-zinc-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-sm"
+      className="bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800/80 rounded-2xl p-5 shadow-sm"
     >
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -75,7 +75,7 @@ export function RecentSubmissions({ submissions }: RecentSubmissionsProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-neutral-200/60 dark:border-zinc-850 text-neutral-400 dark:text-zinc-500 font-medium">
+              <tr className="border-b border-neutral-100 dark:border-zinc-800 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-zinc-500">
                 <th className="py-2 px-3">Form Name</th>
                 <th className="py-2 px-3">Respondent</th>
                 <th className="py-2 px-3 text-center">Device</th>

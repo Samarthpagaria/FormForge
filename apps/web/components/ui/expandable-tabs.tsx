@@ -51,7 +51,7 @@ export function ExpandableTabs({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-2 rounded-2xl border bg-background/80 backdrop-blur-md p-1.5 shadow-sm border-neutral-200 dark:border-zinc-800",
+        "flex flex-wrap items-center gap-1 rounded-full border bg-background/80 backdrop-blur-md p-1 shadow-sm border-neutral-200 dark:border-zinc-800",
         className
       )}
     >
@@ -72,7 +72,7 @@ export function ExpandableTabs({
               custom={isExpanded}
               transition={transition}
               className={cn(
-                "relative flex items-center h-10 rounded-xl px-3 text-sm font-medium transition-colors duration-300 cursor-pointer select-none",
+                "relative flex items-center h-7 rounded-full px-2.5 text-xs font-medium transition-colors duration-300 cursor-pointer select-none",
                 isActive
                   ? cn("bg-neutral-100 dark:bg-zinc-850", activeColor)
                   : "text-neutral-600 dark:text-zinc-400 hover:bg-neutral-100/60 dark:hover:bg-zinc-800/40 hover:text-neutral-900 dark:hover:text-zinc-200"
