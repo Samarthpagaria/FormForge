@@ -199,20 +199,7 @@ export function FieldSettings() {
           </div>
         </section>
 
-        <Divider />
 
-        {/* ── Conditional Logic note ── */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
-            <List size={13} /> Conditional Logic
-          </h3>
-          <p className="text-[11px] text-neutral-400 leading-relaxed">
-            Conditional logic is stored in the form schema but not yet enforced server-side at submission time. Client-side evaluation is planned.
-          </p>
-          <button className="w-full border border-dashed border-neutral-300 rounded-lg p-2.5 text-xs font-medium text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 transition-colors flex items-center justify-center gap-1.5">
-            <Plus size={13} /> Add conditional rule
-          </button>
-        </section>
 
       </div>
 

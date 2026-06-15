@@ -167,6 +167,12 @@ function CanvasDropZone() {
 // ─── Builder UI ──────────────────────────────────────────────────
 function BuilderUI() {
   const { fields, addField, reorderFields } = useFormBuilderStore();
+  const [formName, setFormName] = useState("Untitled Form");
+
+  const handleNameUpdate = () => {
+    // Stub logic to hit the update route only if changed
+    console.log(`[Stub] Hitting update route with new name: ${formName}`);
+  };
 
   const dockLinks = [
     {
@@ -187,11 +193,6 @@ function BuilderUI() {
     {
       title: "Publish",
       icon: <IconUpload className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: "#",
-    },
-    {
-      title: "Form Name Settings",
-      icon: <IconForms className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
       href: "#",
     },
   ];
@@ -277,7 +278,7 @@ function BuilderUI() {
         onDragEnd={handleDragEnd}
       >
         {/* Three-column layout with original dashboard-style padding */}
-        <div className="flex gap-6 h-full px-6 py-5">
+        <div className="flex gap-6 h-full px-6 pt-5 pb-[100px]">
 
           {/* LEFT — Field Palette */}
           <div className="w-[260px] shrink-0 bg-white rounded-2xl border border-neutral-200 shadow-sm shadow-neutral-200/40 flex flex-col overflow-hidden">
@@ -296,7 +297,16 @@ function BuilderUI() {
 
         {/* ── Floating Dock Toolbar ── */}
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-          <FloatingDock items={dockLinks} />
+          <FloatingDock items={dockLinks}>
+            <input
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+              onBlur={handleNameUpdate}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
+              className="bg-transparent border-none outline-none text-sm font-bold text-neutral-700 w-36 focus:ring-2 focus:ring-violet-200 rounded px-2 py-1 transition-all"
+              placeholder="Form Name"
+            />
+          </FloatingDock>
         </div>
 
         <DragOverlay dropAnimation={dropAnimation}>

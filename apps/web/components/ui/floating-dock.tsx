@@ -22,15 +22,21 @@ export const FloatingDock = ({
   items,
   desktopClassName,
   mobileClassName,
+  children,
 }: {
   items: { title: string; icon: React.ReactNode; href: string }[];
   desktopClassName?: string;
   mobileClassName?: string;
+  children?: React.ReactNode;
 }) => {
   return (
     <>
-      <FloatingDockDesktop items={items} className={desktopClassName} />
-      <FloatingDockMobile items={items} className={mobileClassName} />
+      <FloatingDockDesktop items={items} className={desktopClassName}>
+        {children}
+      </FloatingDockDesktop>
+      <FloatingDockMobile items={items} className={mobileClassName}>
+        {children}
+      </FloatingDockMobile>
     </>
   );
 };
@@ -38,9 +44,11 @@ export const FloatingDock = ({
 const FloatingDockMobile = ({
   items,
   className,
+  children,
 }: {
   items: { title: string; icon: React.ReactNode; href: string }[];
   className?: string;
+  children?: React.ReactNode;
 }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -86,6 +94,7 @@ const FloatingDockMobile = ({
       >
         <IconLayoutNavbarCollapse className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
       </button>
+      {children && <div className="ml-2">{children}</div>}
     </div>
   );
 };
@@ -93,9 +102,11 @@ const FloatingDockMobile = ({
 const FloatingDockDesktop = ({
   items,
   className,
+  children,
 }: {
   items: { title: string; icon: React.ReactNode; href: string }[];
   className?: string;
+  children?: React.ReactNode;
 }) => {
   let mouseX = useMotionValue(Infinity);
   return (
@@ -103,13 +114,18 @@ const FloatingDockDesktop = ({
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
       className={cn(
-        "mx-auto hidden h-16 items-end gap-4 rounded-2xl bg-gray-50 px-4 pb-3 md:flex dark:bg-neutral-900",
+        "mx-auto hidden h-16 items-end gap-4 rounded-2xl bg-white border border-neutral-200 shadow-lg shadow-neutral-200/50 px-4 pb-3 md:flex dark:bg-neutral-900 dark:border-neutral-800",
         className,
       )}
     >
       {items.map((item) => (
         <IconContainer mouseX={mouseX} key={item.title} {...item} />
       ))}
+      {children && (
+        <div className="flex items-center h-10 mb-0 ml-2 border-l border-neutral-200 pl-4">
+          {children}
+        </div>
+      )}
     </motion.div>
   );
 };
@@ -133,14 +149,14 @@ function IconContainer({
     return val - bounds.x - bounds.width / 2;
   });
 
-  let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-  let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
+  let widthTransform = useTransform(distance, [-150, 0, 150], [40, 56, 40]);
+  let heightTransform = useTransform(distance, [-150, 0, 150], [40, 56, 40]);
 
-  let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
+  let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 28, 20]);
   let heightTransformIcon = useTransform(
     distance,
     [-150, 0, 150],
-    [20, 40, 20],
+    [20, 28, 20],
   );
 
   let width = useSpring(widthTransform, {
