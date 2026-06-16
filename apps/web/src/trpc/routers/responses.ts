@@ -171,13 +171,21 @@ export const responsesRouter = createTRPCRouter({
             .where(eq(users.id, form[0].userId))
             .limit(1);
 
+          const totalSubmissionsQuery = await ctx.db
+            .select({ count: count() })
+            .from(submissions)
+            .where(eq(submissions.formId, form[0].id));
+
           if (formOwner[0]?.email && newSubmission[0]) {
             await sendSubmissionEmail({
               formOwnerEmail: formOwner[0].email,
+              formOwnerName: formOwner[0].name,
+              formId: form[0].id,
               formName: form[0].name,
               submissionId: newSubmission[0]!.id,
               answers: input.answers,
               submittedAt: new Date(),
+              totalResponses: totalSubmissionsQuery[0]?.count || 1,
             });
           }
         } catch (emailErr) {
