@@ -41,6 +41,9 @@ importers:
       '@formforge/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@formforge/form-engine':
+        specifier: workspace:*
+        version: link:../../packages/form-engine
       '@internationalized/date':
         specifier: ^3.12.2
         version: 3.12.2
@@ -235,6 +238,12 @@ importers:
       typescript-eslint:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.2)
+
+  packages/form-engine:
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.2
 
   packages/typescript-config: {}
 

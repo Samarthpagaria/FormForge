@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FormSchema } from "./schema";
+import { FormSchema, validateField, validateForm } from "@formforge/form-engine";
 
 export function useFormEngine(schema: FormSchema, onSubmit?: (data: Record<string, any>) => void) {
   const [values, setValues] = useState<Record<string, any>>({});
@@ -18,40 +18,16 @@ export function useFormEngine(schema: FormSchema, onSubmit?: (data: Record<strin
     }
   };
 
-  const validateField = (fieldId: string, val: any): string | null => {
+  const handleValidateField = (fieldId: string, val: any): string | null => {
     const field = schema.fields.find(f => f.id === fieldId);
     if (!field) return null;
-
-    if (field.required) {
-      if (val === undefined || val === null || val === "" || (Array.isArray(val) && val.length === 0)) {
-        return "This field is required";
-      }
-    }
-    
-    // Basic email validation if not empty
-    if (field.type === "email" && val && typeof val === "string") {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-        return "Please enter a valid email address";
-      }
-    }
-
-    return null;
+    return validateField(field, val);
   };
 
   const validateAll = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    let isValid = true;
-
-    for (const field of schema.fields) {
-      const error = validateField(field.id, values[field.id]);
-      if (error) {
-        newErrors[field.id] = error;
-        isValid = false;
-      }
-    }
-
+    const { valid, errors: newErrors } = validateForm(schema, values);
     setErrors(newErrors);
-    return isValid;
+    return valid;
   };
 
   const handleSubmit = async () => {
@@ -73,7 +49,7 @@ export function useFormEngine(schema: FormSchema, onSubmit?: (data: Record<strin
     errors,
     isSubmitting,
     handleChange,
-    validateField,
+    validateField: handleValidateField,
     validateAll,
     handleSubmit,
     setErrors

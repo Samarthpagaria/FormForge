@@ -1,0 +1,13 @@
+{
+  "name": "@formforge/form-engine",
+  "version": "1.0.0",
+  "description": "Form engine logic, types, and validation",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

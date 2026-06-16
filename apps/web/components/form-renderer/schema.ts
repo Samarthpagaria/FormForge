@@ -1,25 +1,6 @@
-export type FieldType = "text" | "email" | "phone" | "number" | "textarea" | "select" | "radio" | "checkbox" | "date" | "file" | "rating";
+import { FormSchema } from "@formforge/form-engine";
 
-export interface FormField {
-  id: string;
-  type: FieldType;
-  label: string;
-  description?: string;
-  required: boolean;
-  options?: string[]; // For select, radio, checkbox
-  placeholder?: string;
-}
-
-export interface FormSchema {
-  id: string;
-  title: string;
-  description?: string;
-  fields: FormField[];
-  settings: {
-    closeAfterResponses?: number;
-    successMessage?: string;
-  };
-}
+export * from "@formforge/form-engine";
 
 export const DUMMY_FORM_SCHEMA: FormSchema = {
   id: "form_123abc",
@@ -32,6 +13,7 @@ export const DUMMY_FORM_SCHEMA: FormSchema = {
       label: "Full Name",
       placeholder: "e.g. Jane Doe",
       required: true,
+      width: "full",
     },
     {
       id: "f_2",
@@ -39,6 +21,7 @@ export const DUMMY_FORM_SCHEMA: FormSchema = {
       label: "Email Address",
       placeholder: "jane@example.com",
       required: true,
+      width: "full",
     },
     {
       id: "f_3",
@@ -46,6 +29,7 @@ export const DUMMY_FORM_SCHEMA: FormSchema = {
       label: "How satisfied are you?",
       required: true,
       options: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied", "Very Dissatisfied"],
+      width: "full",
     },
     {
       id: "f_4",
@@ -53,6 +37,7 @@ export const DUMMY_FORM_SCHEMA: FormSchema = {
       label: "Message",
       placeholder: "Tell us more about your experience...",
       required: false,
+      width: "full",
     },
     {
       id: "f_5",
@@ -60,12 +45,14 @@ export const DUMMY_FORM_SCHEMA: FormSchema = {
       label: "Did you face any issues?",
       required: false,
       options: ["Slow performance", "Poor UI", "Missing features", "Bugs/Errors"],
+      width: "full",
     },
     {
       id: "f_6",
       type: "rating",
       label: "Overall Rating",
       required: true,
+      width: "full",
     }
   ],
   settings: {

@@ -1,0 +1,15 @@
+import { FieldType } from "./types";
+
+export const FIELD_DEFAULTS: Record<FieldType, { label: string; placeholder?: string; options?: string[] }> = {
+  text: { label: "Short Answer", placeholder: "Type here..." },
+  email: { label: "Email Address", placeholder: "you@example.com" },
+  phone: { label: "Phone Number", placeholder: "+1 (555) 000-0000" },
+  number: { label: "Number", placeholder: "0" },
+  textarea: { label: "Long Answer", placeholder: "Type your detailed answer here..." },
+  select: { label: "Dropdown", options: ["Option 1", "Option 2", "Option 3"] },
+  radio: { label: "Single Choice", options: ["Option 1", "Option 2", "Option 3"] },
+  checkbox: { label: "Multiple Choice", options: ["Option 1", "Option 2", "Option 3"] },
+  date: { label: "Date" },
+  file: { label: "File Upload" },
+  rating: { label: "Rating" },
+};

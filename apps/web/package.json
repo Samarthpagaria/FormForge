@@ -18,6 +18,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@formforge/db": "workspace:*",
+    "@formforge/form-engine": "workspace:*",
     "@internationalized/date": "^3.12.2",
     "@lottiefiles/dotlottie-react": "^0.19.4",
     "@repo/ui": "workspace:*",
