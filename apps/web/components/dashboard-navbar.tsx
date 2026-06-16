@@ -15,16 +15,13 @@ import {
   BookOpen,
   Plus,
 } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 /* ── Left: Logo ─────────────────────────── */
 function NavLeft() {
   return (
     <div className="flex items-center">
-      <Link href="/dashboard" className="select-none">
-        <span className="text-base font-bold tracking-tight text-neutral-900 dark:text-zinc-50">
-          FormForge
-        </span>
-      </Link>
+      <Logo />
     </div>
   );
 }

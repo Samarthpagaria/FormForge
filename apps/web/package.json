@@ -19,6 +19,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@formforge/db": "workspace:*",
     "@internationalized/date": "^3.12.2",
+    "@lottiefiles/dotlottie-react": "^0.19.4",
     "@repo/ui": "workspace:*",
     "@tabler/icons-react": "^3.44.0",
     "@tanstack/react-query": "^5.101.0",
