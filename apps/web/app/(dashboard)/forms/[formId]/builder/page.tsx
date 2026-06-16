@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { 
   DndContext, 
@@ -28,6 +29,7 @@ import { FieldCard, EmptySlot } from "@/components/builder/field-card";
 import { useFormBuilderStore, FieldType } from "@/stores/useFormBuilderStore";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { VersionHistoryPanel } from "@/components/builder/version-history-panel";
+import { SaveTemplateModal } from "@/components/builder/SaveTemplateModal";
 import {
   IconSettings,
   IconEye,
@@ -107,6 +109,8 @@ function CanvasDropZone({ previewFields }: { previewFields?: any[] }) {
         helpText={f.helpText}
         required={f.required}
         width={f.width}
+        options={f.options}
+        ratingMax={f.ratingMax}
         state={isPreviewMode ? "default" : (activeElementId === f.id ? "selected" : "default")}
         onClick={(e) => { e.stopPropagation(); if (!isPreviewMode) setActiveField(f.id); }}
         onDelete={isPreviewMode ? undefined : () => removeField(f.id)}
@@ -179,6 +183,7 @@ function CanvasDropZone({ previewFields }: { previewFields?: any[] }) {
 function BuilderUI({ formId }: { formId: string }) {
   const { fields, setFields, addField, reorderFields } = useFormBuilderStore();
   const utils = trpc.useUtils();
+  const router = useRouter();
 
   const { data: form, isLoading: loadingForm, isError: formError, refetch: refetchForm } = trpc.forms.getById.useQuery({ id: formId });
   const { data: versions, isLoading: loadingVersions, isError: versionsError, refetch: refetchVersions } = trpc.formVersions.getAll.useQuery({ formId });
@@ -187,28 +192,38 @@ function BuilderUI({ formId }: { formId: string }) {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [isInitialized, setIsInitialized] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [previewingVersion, setPreviewingVersion] = useState<any>(null);
 
   const { mutate: updateForm } = trpc.forms.update.useMutation({
     onError: (err) => toast.error(err.message || "Failed to update form name"),
   });
-  const { mutate: createVersion } = trpc.formVersions.create.useMutation({
+  const { mutate: updateDraft } = trpc.forms.update.useMutation({
     onSuccess: () => {
       setSaveStatus("saved");
-      utils.formVersions.getAll.invalidate({ formId });
     },
     onError: () => {
       setSaveStatus("idle");
-      toast.error("Failed to save form");
+      toast.error("Failed to save draft");
     }
   });
 
-  const { mutate: publishForm, isPending: isPublishing } = trpc.forms.publish.useMutation({
+  const { mutate: publishVersion, isPending: isPublishing } = trpc.formVersions.publishVersion.useMutation({
     onSuccess: () => {
       toast.success("Form published successfully!");
       utils.forms.getById.invalidate({ id: formId });
+      utils.formVersions.getAll.invalidate({ formId });
+      router.push(`/forms/${formId}/share`);
     },
     onError: (err) => toast.error(err.message || "Failed to publish form"),
+  });
+
+  const { mutate: createSnapshot, isPending: isCreatingSnapshot } = trpc.formVersions.createSnapshot.useMutation({
+    onSuccess: () => {
+      toast.success("Version saved to history!");
+      utils.formVersions.getAll.invalidate({ formId });
+    },
+    onError: (err) => toast.error(err.message || "Failed to save version"),
   });
 
   const { mutate: saveAsTemplate, isPending: isSavingTemplate } = trpc.templates.createUserTemplate.useMutation({
@@ -217,31 +232,46 @@ function BuilderUI({ formId }: { formId: string }) {
   });
 
   // Load Initial Data
+  const lastSavedFields = useRef<string | null>(null);
+
   useEffect(() => {
     if (form && versions && !isInitialized) {
       setFormName(form.name);
-      const latestVersion = versions[0];
-      if (latestVersion && latestVersion.schema && Array.isArray((latestVersion.schema as any).fields)) {
-        setFields((latestVersion.schema as any).fields);
+      
+      let loadedFields = [];
+      if (form.draftSchema && Array.isArray((form.draftSchema as any).fields) && (form.draftSchema as any).fields.length > 0) {
+        loadedFields = (form.draftSchema as any).fields;
+      } else {
+        const latestVersion = versions[0];
+        if (latestVersion && latestVersion.schema && Array.isArray((latestVersion.schema as any).fields)) {
+          loadedFields = (latestVersion.schema as any).fields;
+        }
       }
+      
+      setFields(loadedFields);
+      lastSavedFields.current = JSON.stringify(loadedFields);
       setIsInitialized(true);
     }
   }, [form, versions, isInitialized, setFields]);
 
   // Auto-Save
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!isInitialized || lastSavedFields.current === null) return;
+    
+    const currentFieldsStr = JSON.stringify(fields);
+    if (currentFieldsStr === lastSavedFields.current) return;
     
     setSaveStatus("saving");
     const timeoutId = setTimeout(() => {
-      createVersion({
-        formId,
-        schema: { fields }
+      updateDraft({
+        id: formId,
+        draftSchema: { fields }
       });
+      lastSavedFields.current = currentFieldsStr;
     }, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [fields, isInitialized, createVersion, formId]);
+  }, [fields, isInitialized, updateDraft, formId]);
 
   const handleNameUpdate = () => {
     if (formName.trim() && formName !== form?.name) {
@@ -249,32 +279,7 @@ function BuilderUI({ formId }: { formId: string }) {
     }
   };
 
-  const dockLinks = [
-    {
-      title: "Build Mode",
-      icon: <IconSettings className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: `/forms/${formId}/builder`,
-    },
-    {
-      title: "Preview Form",
-      icon: <IconEye className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: `/f/${formId}`,
-      subItems: [
-        { title: "Normal Mode", href: `/f/${formId}?mode=normal`, icon: <IconLayoutList /> },
-        { title: "Chat Mode", href: `/f/${formId}?mode=chat`, icon: <IconMessageCircle /> },
-        { title: "Terminal Mode", href: `/f/${formId}?mode=terminal`, icon: <IconTerminal2 /> },
-        { title: "One-by-One", href: `/f/${formId}?mode=one-by-one`, icon: <IconDeviceMobile /> },
-        { title: "Card Swipe", href: `/f/${formId}?mode=swipe`, icon: <IconCards /> },
-        { title: "Story Mode", href: `/f/${formId}?mode=story`, icon: <IconBook /> },
-        { title: "Slide Mode", href: `/f/${formId}?mode=slide`, icon: <IconSlideshow /> },
-      ]
-    },
-    {
-      title: "Save Draft",
-      icon: <IconDeviceFloppy className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: `#`,
-    },
-  ];
+
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragType, setActiveDragType] = useState<"palette" | "canvas" | null>(null);
@@ -386,12 +391,17 @@ function BuilderUI({ formId }: { formId: string }) {
             <FieldPalette />
           </div>
           
-          <div className="flex-1 flex flex-col gap-4 relative">
+          <div className="flex-1 flex flex-col gap-4 relative pt-2">
+            <div className="absolute top-0 right-4 z-10 pointer-events-none">
+              <span className="bg-white/90 backdrop-blur-sm shadow-sm text-neutral-500 text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full border border-neutral-200">
+                {previewingVersion ? `Preview v${previewingVersion.version}` : versions?.length ? `Draft (v${Number(versions[0].version) + 1})` : 'Draft'}
+              </span>
+            </div>
             {previewingVersion && (
               <div className="bg-neutral-800 text-white p-3 rounded-2xl shadow-lg flex items-center justify-between text-sm px-6">
                 <span className="font-semibold">👁 Previewing v{versions?.length! - versions?.findIndex(v => v.id === previewingVersion.id)!} — {new Date(previewingVersion.createdAt).toLocaleString()}</span>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setPreviewingVersion(null)} className="text-neutral-300 hover:text-white transition-colors">
+                  <button onClick={() => setPreviewingVersion(null)} className="text-neutral-300 hover:text-white transition-colors pointer-events-auto">
                     ← Back to current
                   </button>
                 </div>
@@ -404,15 +414,12 @@ function BuilderUI({ formId }: { formId: string }) {
             {isHistoryOpen ? (
               <VersionHistoryPanel 
                 formId={formId} 
-                currentVersionId={versions?.[0]?.id || ""}
+                currentVersionId={form?.currentVersionId || ""}
                 previewingVersionId={previewingVersion?.id || null}
                 onClose={() => setIsHistoryOpen(false)}
                 onPreview={(version) => setPreviewingVersion(version)}
                 onRestoreSuccess={() => {
-                  refetchVersions();
-                  refetchForm();
-                  setIsHistoryOpen(false);
-                  setPreviewingVersion(null);
+                  window.location.reload();
                 }}
               />
             ) : (
@@ -422,53 +429,121 @@ function BuilderUI({ formId }: { formId: string }) {
         </div>
 
         {/* Floating Toolbar & Actions */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4">
-          <FloatingDock items={dockLinks}>
-            <div className="flex items-center gap-3 w-48">
-              <input
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                onBlur={handleNameUpdate}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
-                className="bg-transparent border-none outline-none text-sm font-bold text-neutral-700 w-full focus:ring-2 focus:ring-violet-200 rounded px-2 py-1 transition-all"
-                placeholder="Form Name"
-              />
-            </div>
-          </FloatingDock>
-          
-          <div className="flex items-center gap-3">
-            <div className="w-16 flex justify-end">
-              <span className={`text-[11px] font-medium transition-opacity duration-300 ${saveStatus === "saving" ? "text-neutral-500 opacity-100" : saveStatus === "saved" ? "text-emerald-500 opacity-100" : "opacity-0"}`}>
-                {saveStatus === "saving" ? "Saving..." : "Saved \u2713"}
-              </span>
-            </div>
-
-            <button 
-              onClick={() => saveAsTemplate({ schema: { fields } as any, name: `${formName} Template` })}
-              disabled={isSavingTemplate}
-              className="px-4 py-2.5 bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-semibold rounded-2xl shadow-lg transition-all flex items-center gap-2 border border-neutral-200 disabled:opacity-50"
-            >
-              {isSavingTemplate ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
-              Save Template
-            </button>
-
-            <button 
-              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-              className={`px-4 py-2.5 ${isHistoryOpen ? "bg-violet-100 text-violet-700 border-violet-200" : "bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200"} text-xs font-semibold rounded-2xl shadow-lg transition-all flex items-center gap-2 border`}
-            >
-              <History size={16} />
-              History
-            </button>
-            <button 
-              onClick={() => publishForm({ id: formId })}
-              disabled={isPublishing}
-              className="px-5 py-2.5 bg-[#18181b] hover:bg-[#27272a] text-white text-xs font-semibold rounded-2xl shadow-lg shadow-black/20 transition-all flex items-center gap-2 border border-black/10 disabled:opacity-50"
-            >
-              {isPublishing ? <Loader2 size={16} className="animate-spin" /> : <IconUpload size={16} />}
-              Publish
-            </button>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-white border border-neutral-200 shadow-xl shadow-black/10 rounded-full p-2 h-16">
+          {/* Name */}
+          <div className="flex items-center px-4 border-r border-neutral-200 h-full">
+            <input
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+              onBlur={handleNameUpdate}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
+              className="bg-transparent border-none outline-none text-sm font-semibold text-neutral-800 w-32 focus:ring-0 placeholder-neutral-400"
+              placeholder="Form Name"
+            />
           </div>
+
+          {/* Current Options */}
+          <div className="relative group flex items-center">
+            <a href={form?.slug ? `/f/${form.slug}?draft=true` : "#"} target="_blank" title="Preview your current draft in a new tab" className="px-4 py-2 text-sm font-medium hover:bg-neutral-100 rounded-full flex items-center gap-2 text-neutral-600 transition-colors">
+              <IconEye size={18} /> Preview
+            </a>
+            {/* Main Dropdown */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col bg-white border border-neutral-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-xl w-48 z-50">
+              
+              {/* Draft Menu Item (Nested) */}
+              <div className="relative group/draft">
+                <div className="px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 flex items-center justify-between cursor-default transition-colors rounded-t-xl">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-amber-500" /> Draft Preview
+                  </div>
+                  <ChevronRight size={14} className="text-neutral-400" />
+                </div>
+                
+                {/* Nested Draft Layouts */}
+                <div className="absolute bottom-0 right-full mr-2 opacity-0 invisible group-hover/draft:opacity-100 group-hover/draft:visible transition-all duration-200 flex flex-col bg-white border border-neutral-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-xl overflow-hidden w-48 z-50">
+                  <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400 bg-neutral-50/80 border-b border-neutral-100">
+                    Layout Modes
+                  </div>
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=normal` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                    <IconLayoutList size={16} className="text-violet-500" /> Standard
+                  </a>
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=story` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                    <IconBook size={16} className="text-blue-500" /> Story Mode
+                  </a>
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=swipe` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                    <IconCards size={16} className="text-amber-500" /> Card Mode
+                  </a>
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=one-by-one` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                    <IconForms size={16} className="text-orange-500" /> One-by-One
+                  </a>
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=slide` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                    <IconSlideshow size={16} className="text-indigo-500" /> Slide Mode
+                  </a>
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=terminal` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                    <IconTerminal2 size={16} className="text-emerald-500" /> Terminal
+                  </a>
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=chat` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                    <IconMessageCircle size={16} className="text-pink-500" /> Chat Mode
+                  </a>
+                </div>
+              </div>
+
+              <a href={form?.slug ? `/f/${form.slug}` : "#"} target="_blank" className="px-4 py-3 text-sm font-bold text-neutral-900 hover:bg-neutral-50 flex items-center gap-2 transition-colors rounded-b-xl">
+                <div className="w-2 h-2 rounded-full bg-emerald-500" /> Live Published
+              </a>
+            </div>
+          </div>
+
+          <div className="w-px h-8 bg-neutral-200 mx-1" />
+
+          {/* Actions */}
+          <button 
+            onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+            className={`px-4 py-2 ${isHistoryOpen ? "bg-violet-100 text-violet-700" : "hover:bg-neutral-100 text-neutral-600"} text-sm font-medium rounded-full transition-colors flex items-center gap-2`}
+          >
+            <History size={18} /> History
+          </button>
+
+          <button 
+            onClick={() => setIsTemplateModalOpen(true)}
+            className="px-4 py-2 hover:bg-neutral-100 text-neutral-600 text-sm font-medium rounded-full transition-colors flex items-center gap-2"
+            title="Save as reusable dashboard template"
+          >
+            <FileText size={18} />
+            Save as Template
+          </button>
+
+          <button
+            onClick={() => createSnapshot({ formId })}
+            disabled={isCreatingSnapshot}
+            className="px-4 py-2 hover:bg-neutral-100 text-neutral-600 text-sm font-medium rounded-full transition-colors flex items-center gap-2"
+            title="Save to history but keep private"
+          >
+            {isCreatingSnapshot ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+            Save Version
+          </button>
+
+          <button 
+            onClick={() => publishVersion({ formId })}
+            disabled={isPublishing}
+            className="px-6 py-2 bg-[#18181b] hover:bg-[#27272a] text-white text-sm font-medium rounded-full shadow-md transition-all flex items-center gap-2 disabled:opacity-50 ml-1"
+            title="Push changes live to public"
+          >
+            {isPublishing ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            Publish
+          </button>
         </div>
+
+        <SaveTemplateModal
+          isOpen={isTemplateModalOpen}
+          onClose={() => setIsTemplateModalOpen(false)}
+          defaultName={formName.endsWith("Template") ? formName : `${formName} Template`}
+          isSaving={isSavingTemplate}
+          onSave={(name, categoryId) => {
+            saveAsTemplate({ schema: { fields } as any, name, categoryId });
+            setIsTemplateModalOpen(false);
+          }}
+        />
 
         <DragOverlay dropAnimation={dropAnimation}>
           {activeDragId ? (

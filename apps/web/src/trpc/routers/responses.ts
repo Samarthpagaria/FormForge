@@ -201,6 +201,46 @@ export const responsesRouter = createTRPCRouter({
     }),
 
   /**
+   * @name checkDuplicate
+   * @description Checks if a specific IP or session has already submitted the form
+   */
+  checkDuplicate: baseProcedure
+    .input(z.object({ formId: z.string(), ip: z.string(), sessionId: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      if (input.ip !== "unknown") {
+        const existingByIp = await ctx.db
+          .select()
+          .from(submissions)
+          .where(
+            and(
+              eq(submissions.formId, input.formId),
+              sql`meta->>'ip' = ${input.ip}`
+            )
+          )
+          .limit(1);
+
+        if (existingByIp[0]) return { hasSubmitted: true };
+      }
+
+      if (input.sessionId) {
+        const existingBySession = await ctx.db
+          .select()
+          .from(submissions)
+          .where(
+            and(
+              eq(submissions.formId, input.formId),
+              eq(submissions.sessionId, input.sessionId)
+            )
+          )
+          .limit(1);
+
+        if (existingBySession[0]) return { hasSubmitted: true };
+      }
+
+      return { hasSubmitted: false };
+    }),
+
+  /**
    * @name getAll
    * @description gets all submissions for a form
    * @protected

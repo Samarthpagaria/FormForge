@@ -42,6 +42,7 @@ export default function PublicFormPage({
   const { slug } = React.use(params);
   const resolvedSearchParams = React.use(searchParams);
   const searchMode = resolvedSearchParams.mode as string | undefined;
+  const isDraftPreview = resolvedSearchParams.draft === "true";
   
   const [formState, setFormState] = useState<FormState>("LOADING");
   
@@ -56,6 +57,20 @@ export default function PublicFormPage({
     retry: false
   });
   
+  const [userIp, setUserIp] = useState<string | null>(null);
+  
+  useEffect(() => {
+    fetch("https://api.ipify.org?format=json")
+      .then(res => res.json())
+      .then(data => setUserIp(data.ip))
+      .catch(() => setUserIp("unknown"));
+  }, []);
+
+  const checkDuplicateQuery = trpc.responses.checkDuplicate.useQuery(
+    { formId: data?.form?.id || "", ip: userIp || "unknown", sessionId: sessionId.current },
+    { enabled: !!data?.form?.id && !!userIp && ((data?.form?.settings as any)?.allowMultipleSubmissions === false) }
+  );
+  
   const submitMutation = trpc.responses.submit.useMutation();
   const trackMutation = trpc.analytics.trackEvent.useMutation();
 
@@ -63,7 +78,7 @@ export default function PublicFormPage({
   const currentVersion = data?.currentVersion;
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading || !userIp) {
       setFormState("LOADING");
       return;
     }
@@ -71,7 +86,7 @@ export default function PublicFormPage({
       setFormState("NOT_FOUND");
       return;
     }
-    if (form.status !== "published") {
+    if (form.status !== "published" && !isDraftPreview) {
       setFormState("UNPUBLISHED");
       return;
     }
@@ -90,8 +105,19 @@ export default function PublicFormPage({
       return;
     }
 
+    if (settings.allowMultipleSubmissions === false) {
+       if (checkDuplicateQuery.isLoading && checkDuplicateQuery.fetchStatus !== "idle") {
+           setFormState("LOADING");
+           return;
+       }
+       if (checkDuplicateQuery.data?.hasSubmitted) {
+           setFormState("ALREADY_SUBMITTED");
+           return;
+       }
+    }
+
     setFormState("READY");
-  }, [isLoading, isError, form]);
+  }, [isLoading, isError, form, userIp, checkDuplicateQuery.isLoading, checkDuplicateQuery.fetchStatus, checkDuplicateQuery.data?.hasSubmitted, isDraftPreview]);
 
   useEffect(() => {
     if (formState === "READY" && form && currentVersion && !trackedView.current) {
@@ -134,9 +160,25 @@ export default function PublicFormPage({
   }, [formState, form, currentVersion, trackMutation]);
 
   const handleSubmit = async (formData: Record<string, any>) => {
+    if (isDraftPreview) {
+      toast.info("Submissions are disabled in Draft Preview.");
+      return;
+    }
     if (!form || !currentVersion) return;
     
     try {
+      // Fetch IP for rate limiting / unique submission checks
+      let ip = "unknown";
+      try {
+        const ipRes = await fetch("https://api.ipify.org?format=json");
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          ip = ipData.ip;
+        }
+      } catch (e) {
+        console.warn("Could not fetch IP");
+      }
+
       // Format answers for backend
       const answers = Object.entries(formData).map(([fieldKey, value]) => ({
         fieldKey,
@@ -148,6 +190,7 @@ export default function PublicFormPage({
         formVersionId: currentVersion.id,
         answers,
         meta: {
+          ip,
           device: getDeviceType(),
           browser: getBrowser(),
           userAgent: navigator.userAgent,
@@ -192,11 +235,24 @@ export default function PublicFormPage({
   };
 
   const schema = useMemo(() => {
-    if (currentVersion?.schema) {
-      return currentVersion.schema as any;
+    let baseSchema: any = { fields: [], settings: {} };
+    if (isDraftPreview && form?.draftSchema) {
+      baseSchema = form.draftSchema;
+    } else if (currentVersion?.schema) {
+      baseSchema = currentVersion.schema;
     }
-    return { fields: [], settings: {} };
-  }, [currentVersion]);
+    
+    // Inject DB-level name and description if missing from schema
+    return {
+      ...baseSchema,
+      title: baseSchema.title || form?.name || "",
+      description: baseSchema.description || (form as any)?.description || "",
+      fields: (baseSchema.fields || []).map((f: any) => ({
+        ...f,
+        description: f.description || f.helpText
+      }))
+    };
+  }, [currentVersion, searchMode, form, isDraftPreview]);
 
   if (formState === "LOADING") {
     return (
@@ -315,8 +371,18 @@ export default function PublicFormPage({
   const displayMode = searchMode || (form?.settings as Record<string, any>)?.displayMode || "normal";
   const isSpecialMode = displayMode !== "normal";
 
-  return isSpecialMode ? (
-    <div className="w-full flex justify-center items-center h-full min-h-screen">
+  return (
+    <>
+      {isDraftPreview && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-neutral-900/90 backdrop-blur text-white text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full shadow-lg border border-neutral-700/50 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            Draft Preview Mode
+          </div>
+        </div>
+      )}
+      {isSpecialMode ? (
+        <div className="w-full flex justify-center items-center h-full min-h-screen">
       <FormRenderer 
         schema={schema} 
         mode={displayMode as any}
@@ -345,7 +411,9 @@ export default function PublicFormPage({
           mode={displayMode as any}
           onSubmit={handleSubmit}
         />
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+      )}
+    </>
   );
 }

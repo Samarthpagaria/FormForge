@@ -153,9 +153,7 @@ export async function sendSubmissionEmail({
   await resend.emails.send({
     from: "FormForge <notifications@formforge.com>",
     to: formOwnerEmail,
-    subject: \`🔥 New response on "\${formName}"\`,
+    subject: `🔥 New response on "${formName}"`,
     html,
-  });
-}l,
   });
 }

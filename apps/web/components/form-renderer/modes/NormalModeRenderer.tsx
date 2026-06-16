@@ -8,6 +8,7 @@ export interface ModeRendererProps {
   disabled?: boolean;
   submitLabel?: string;
   className?: string;
+  forceMobile?: boolean;
   engine: {
     values: Record<string, any>;
     errors: Record<string, string>;
@@ -17,7 +18,7 @@ export interface ModeRendererProps {
   };
 }
 
-export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Submit Form", className = "", engine }: ModeRendererProps) {
+export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Submit Form", className = "", forceMobile = false, engine }: ModeRendererProps) {
   const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -37,13 +38,18 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
 
     switch (field.type) {
       case "text":
+      case "short_text":
       case "email":
       case "phone":
       case "number":
+      case "date":
+      case "file":
         return <FieldText {...commonProps} />;
       case "textarea":
+      case "long_text":
         return <FieldTextarea {...commonProps} />;
       case "radio":
+      case "dropdown":
         return <FieldRadioGroup {...commonProps} />;
       case "checkbox":
         return <FieldCheckboxGroup {...commonProps} />;
@@ -72,14 +78,14 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
           <p className="text-neutral-400 text-sm font-medium">No fields added yet</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className={`grid grid-cols-1 ${forceMobile ? '' : 'sm:grid-cols-2'} gap-x-4 gap-y-6`}>
           {schema.fields.map((field) => (
             <motion.div 
               key={field.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex flex-col gap-2 group"
+              className={`flex flex-col gap-2 group ${field.width === 'half' && !forceMobile ? 'col-span-1' : `col-span-1 ${forceMobile ? '' : 'sm:col-span-2'}`}`}
             >
               <label className="text-sm font-semibold text-neutral-800 tracking-tight flex items-center gap-1">
                 {field.label}

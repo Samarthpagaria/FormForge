@@ -104,6 +104,7 @@ export const formsRouter = createTRPCRouter({
         description: z.string().max(1000).optional(),
         status: z.enum(["draft", "published"]).optional(),
         settings: z.record(z.string(), z.any()).optional(),
+        draftSchema: z.record(z.string(), z.any()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -318,16 +319,27 @@ export const formsRouter = createTRPCRouter({
           throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
         }
 
-        const latestVersion = await ctx.db
-          .select()
-          .from(formVersions)
-          .where(eq(formVersions.formId, form[0].id))
-          .orderBy(desc(formVersions.createdAt))
-          .limit(1);
+        let activeVersion;
+        if (form[0].currentVersionId) {
+          const v = await ctx.db
+            .select()
+            .from(formVersions)
+            .where(eq(formVersions.id, form[0].currentVersionId))
+            .limit(1);
+          activeVersion = v[0];
+        } else {
+          const v = await ctx.db
+            .select()
+            .from(formVersions)
+            .where(eq(formVersions.formId, form[0].id))
+            .orderBy(desc(formVersions.createdAt))
+            .limit(1);
+          activeVersion = v[0];
+        }
 
         return {
           form: form[0],
-          currentVersion: latestVersion[0] ?? null,
+          currentVersion: activeVersion,
         };
       } catch (err) {
         if (err instanceof TRPCError) throw err;

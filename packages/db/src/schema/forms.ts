@@ -10,6 +10,7 @@ export const forms = pgTable("forms", {
   status: formStatusEnum("status").default("draft"),
   currentVersionId: uuid("current_version_id"),
   settings: jsonb("settings"),
+  draftSchema: jsonb("draft_schema").default({}),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
     

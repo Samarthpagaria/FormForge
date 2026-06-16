@@ -2,6 +2,10 @@ import { db } from "../client";
 import { templates, templateCategories } from "../schema/templates";
 
 async function seed() {
+  console.log("Cleaning database...");
+  await db.delete(templates);
+  await db.delete(templateCategories);
+
   console.log("Seeding categories...");
 
   // seed global categories first

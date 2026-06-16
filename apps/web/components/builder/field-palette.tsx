@@ -51,7 +51,6 @@ const FIELD_SECTIONS: FieldSection[] = [
     fields: [
       { id: "date", label: "Date", icon: Calendar },
       { id: "rating", label: "Rating", icon: Star },
-      { id: "file", label: "File Upload", icon: UploadCloud },
     ],
   },
 ];

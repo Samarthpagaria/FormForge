@@ -8,13 +8,15 @@ import { validateField } from "@formforge/form-engine";
 export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
   const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const hasIntro = !!(schema.title || schema.description);
+  const [currentIndex, setCurrentIndex] = useState(hasIntro ? -1 : 0);
   const [direction, setDirection] = useState<"up" | "down">("down");
   const [fieldError, setFieldError] = useState<string | null>(null);
 
   const totalSteps = schema.fields.length;
+  const isIntro = currentIndex === -1;
   const isComplete = currentIndex >= totalSteps;
-  const currentField = !isComplete ? schema.fields[currentIndex] : null;
+  const currentField = (!isComplete && !isIntro) ? schema.fields[currentIndex] : null;
 
   // Key listeners for Enter to next, Arrows to navigate
   useEffect(() => {
@@ -54,11 +56,13 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
   const goNext = () => {
     if (isComplete) return;
     
-    // Validate current field
-    const error = validateField(currentField!, values[currentField!.id]);
-    if (error) {
-      setFieldError(error);
-      return;
+    // Validate current field if not intro
+    if (!isIntro && currentField) {
+      const error = validateField(currentField, values[currentField.id]);
+      if (error) {
+        setFieldError(error);
+        return;
+      }
     }
     
     setFieldError(null);
@@ -67,7 +71,7 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
   };
 
   const goPrev = () => {
-    if (currentIndex > 0) {
+    if (currentIndex > (hasIntro ? -1 : 0)) {
       setFieldError(null);
       setDirection("up");
       setCurrentIndex(prev => prev - 1);
@@ -102,7 +106,7 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
         <motion.div 
           className="h-full bg-violet-600"
           initial={{ width: 0 }}
-          animate={{ width: `${(Math.min(currentIndex, totalSteps) / totalSteps) * 100}%` }}
+          animate={{ width: isIntro ? "0%" : `${(Math.max(0, Math.min(currentIndex + 1, totalSteps)) / totalSteps) * 100}%` }}
           transition={{ duration: 0.3 }}
         />
       </div>
@@ -110,7 +114,29 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
       <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-12 relative w-full max-w-3xl mx-auto">
         
         <AnimatePresence mode="wait" custom={direction}>
-          {!isComplete ? (
+          {isIntro ? (
+            <motion.div
+              key="intro"
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="w-full text-center flex flex-col items-center justify-center"
+            >
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-neutral-900">{schema.title || "Welcome"}</h1>
+              {schema.description && (
+                <p className="text-lg md:text-xl text-neutral-500 mb-10 max-w-xl mx-auto">{schema.description}</p>
+              )}
+              <button 
+                onClick={goNext}
+                className="px-8 py-4 bg-violet-600 text-white rounded-xl font-bold text-lg hover:bg-violet-700 transition-colors shadow-lg shadow-violet-600/20 flex items-center gap-2"
+              >
+                Start <ArrowDown size={20} />
+              </button>
+            </motion.div>
+          ) : !isComplete ? (
             <motion.div
               key={`field-${currentField?.id}`}
               custom={direction}
@@ -151,16 +177,24 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
                 </motion.div>
               )}
 
-              <div className="mt-8 flex items-center gap-4">
-                <button
+              {/* Navigation Footer */}
+              <div className="mt-10 flex items-center gap-4 border-t border-neutral-100 pt-6">
+                <button 
                   onClick={goNext}
-                  className="px-6 py-3 bg-violet-600 text-white font-bold rounded-xl shadow-md hover:bg-violet-700 active:scale-95 transition-all flex items-center gap-2"
+                  className="px-6 py-3 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 transition-colors shadow-md flex items-center gap-2"
                 >
-                  OK <Check size={18} />
+                  {currentIndex === totalSteps - 1 ? "Review" : "Next"} <ArrowDown size={18} />
                 </button>
-                <span className="text-sm font-medium text-neutral-400">press Enter ↵</span>
+                <button 
+                  onClick={goPrev}
+                  className="px-6 py-3 bg-neutral-100 text-neutral-700 rounded-xl font-bold hover:bg-neutral-200 transition-colors flex items-center gap-2"
+                >
+                  <ArrowUp size={18} /> Back
+                </button>
+                <div className="ml-auto text-xs font-semibold text-neutral-400">
+                  Press Enter ↵
+                </div>
               </div>
-
             </motion.div>
           ) : (
             <motion.div
@@ -212,10 +246,10 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
 
 // Internal Specialized Field Renderer for One-by-One Mode
 function FieldRenderer({ field, value, onChange }: { field: FormField, value: any, onChange: (v: any) => void }) {
-  if (field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone") {
+  if (field.type === "text" || field.type === "short_text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "date" || field.type === "file") {
     return (
       <input
-        type={field.type === "email" ? "email" : field.type === "number" ? "number" : "text"}
+        type={field.type === "email" ? "email" : field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "file" ? "file" : "text"}
         placeholder={field.placeholder || "Type your answer here..."}
         value={value || ""}
         onChange={e => onChange(e.target.value)}
@@ -225,7 +259,7 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
     );
   }
 
-  if (field.type === "textarea") {
+  if (field.type === "textarea" || field.type === "long_text") {
     return (
       <textarea
         placeholder={field.placeholder || "Type your answer here..."}
@@ -237,7 +271,7 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
     );
   }
 
-  if (field.type === "radio" || field.type === "checkbox") {
+  if (field.type === "radio" || field.type === "checkbox" || field.type === "dropdown") {
     const isMulti = field.type === "checkbox";
     const selectedArray = (value as string[]) || [];
 

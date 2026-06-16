@@ -10,7 +10,7 @@ export function Logo() {
       <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center pb-2">
         <DotLottieReact src="/Fire.json" loop autoplay />
       </div>
-      <span className="text-2xl font-geist font-semibold tracking-med text-black dark:text-white">
+      <span className="text-2xl font-sans font-semibold tracking-med text-black dark:text-white">
         FormForge
       </span>
     </Link>

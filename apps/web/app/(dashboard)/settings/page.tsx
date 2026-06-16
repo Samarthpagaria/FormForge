@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { useUser, UserButton } from "@clerk/nextjs";
-import { User, Bell, ShieldAlert, Loader2, Save, Download, Trash2 } from "lucide-react";
+import { User, Bell, ShieldAlert, Loader2, Save, Download, Trash2, Folder, Plus, Edit2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { trpc } from "@/src/trpc/client";
 
 export default function SettingsPage() {
   const { user, isLoaded } = useUser();
@@ -15,6 +16,55 @@ export default function SettingsPage() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [notificationEmail, setNotificationEmail] = useState(user?.primaryEmailAddress?.emailAddress || "");
   const [isSavingNotifications, setIsSavingNotifications] = useState(false);
+
+  // Template Categories State
+  const utils = trpc.useUtils();
+  const { data: categories, isLoading: loadingCategories } = trpc.templates.getAllCategories.useQuery();
+  
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState("");
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+
+  const { mutate: createCategory, isPending: isCreatingCat } = trpc.templates.createCategory.useMutation({
+    onSuccess: () => {
+      toast.success("Category created!");
+      setNewCategoryName("");
+      utils.templates.getAllCategories.invalidate();
+    },
+    onError: (err) => toast.error(err.message || "Failed to create category"),
+  });
+
+  const { mutate: updateCategory, isPending: isUpdatingCat } = trpc.templates.updateCategory.useMutation({
+    onSuccess: () => {
+      toast.success("Category updated!");
+      setEditingCategoryId(null);
+      setEditingCategoryName("");
+      utils.templates.getAllCategories.invalidate();
+    },
+    onError: (err) => toast.error(err.message || "Failed to update category"),
+  });
+
+  const { mutate: deleteCategory } = trpc.templates.deleteCategory.useMutation({
+    onSuccess: () => {
+      toast.success("Category deleted!");
+      utils.templates.getAllCategories.invalidate();
+    },
+    onError: (err) => toast.error(err.message || "Failed to delete category"),
+    onSettled: () => setDeletingCategoryId(null),
+  });
+
+  const handleCreateCategory = () => {
+    if (newCategoryName.trim()) {
+      createCategory({ name: newCategoryName.trim() });
+    }
+  };
+
+  const handleSaveEditCategory = (id: string) => {
+    if (editingCategoryName.trim()) {
+      updateCategory({ id, name: editingCategoryName.trim() });
+    }
+  };
 
   // Initialize state when user loads
   React.useEffect(() => {
@@ -202,6 +252,124 @@ export default function SettingsPage() {
               {isSavingNotifications ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
               Save Preferences
             </button>
+          </div>
+        </motion.section>
+
+        {/* Template Categories */}
+        <motion.section 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-white/60 backdrop-blur-md border border-neutral-200/60 rounded-3xl p-8 shadow-sm flex flex-col gap-6"
+        >
+          <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
+            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+              <Folder size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-neutral-800">Template Categories</h2>
+              <p className="text-xs text-neutral-500">Manage your custom categories for templates</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {loadingCategories ? (
+              <div className="flex justify-center py-4">
+                <Loader2 size={24} className="animate-spin text-neutral-400" />
+              </div>
+            ) : categories?.length === 0 ? (
+              <div className="text-center py-4 text-sm text-neutral-500 bg-neutral-50 rounded-xl border border-dashed border-neutral-200">
+                No categories found. Create one below.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {categories?.map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between p-3 border border-neutral-200 rounded-xl bg-white/50 hover:bg-white transition-colors group">
+                    {editingCategoryId === cat.id ? (
+                      <div className="flex flex-1 items-center gap-2">
+                        <input
+                          autoFocus
+                          type="text"
+                          value={editingCategoryName}
+                          onChange={(e) => setEditingCategoryName(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSaveEditCategory(cat.id)}
+                          className="flex-1 bg-white border border-emerald-200 focus:border-emerald-500 rounded-lg px-3 py-1.5 text-sm outline-none transition-colors"
+                        />
+                        <button
+                          onClick={() => handleSaveEditCategory(cat.id)}
+                          disabled={isUpdatingCat}
+                          className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg disabled:opacity-50"
+                        >
+                          {isUpdatingCat ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                        </button>
+                        <button
+                          onClick={() => setEditingCategoryId(null)}
+                          disabled={isUpdatingCat}
+                          className="p-1.5 text-neutral-400 hover:bg-neutral-100 rounded-lg disabled:opacity-50"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-semibold text-neutral-800">{cat.name}</span>
+                          {cat.isGlobal && (
+                            <span className="text-[10px] uppercase tracking-wider font-bold bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-md">
+                              Global
+                            </span>
+                          )}
+                        </div>
+                        
+                        {!cat.isGlobal && (
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => {
+                                setEditingCategoryId(cat.id);
+                                setEditingCategoryName(cat.name);
+                              }}
+                              className="p-1.5 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              disabled={deletingCategoryId === cat.id}
+                              onClick={() => {
+                                setDeletingCategoryId(cat.id);
+                                deleteCategory({ id: cat.id });
+                              }}
+                              className="p-1.5 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              {deletingCategoryId === cat.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Create Category Input */}
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="New category name..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreateCategory()}
+                className="flex-1 bg-white border border-neutral-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+              <button
+                onClick={handleCreateCategory}
+                disabled={isCreatingCat || !newCategoryName.trim()}
+                className="flex items-center justify-center gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 shrink-0"
+              >
+                {isCreatingCat ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                Add
+              </button>
+            </div>
           </div>
         </motion.section>
 

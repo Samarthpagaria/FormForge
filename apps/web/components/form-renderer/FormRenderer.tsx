@@ -16,6 +16,7 @@ interface FormRendererProps {
   onSubmit?: (data: Record<string, any>) => void;
   submitLabel?: string;
   className?: string;
+  forceMobile?: boolean;
 }
 
 export function FormRenderer({ 
@@ -24,7 +25,8 @@ export function FormRenderer({
   disabled = false, 
   onSubmit, 
   submitLabel = "Submit Form", 
-  className = "" 
+  className = "",
+  forceMobile = false
 }: FormRendererProps) {
   
   const engine = useFormEngine(schema, onSubmit);
@@ -34,6 +36,7 @@ export function FormRenderer({
     disabled,
     submitLabel,
     className,
+    forceMobile,
     engine
   };
 

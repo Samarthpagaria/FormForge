@@ -8,14 +8,16 @@ import { validateField } from "@formforge/form-engine";
 export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
   const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
   
-  const [[page, direction], setPage] = useState([0, 0]);
+  const hasIntro = !!(schema.title || schema.description);
+  const [[page, direction], setPage] = useState([hasIntro ? -1 : 0, 0]);
   const [fieldError, setFieldError] = useState<string | null>(null);
 
   const totalSteps = schema.fields.length;
+  const isIntro = page === -1;
   const isComplete = page >= totalSteps;
 
   const paginate = (newDirection: number) => {
-    if (newDirection > 0 && !isComplete) {
+    if (newDirection > 0 && !isComplete && !isIntro) {
       // Validate current
       const currentField = schema.fields[page];
       if (!currentField) return;
@@ -51,20 +53,45 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
     }
   };
 
-  const currentField = !isComplete ? schema.fields[page] : null;
+  const currentField = (!isComplete && !isIntro) ? schema.fields[page] : null;
 
   return (
     <div className="w-full h-[600px] max-h-[80vh] flex flex-col bg-slate-900 rounded-2xl overflow-hidden relative font-sans text-slate-100 shadow-2xl border border-slate-800 aspect-video max-w-5xl mx-auto">
       
       {/* Slide Counter Top Right */}
       <div className="absolute top-6 right-6 text-slate-400 font-medium text-sm tracking-widest z-20">
-        {Math.min(page + 1, totalSteps)} / {totalSteps}
+        {isIntro ? "START" : `${Math.min(page + 1, totalSteps)} / ${totalSteps}`}
       </div>
 
       {/* Main Slide Area */}
       <div className="flex-1 relative flex items-center justify-center overflow-hidden px-16">
         <AnimatePresence initial={false} custom={direction}>
-          {!isComplete ? (
+          {isIntro ? (
+            <motion.div
+              key="intro"
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 }
+              }}
+              className="absolute w-full max-w-2xl flex flex-col text-center items-center justify-center"
+            >
+              <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-white">{schema.title || "Welcome"}</h1>
+              {schema.description && (
+                <p className="text-slate-400 text-xl md:text-2xl mb-12">{schema.description}</p>
+              )}
+              <button
+                onClick={() => paginate(1)}
+                className="px-10 py-5 bg-blue-600 text-white font-bold text-xl rounded-full hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/50 flex items-center gap-3"
+              >
+                Start <ChevronRight size={24} />
+              </button>
+            </motion.div>
+          ) : !isComplete ? (
             <motion.div
               key={page}
               custom={direction}
@@ -87,16 +114,16 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
               )}
 
               <div className="w-full">
-                {currentField?.type === "text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" ? (
+                {currentField?.type === "text" || currentField?.type === "short_text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" || currentField?.type === "date" || currentField?.type === "file" ? (
                   <input
                     autoFocus
-                    type={currentField.type === "email" ? "email" : currentField.type === "number" ? "number" : "text"}
+                    type={currentField.type === "email" ? "email" : currentField.type === "number" ? "number" : currentField.type === "date" ? "date" : currentField.type === "file" ? "file" : "text"}
                     value={values[currentField.id] || ""}
                     onChange={e => { handleChange(currentField.id, e.target.value); setFieldError(null); }}
                     placeholder="Type your answer..."
                     className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-6 py-4 text-2xl text-white focus:border-blue-500 outline-none transition-colors shadow-inner"
                   />
-                ) : currentField?.type === "textarea" ? (
+                ) : currentField?.type === "textarea" || currentField?.type === "long_text" ? (
                   <textarea
                     autoFocus
                     value={values[currentField.id] || ""}
@@ -104,7 +131,7 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
                     placeholder="Type your answer..."
                     className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-6 py-4 text-xl text-white focus:border-blue-500 outline-none transition-colors shadow-inner min-h-[160px] resize-none"
                   />
-                ) : currentField?.type === "radio" || currentField?.type === "checkbox" ? (
+                ) : currentField?.type === "radio" || currentField?.type === "checkbox" || currentField?.type === "dropdown" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {currentField.options?.map(opt => {
                       const isMulti = currentField.type === "checkbox";
@@ -181,6 +208,28 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
               >
                 {isSubmitting ? "Submitting..." : "Submit Presentation"}
               </button>
+              {/* Navigation Buttons */}
+      {!isComplete && (
+        <>
+          {page > (hasIntro ? -1 : 0) && (
+            <button
+              onClick={() => paginate(-1)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-white backdrop-blur transition-all border border-slate-700 z-10"
+            >
+              <ChevronLeft size={24} />
+            </button>
+          )}
+          
+          {!isIntro && (
+            <button
+              onClick={() => paginate(1)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-blue-600/90 hover:bg-blue-500 flex items-center justify-center text-white backdrop-blur transition-all border border-blue-500 z-10 shadow-lg shadow-blue-900/50"
+            >
+              <ChevronRight size={24} />
+            </button>
+          )}
+        </>
+      )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -192,7 +241,7 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
         {/* Left Arrow */}
         <button 
           onClick={() => paginate(-1)}
-          disabled={page === 0 || isSubmitting}
+          disabled={page === (hasIntro ? -1 : 0) || isSubmitting}
           className="w-12 h-12 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
         >
           <ChevronLeft size={28} />
@@ -200,14 +249,17 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
 
         {/* Dots */}
         <div className="flex gap-2">
-          {Array.from({ length: totalSteps + 1 }).map((_, i) => (
-            <div 
-              key={i} 
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                i === page ? "bg-blue-500 w-8" : i < page ? "bg-slate-600" : "bg-slate-800"
-              }`} 
-            />
-          ))}
+          {Array.from({ length: totalSteps + (hasIntro ? 1 : 0) }).map((_, i) => {
+            const stepIndex = hasIntro ? i - 1 : i;
+            return (
+              <div 
+                key={i} 
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                  stepIndex === page ? "bg-blue-500 w-8" : stepIndex < page ? "bg-slate-600" : "bg-slate-800"
+                }`} 
+              />
+            );
+          })}
         </div>
 
         {/* Right Arrow / Finish */}

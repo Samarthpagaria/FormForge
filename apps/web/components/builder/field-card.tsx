@@ -137,7 +137,7 @@ export function FieldCard({
 
         {type === "radio" && (
           <div className="flex flex-col gap-1.5">
-            {displayOptions.slice(0, 3).map((opt, i) => (
+            {displayOptions.map((opt, i) => (
               <div key={i} className="flex items-center gap-2 text-sm text-neutral-600">
                 <div className="w-4 h-4 rounded-full border-2 border-neutral-300 flex items-center justify-center">
                   {i === 0 && <div className="w-2 h-2 rounded-full bg-violet-600" />}
@@ -150,7 +150,7 @@ export function FieldCard({
 
         {type === "checkbox" && (
           <div className="flex flex-col gap-1.5">
-            {displayOptions.slice(0, 3).map((opt, i) => (
+            {displayOptions.map((opt, i) => (
               <div key={i} className="flex items-center gap-2 text-sm text-neutral-600">
                 <div className={cn("w-4 h-4 rounded border flex items-center justify-center", i === 0 ? "bg-violet-600 border-violet-600 text-white" : "border-neutral-300")}>
                   {i === 0 && (

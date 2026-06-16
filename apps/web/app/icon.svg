@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <style>
+    @keyframes flicker {
+      0%, 100% { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); filter: hue-rotate(-10deg); }
+    }
+    .fire { 
+      animation: flicker 1s infinite alternate ease-in-out; 
+      transform-origin: center; 
+    }
+  </style>
+  <text class="fire" x="50%" y="55%" dominant-baseline="central" text-anchor="middle" font-size="75">🔥</text>
+</svg>

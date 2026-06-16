@@ -7,7 +7,7 @@ import { validateField } from "@formforge/form-engine";
 export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
   const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
   
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [direction, setDirection] = useState<number>(0);
   const [fieldError, setFieldError] = useState<string | null>(null);
 
@@ -16,6 +16,11 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
 
   const handleSwipe = (swipeDir: "left" | "right") => {
     if (isComplete) return;
+    if (currentIndex === -1) {
+      setDirection(swipeDir === "right" ? 1 : -1);
+      setCurrentIndex(0);
+      return;
+    }
     const currentField = schema.fields[currentIndex];
     if (!currentField) return;
 
@@ -72,7 +77,7 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
       {/* Progress */}
       <div className="absolute top-6 left-0 right-0 flex justify-center z-20">
         <div className="bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-neutral-500 shadow-sm border border-neutral-200">
-          {Math.min(currentIndex + 1, totalSteps)} / {totalSteps} questions
+          {currentIndex === -1 ? "Cover" : `${Math.min(currentIndex + 1, totalSteps)} / ${totalSteps}`}
         </div>
       </div>
 
@@ -97,6 +102,24 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
               >
                 {isSubmitting ? "Submitting..." : "Submit"}
               </button>
+            </motion.div>
+          ) : currentIndex === -1 ? (
+            <motion.div
+              key="cover"
+              className="absolute w-full h-full bg-white rounded-3xl shadow-xl flex flex-col items-center justify-center p-8 text-center border border-neutral-200 cursor-grab active:cursor-grabbing"
+              initial={{ x: direction === 0 ? 0 : direction > 0 ? 300 : -300, opacity: 0, rotate: direction > 0 ? 15 : -15 }}
+              animate={{ x: 0, opacity: 1, rotate: 0 }}
+              exit={{ x: direction > 0 ? 300 : -300, opacity: 0, rotate: direction > 0 ? 15 : -15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={(e, info) => { if (info.offset.x > 80) handleSwipe("right"); else if (info.offset.x < -80) handleSwipe("left"); }}
+            >
+              <h2 className="text-3xl font-black text-neutral-900 tracking-tight mb-3">{schema.title || "Untitled Form"}</h2>
+              <p className="text-neutral-500 text-sm leading-relaxed mb-8">{schema.description || "Swipe right or press Next to begin."}</p>
+              <div className="flex items-center gap-2 text-violet-600 text-sm font-bold animate-pulse">
+                Swipe to start <span className="text-xl">→</span>
+              </div>
             </motion.div>
           ) : (
             <SwipeCard
@@ -200,22 +223,22 @@ function SwipeCard({
         {field.description && <p className="text-sm text-neutral-500 mb-6">{field.description}</p>}
 
         <div className="flex-1 flex flex-col justify-center" onPointerDownCapture={(e) => e.stopPropagation()}>
-          {field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" ? (
+          {field.type === "text" || field.type === "short_text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "date" || field.type === "file" ? (
             <input
-              type={field.type === "email" ? "email" : field.type === "number" ? "number" : "text"}
+              type={field.type === "email" ? "email" : field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "file" ? "file" : "text"}
               placeholder="Type here..."
               value={value || ""}
               onChange={e => onChange(e.target.value)}
               className="w-full text-lg border-b-2 border-neutral-200 py-2 outline-none focus:border-violet-500 bg-transparent text-center"
             />
-          ) : field.type === "textarea" ? (
+          ) : field.type === "textarea" || field.type === "long_text" ? (
             <textarea
               placeholder="Type here..."
               value={value || ""}
               onChange={e => onChange(e.target.value)}
               className="w-full text-base border-2 border-neutral-200 rounded-xl p-3 outline-none focus:border-violet-500 bg-transparent resize-none min-h-[120px]"
             />
-          ) : field.type === "radio" || field.type === "checkbox" ? (
+          ) : field.type === "radio" || field.type === "checkbox" || field.type === "dropdown" ? (
             <div className="flex flex-col gap-2">
               {field.options?.map(opt => {
                 const isSelected = field.type === "checkbox" ? ((value as string[]) || []).includes(opt) : value === opt;

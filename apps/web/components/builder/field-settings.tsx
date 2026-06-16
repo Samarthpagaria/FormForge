@@ -84,6 +84,23 @@ export function FieldSettings() {
               <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${activeField.required ? "translate-x-4" : "translate-x-0"}`} />
             </div>
           </div>
+
+          {/* Width toggle */}
+          <div className="flex items-center justify-between pt-3 mt-1 border-t border-neutral-100">
+            <div>
+              <p className="text-xs font-semibold text-neutral-800">Half Width</p>
+              <p className="text-[11px] text-neutral-400">Shows fields side-by-side</p>
+              <p className="text-[9px] text-amber-500 font-medium mt-0.5">*Standard Mode only</p>
+            </div>
+            <div
+              role="switch"
+              aria-checked={activeField.width === "half"}
+              onClick={() => updateFieldProps(activeField.id, { width: activeField.width === "half" ? "full" : "half" })}
+              className={`w-9 h-5 rounded-full flex items-center p-0.5 cursor-pointer transition-colors ${activeField.width === "half" ? "bg-violet-600" : "bg-neutral-200"}`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${activeField.width === "half" ? "translate-x-4" : "translate-x-0"}`} />
+            </div>
+          </div>
         </section>
 
         <Divider />

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Clock, Eye, RotateCcw, Loader2 } from "lucide-react";
+import { X, Clock, Eye, RotateCcw, Loader2, Trash2 } from "lucide-react";
 import { trpc } from "@/src/trpc/client";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 
@@ -24,12 +24,15 @@ export function VersionHistoryPanel({
   onPreview,
   onRestoreSuccess
 }: VersionHistoryPanelProps) {
+  const utils = trpc.useUtils();
   const { data: versions, isLoading } = trpc.formVersions.getAll.useQuery({ formId });
   const [restoringId, setRestoringId] = useState<string | null>(null);
-  
-  const { mutate: rollback } = trpc.formVersions.rollback.useMutation({
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const { mutate: rollbackVersion } = trpc.formVersions.rollback.useMutation({
     onSuccess: () => {
-      toast.success("Form restored successfully!");
+      toast.success("Version restored successfully!");
+      setRestoringId(null);
       onRestoreSuccess();
     },
     onError: (err) => {
@@ -38,31 +41,31 @@ export function VersionHistoryPanel({
     }
   });
 
+  const { mutate: deleteVersion } = trpc.formVersions.deleteVersion.useMutation({
+    onSuccess: () => {
+      toast.success("Version deleted successfully!");
+      utils.formVersions.getAll.invalidate({ formId });
+      setDeletingId(null);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete version");
+      setDeletingId(null);
+    }
+  });
+
   const handleRestore = (versionId: string) => {
-    toast.custom((t) => (
-      <div className="bg-white p-4 rounded-xl shadow-lg border border-neutral-200 flex flex-col gap-3 min-w-[300px]">
-        <h3 className="text-sm font-bold text-neutral-800">Restore this version?</h3>
-        <p className="text-xs text-neutral-500">This will create a new version with this older content.</p>
-        <div className="flex justify-end gap-2 mt-1">
-          <button 
-            onClick={() => toast.dismiss(t)}
-            className="px-3 py-1.5 text-xs font-semibold text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={() => {
-              toast.dismiss(t);
-              setRestoringId(versionId);
-              rollback({ formId, versionId });
-            }}
-            className="px-3 py-1.5 text-xs font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors"
-          >
-            Confirm Restore
-          </button>
-        </div>
-      </div>
-    ), { duration: 5000 });
+    const confirmMsg = "Are you sure you want to restore this version? This will overwrite your current draft.";
+    if (!window.confirm(confirmMsg)) return;
+
+    setRestoringId(versionId);
+    rollbackVersion({ formId, versionId });
+  };
+
+  const handleDelete = (versionId: string) => {
+    if (window.confirm("Are you sure you want to permanently delete this version?")) {
+      setDeletingId(versionId);
+      deleteVersion({ formId, versionId });
+    }
   };
 
   return (
@@ -99,7 +102,6 @@ export function VersionHistoryPanel({
             const isCurrent = version.id === currentVersionId;
             const isPreviewing = version.id === previewingVersionId;
             const isOriginal = idx === versions.length - 1;
-            const vNum = versions.length - idx;
 
             return (
               <div 
@@ -117,11 +119,15 @@ export function VersionHistoryPanel({
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-neutral-800">
-                      v{vNum}
+                      v{version.version}
                     </span>
-                    {isCurrent && (
-                      <span className="text-[10px] uppercase tracking-wide font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
-                        Current
+                    {isCurrent ? (
+                      <span className="flex-shrink-0 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                        Published
+                      </span>
+                    ) : (
+                      <span className="flex-shrink-0 bg-neutral-100 text-neutral-500 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                        Unpublished
                       </span>
                     )}
                     {isOriginal && !isCurrent && (
@@ -131,7 +137,7 @@ export function VersionHistoryPanel({
                     )}
                   </div>
                   <span className="text-[11px] text-neutral-400 font-medium" title={new Date(version.createdAt as string).toLocaleString()}>
-                    {formatDistanceToNow(new Date(version.createdAt as string), { addSuffix: true })}
+                    {format(new Date(version.createdAt as string), "MMM d, yyyy h:mm a")}
                   </span>
                 </div>
 
@@ -154,14 +160,24 @@ export function VersionHistoryPanel({
                   )}
                   
                   {!isCurrent && (
-                    <button 
-                      onClick={() => handleRestore(version.id)}
-                      disabled={restoringId === version.id}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 text-xs font-semibold transition-colors disabled:opacity-50"
-                    >
-                      {restoringId === version.id ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
-                      Restore
-                    </button>
+                    <>
+                      <button 
+                        onClick={() => handleRestore(version.id)}
+                        disabled={restoringId === version.id || deletingId === version.id}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 text-xs font-semibold transition-colors disabled:opacity-50"
+                      >
+                        {restoringId === version.id ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+                        Restore
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(version.id)}
+                        disabled={deletingId === version.id || restoringId === version.id}
+                        className="flex items-center justify-center p-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50"
+                        title="Delete version"
+                      >
+                        {deletingId === version.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

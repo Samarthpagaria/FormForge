@@ -243,7 +243,7 @@ export default function TemplatesPage() {
                 <div className="pt-2 pb-2 px-3 flex items-center justify-between mt-1">
                   
                   {/* Left Side: Title */}
-                  <div className="flex flex-col flex-1 pr-2">
+                  <div className="flex flex-col flex-1 pr-2 min-w-0">
                     <h3 className="text-white text-base font-semibold tracking-tight truncate" title={template.name}>
                       {template.name}
                     </h3>

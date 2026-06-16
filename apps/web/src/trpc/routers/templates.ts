@@ -72,6 +72,72 @@ export const templatesRouter = createTRPCRouter({
     }),
 
   /**
+   * @name updateCategory
+   * @description updates a user's custom category
+   * @protected
+   * @input id: string, name: string
+   * @returns TemplateCategory
+   */
+  updateCategory: protectedProcedure
+    .input(z.object({ id: z.string(), name: z.string().min(1).max(100) }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // check if category exists
+        const category = await ctx.db
+          .select()
+          .from(templateCategories)
+          .where(eq(templateCategories.id, input.id))
+          .limit(1);
+
+        if (!category[0]) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Category not found" });
+        }
+
+        // prevent editing global categories
+        if (category[0].isGlobal) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Cannot edit global category" });
+        }
+
+        // ensure user owns category
+        if (category[0].userId !== ctx.auth.userId) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized to edit this category" });
+        }
+
+        // prevent renaming to an existing category name
+        const existing = await ctx.db
+          .select()
+          .from(templateCategories)
+          .where(
+            and(
+              eq(templateCategories.name, input.name),
+              eq(templateCategories.userId, ctx.auth.userId)
+            )
+          )
+          .limit(1);
+
+        if (existing[0] && existing[0].id !== input.id) {
+          throw new TRPCError({ code: "CONFLICT", message: "Category with this name already exists" });
+        }
+
+        const updatedCategory = await ctx.db
+          .update(templateCategories)
+          .set({ name: input.name })
+          .where(
+            and(
+              eq(templateCategories.id, input.id),
+              eq(templateCategories.userId, ctx.auth.userId)
+            )
+          )
+          .returning();
+
+        return updatedCategory[0];
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to update category" });
+      }
+    }),
+
+  /**
    * @name deleteCategory
    * @description deletes a user's custom category
    * @protected
@@ -321,22 +387,9 @@ export const templatesRouter = createTRPCRouter({
             userId: ctx.auth.userId,
             slug: `${input.name.toLowerCase().replace(/\s+/g, "-")}-${Math.random().toString(36).slice(2, 7)}`,
             status: "draft",
+            draftSchema: template[0].schema,
           })
           .returning();
-
-        const newVersion = await ctx.db
-          .insert(formVersions)
-          .values({
-            formId: newForm[0]!.id,
-            version: "1",
-            schema: template[0].schema,
-          })
-          .returning();
-
-        await ctx.db
-          .update(forms)
-          .set({ currentVersionId: newVersion[0]!.id })
-          .where(eq(forms.id, newForm[0]!.id));
 
         return newForm[0]!;
       } catch (err) {

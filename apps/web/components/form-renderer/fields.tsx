@@ -19,7 +19,7 @@ export function FieldText({ field, disabled, value, onChange, error }: FieldProp
         disabled={disabled}
         value={value || ""}
         onChange={(e) => onChange?.(e.target.value)}
-        className={`w-full px-3 py-2 bg-white border rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/20 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed ${error ? "border-red-500 focus:border-red-500" : "border-neutral-200 hover:border-neutral-300 focus:border-violet-500"}`}
+        className={`w-full px-3 py-2 bg-white text-neutral-900 border rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/20 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed ${error ? "border-red-500 focus:border-red-500" : "border-neutral-200 hover:border-neutral-300 focus:border-violet-500"}`}
       />
       {error && <span className="text-xs font-medium text-red-500 mt-0.5">{error}</span>}
     </div>
@@ -35,7 +35,7 @@ export function FieldTextarea({ field, disabled, value, onChange, error }: Field
         value={value || ""}
         onChange={(e) => onChange?.(e.target.value)}
         rows={4}
-        className={`w-full px-3 py-2 bg-white border rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/20 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed resize-y ${error ? "border-red-500 focus:border-red-500" : "border-neutral-200 hover:border-neutral-300 focus:border-violet-500"}`}
+        className={`w-full px-3 py-2 bg-white text-neutral-900 border rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/20 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed resize-y ${error ? "border-red-500 focus:border-red-500" : "border-neutral-200 hover:border-neutral-300 focus:border-violet-500"}`}
       />
       {error && <span className="text-xs font-medium text-red-500 mt-0.5">{error}</span>}
     </div>

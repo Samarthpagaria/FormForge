@@ -140,7 +140,7 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage || lastMessage.sender !== "bot" || lastMessage.fieldId !== currentField.id) return null;
 
-    if (currentField.type === "radio" && currentField.options) {
+    if ((currentField.type === "radio" || currentField.type === "dropdown") && currentField.options) {
       return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap gap-2 mt-2 max-w-[85%]">
           {currentField.options.map(opt => (
@@ -211,7 +211,7 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
     return null;
   };
 
-  const isTextInput = currentField?.type === "text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" || currentField?.type === "textarea";
+  const isTextInput = currentField?.type === "text" || currentField?.type === "short_text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" || currentField?.type === "textarea" || currentField?.type === "long_text" || currentField?.type === "date" || currentField?.type === "file";
 
   return (
     <div className="flex flex-col w-full h-[600px] max-h-[80vh] max-w-[500px] mx-auto bg-white rounded-3xl shadow-xl border border-neutral-200/60 overflow-hidden relative">
@@ -227,14 +227,25 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center shadow-md">
           <span className="text-white text-lg">🤖</span>
         </div>
-        <div>
-          <h2 className="text-sm font-bold text-neutral-800">FormForge Assistant</h2>
-          <p className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 relative">
-              <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75"></span>
-            </span>
-            Online
-          </p>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-bold text-neutral-800 truncate" title={schema.title}>{schema.title || "Untitled Form"}</h2>
+          {schema.description ? (
+            <div className="group relative w-full">
+              <p className="text-[11px] text-neutral-500 font-medium truncate cursor-pointer pr-4">
+                {schema.description}
+              </p>
+              <div className="hidden group-hover:block absolute top-full left-0 mt-1 p-3 bg-white border border-neutral-200 shadow-xl rounded-xl z-50 w-[280px] text-xs text-neutral-600 leading-relaxed whitespace-pre-wrap">
+                {schema.description}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 relative">
+                <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75"></span>
+              </span>
+              Online
+            </p>
+          )}
         </div>
       </div>
 
@@ -301,12 +312,12 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
             className={`flex items-end gap-2 bg-neutral-50 border rounded-2xl p-1 transition-colors ${fieldError ? 'border-red-300' : 'border-neutral-200 focus-within:border-blue-300 focus-within:bg-white'}`}
           >
             <input
-              type={currentField?.type === "email" ? "email" : currentField?.type === "number" ? "number" : "text"}
+              type={currentField?.type === "email" ? "email" : currentField?.type === "number" ? "number" : currentField?.type === "date" ? "date" : currentField?.type === "file" ? "file" : "text"}
               placeholder={isTextInput ? currentField?.placeholder || "Type your answer..." : "Please select an option above..."}
               value={inputValue}
               onChange={(e) => { setInputValue(e.target.value); if(fieldError) setFieldError(null); }}
               disabled={!isTextInput || isTyping}
-              className="flex-1 bg-transparent border-none outline-none px-4 py-3 text-[15px] placeholder:text-neutral-400 disabled:opacity-50"
+              className="flex-1 bg-transparent border-none outline-none px-4 py-3 text-[15px] text-neutral-900 placeholder:text-neutral-400 disabled:opacity-50"
             />
             <button
               type="submit"
