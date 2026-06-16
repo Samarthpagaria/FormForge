@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2, LayoutTemplate } from "lucide-react";
+import { trpc } from "@/src/trpc/client";
 
 /* ─── Slanted divider ──────────────────────────────────── */
 function SlantedDivider() {
@@ -52,6 +53,32 @@ export default function CreateFormPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
+
+  const { mutate: createForm, isPending: isCreatingBlank, error: blankError } = trpc.forms.create.useMutation({
+    onSuccess: (data) => {
+      router.push(`/forms/${data.id}/builder`);
+    }
+  });
+
+  const { data: templates, isLoading: loadingTemplates } = trpc.templates.getAll.useQuery();
+  const { mutate: createFromTemplate, isPending: isCreatingFromTemplate, error: templateError } = trpc.templates.createFormFromTemplate.useMutation({
+    onSuccess: (data) => {
+      router.push(`/forms/${data.id}/builder`);
+    }
+  });
+
+  const handleCreateBlank = () => {
+    if (!name.trim()) return;
+    createForm({ name: name.trim(), description: desc.trim() });
+  };
+
+  const handleUseTemplate = (templateId: string) => {
+    if (!name.trim()) {
+      alert("Please enter a Form Name on the left before using a template.");
+      return;
+    }
+    createFromTemplate({ templateId, name: name.trim(), description: desc.trim() });
+  };
 
   return (
     <div
@@ -123,12 +150,19 @@ export default function CreateFormPage() {
               />
             </div>
 
+            {/* Error Message */}
+            {blankError && (
+              <p className="text-xs font-semibold text-red-500">
+                {blankError.message}
+              </p>
+            )}
+
             {/* CTA button */}
             <motion.button
               whileHover={{ scale: 1.015 }}
               whileTap={{ scale: 0.97 }}
-              disabled={!name.trim()}
-              onClick={() => router.push("/forms/new")}
+              disabled={!name.trim() || isCreatingBlank}
+              onClick={handleCreateBlank}
               className="mt-1 w-full inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
               style={{
                 background:
@@ -137,8 +171,12 @@ export default function CreateFormPage() {
                 animation: "btnGrad 4s ease infinite",
               }}
             >
-              <Sparkles size={15} className="stroke-[1.75]" />
-              Start building
+              {isCreatingBlank ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <Sparkles size={15} className="stroke-[1.75]" />
+              )}
+              {isCreatingBlank ? "Creating..." : "Start building"}
               <style jsx>{`
                 @keyframes btnGrad {
                   0%   { background-position: 0% 50%; }
@@ -169,30 +207,73 @@ export default function CreateFormPage() {
         <SpotlightBackground />
 
         {/* Center content */}
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-12">
-          {/* Big crosshair icon */}
-          <div className="mb-6 relative">
-            <div
-              className="w-20 h-20 rounded-2xl bg-white border border-neutral-200 shadow-sm flex items-center justify-center"
-            >
-              {/* Crosshair SVG */}
-              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className="text-neutral-700">
-                <circle cx="18" cy="18" r="6" stroke="currentColor" strokeWidth="1.5" />
-                <line x1="18" y1="2"  x2="18" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                <line x1="18" y1="26" x2="18" y2="34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                <line x1="2"  y1="18" x2="10" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                <line x1="26" y1="18" x2="34" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </div>
-          </div>
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-12 w-full h-full">
+          <div className="w-full max-w-lg flex flex-col items-center">
+            
+            <h2 className="text-2xl font-bold text-neutral-900 tracking-tight mb-2">
+              Start from a Template
+            </h2>
+            <p className="text-sm text-neutral-500 mb-8 max-w-xs leading-relaxed">
+              Select a pre-built template to jumpstart your form. <br/><span className="font-semibold text-neutral-700">Enter a form name on the left first!</span>
+            </p>
 
-          <h2 className="text-xl font-bold text-neutral-900 tracking-tight mb-2">
-            Templates coming soon
-          </h2>
-          <p className="text-sm text-neutral-400 max-w-xs leading-relaxed">
-            Pre-built form templates will appear here. For now, start with a
-            blank form on the left.
-          </p>
+            {templateError && (
+              <p className="text-xs font-semibold text-red-500 mb-4">
+                {templateError.message}
+              </p>
+            )}
+
+            {loadingTemplates ? (
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 size={24} className="animate-spin text-neutral-400" />
+                <p className="text-xs text-neutral-400 font-medium">Loading templates...</p>
+              </div>
+            ) : templates && templates.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                {templates.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() => !isCreatingFromTemplate && handleUseTemplate(t.id)}
+                    className="relative group text-left bg-white/60 backdrop-blur-sm border border-neutral-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-neutral-300 transition-all cursor-pointer overflow-hidden"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                        <LayoutTemplate size={16} />
+                      </div>
+                      <h3 className="font-semibold text-neutral-900 truncate flex-1" title={t.name}>{t.name}</h3>
+                    </div>
+                    <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+                      {t.description || "Pre-configured form structure ready to use."}
+                    </p>
+
+                    {/* Loading Overlay */}
+                    {isCreatingFromTemplate && (
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+                        <Loader2 size={20} className="animate-spin text-neutral-800" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <div className="mb-6 relative">
+                  <div className="w-20 h-20 rounded-2xl bg-white border border-neutral-200 shadow-sm flex items-center justify-center">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className="text-neutral-400">
+                      <circle cx="18" cy="18" r="6" stroke="currentColor" strokeWidth="1.5" />
+                      <line x1="18" y1="2"  x2="18" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      <line x1="18" y1="26" x2="18" y2="34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      <line x1="2"  y1="18" x2="10" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      <line x1="26" y1="18" x2="34" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-sm text-neutral-400 max-w-xs leading-relaxed">
+                  No templates available yet. Start with a blank form on the left.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </motion.section>
     </div>

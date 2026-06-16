@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { FileText, Inbox, Eye, Percent } from "lucide-react";
+import { trpc } from "@/src/trpc/client";
 
 interface AnimatedNumberProps {
   value: number;
@@ -27,17 +28,43 @@ export function AnimatedNumber({ value, decimals = 0, prefix = "", suffix = "" }
   return <motion.span>{rounded}</motion.span>;
 }
 
-const stats = [
-  { title: "Forms created",        value: 12,    decimals: 0, suffix: "", icon: FileText, trend: "+2 this week" },
-  { title: "Submitted responses",  value: 1248,  decimals: 0, suffix: "", icon: Inbox,    trend: "+18% vs last month" },
-  { title: "Unique views",         value: 3842,  decimals: 0, suffix: "", icon: Eye,      trend: "+12% vs last month" },
-  { title: "Avg. completion",      value: 68.2,  decimals: 1, suffix: "%", icon: Percent,  trend: "+2.1% this week" },
-];
-
 export function StatsRow() {
+  const { data: forms, isLoading, isError } = trpc.forms.getAllForms.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className="h-[104px] bg-neutral-200/50 dark:bg-zinc-800/50 animate-pulse rounded-2xl border border-neutral-100 dark:border-zinc-800/80"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="col-span-full h-[104px] flex items-center justify-center bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-2xl">
+          <p className="text-sm text-red-600 dark:text-red-400 font-medium">Failed to load statistics.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const dynamicStats = [
+    { title: "Forms created",        value: forms?.length || 0,    decimals: 0, suffix: "", icon: FileText, trend: "Current total" },
+    // TODO: Connect remaining stats to real global metrics when available
+    { title: "Submitted responses",  value: 1248,  decimals: 0, suffix: "", icon: Inbox,    trend: "+18% vs last month" },
+    { title: "Unique views",         value: 3842,  decimals: 0, suffix: "", icon: Eye,      trend: "+12% vs last month" },
+    { title: "Avg. completion",      value: 68.2,  decimals: 1, suffix: "%", icon: Percent,  trend: "+2.1% this week" },
+  ];
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {stats.map((stat, index) => {
+      {dynamicStats.map((stat, index) => {
         const Icon = stat.icon;
         return (
           <motion.div

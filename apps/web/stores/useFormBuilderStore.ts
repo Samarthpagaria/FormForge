@@ -26,6 +26,7 @@ interface FormBuilderState {
   updateFieldProps: (id: string, updates: Partial<FormElement>) => void;
   reorderFields: (activeId: string, overId: string) => void;
   setActiveField: (id: string | null) => void;
+  setFields: (fields: FormElement[]) => void;
 }
 
 const genId = () =>
@@ -98,4 +99,5 @@ export const useFormBuilderStore = create<FormBuilderState>((set) => ({
     }),
 
   setActiveField: (id) => set({ activeElementId: id }),
+  setFields: (fields) => set({ fields, activeElementId: null }),
 }));

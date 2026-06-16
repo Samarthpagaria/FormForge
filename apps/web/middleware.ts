@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/f/(.*)", // public form submission
+  "/api/webhooks(.*)", // clerk webhook
 ]);
 
 const isAuthRoute = createRouteMatcher([

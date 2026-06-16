@@ -41,10 +41,10 @@ import {
   IconLayoutKanban,
   IconBook,
 } from "@tabler/icons-react";
+import { trpc } from "@/src/trpc/client";
+import { Loader2 } from "lucide-react";
 
 // ─── Droppable Empty Slot ─────────────────────────────────────────
-// A half-width drop target that appears next to unpaired half-width fields.
-// Dropping into this slot inserts the new field as half-width at that position.
 function DroppableEmptySlot({ afterFieldId }: { afterFieldId: string }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `empty-slot-${afterFieldId}`,
@@ -78,7 +78,6 @@ function DroppableEmptySlot({ afterFieldId }: { afterFieldId: string }) {
 }
 
 // ─── Canvas Drop Zone ────────────────────────────────────────────
-// useDroppable MUST be called inside <DndContext> — separate component ensures that
 function CanvasDropZone() {
   const { fields, setActiveField, activeElementId, removeField, duplicateField } = useFormBuilderStore();
 
@@ -87,8 +86,6 @@ function CanvasDropZone() {
     data: { type: "canvas" },
   });
 
-  // Walk through fields pairing consecutive half-width fields.
-  // Any half-width field without a half-width partner gets an EmptySlot injected inline.
   const renderList: React.ReactNode[] = [];
   let fi = 0;
   while (fi < fields.length) {
@@ -117,7 +114,6 @@ function CanvasDropZone() {
         renderList.push(makeCard(next));
         fi += 2;
       } else {
-        // Unpaired half — fill remaining 6 columns with droppable slot
         renderList.push(<DroppableEmptySlot key={`slot-${field.id}`} afterFieldId={field.id} />);
         fi += 1;
       }
@@ -174,12 +170,64 @@ function CanvasDropZone() {
 
 // ─── Builder UI ──────────────────────────────────────────────────
 function BuilderUI({ formId }: { formId: string }) {
-  const { fields, addField, reorderFields } = useFormBuilderStore();
-  const [formName, setFormName] = useState("Untitled Form");
+  const { fields, setFields, addField, reorderFields } = useFormBuilderStore();
+  const utils = trpc.useUtils();
+
+  const { data: form, isLoading: loadingForm, isError: formError, refetch: refetchForm } = trpc.forms.getById.useQuery({ id: formId });
+  const { data: versions, isLoading: loadingVersions, isError: versionsError, refetch: refetchVersions } = trpc.formVersions.getAll.useQuery({ formId });
+
+  const [formName, setFormName] = useState("");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const { mutate: updateForm } = trpc.forms.update.useMutation();
+  const { mutate: createVersion } = trpc.formVersions.create.useMutation({
+    onSuccess: () => {
+      setSaveStatus("saved");
+      utils.formVersions.getAll.invalidate({ formId });
+    },
+    onError: () => {
+      setSaveStatus("idle");
+    }
+  });
+
+  const { mutate: publishForm, isPending: isPublishing } = trpc.forms.publish.useMutation({
+    onSuccess: () => {
+      alert("Form published successfully!");
+    }
+  });
+
+  // Load Initial Data
+  useEffect(() => {
+    if (form && versions && !isInitialized) {
+      setFormName(form.name);
+      const latestVersion = versions[0];
+      if (latestVersion && latestVersion.schema && Array.isArray((latestVersion.schema as any).fields)) {
+        setFields((latestVersion.schema as any).fields);
+      }
+      setIsInitialized(true);
+    }
+  }, [form, versions, isInitialized, setFields]);
+
+  // Auto-Save
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    setSaveStatus("saving");
+    const timeoutId = setTimeout(() => {
+      createVersion({
+        formId,
+        schema: { fields }
+      });
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [fields, isInitialized, createVersion, formId]);
 
   const handleNameUpdate = () => {
-    // Stub logic to hit the update route only if changed
-    console.log(`[Stub] Hitting update route with new name: ${formName}`);
+    if (formName.trim() && formName !== form?.name) {
+      updateForm({ id: formId, name: formName.trim() });
+    }
   };
 
   const dockLinks = [
@@ -206,11 +254,6 @@ function BuilderUI({ formId }: { formId: string }) {
       title: "Save Draft",
       icon: <IconDeviceFloppy className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
       href: `#`,
-    },
-    {
-      title: "Publish & Share",
-      icon: <IconUpload className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
-      href: `/forms/${formId}/share`,
     },
   ];
 
@@ -253,7 +296,6 @@ function BuilderUI({ formId }: { formId: string }) {
       const fieldType = active.data.current?.fieldType as FieldType;
       const overId = over.id.toString();
 
-      // Dropped into a half-width empty slot — insert as half-width right after paired field
       if (overId.startsWith("empty-slot-")) {
         const afterFieldId = over.data.current?.afterFieldId as string;
         const afterIndex = fields.findIndex((f) => f.id === afterFieldId);
@@ -261,7 +303,6 @@ function BuilderUI({ formId }: { formId: string }) {
         return;
       }
 
-      // Dropped on canvas background or on an existing field
       let dropIndex = fields.length;
       if (overId !== "canvas-drop-zone") {
         const idx = fields.findIndex((f) => f.id === overId);
@@ -281,9 +322,36 @@ function BuilderUI({ formId }: { formId: string }) {
     sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: "0.4" } } }),
   };
 
+  if (loadingForm || loadingVersions) {
+    return (
+      <div className="fixed inset-0 bg-neutral-50" style={{ zIndex: 40, top: 64 }}>
+        <div className="flex gap-6 h-full px-6 pt-5 pb-[100px]">
+          <div className="w-[260px] shrink-0 bg-neutral-200/60 animate-pulse rounded-2xl border border-neutral-200" />
+          <div className="flex-1 bg-neutral-200/60 animate-pulse rounded-2xl border border-neutral-200" />
+          <div className="w-[300px] shrink-0 bg-neutral-200/60 animate-pulse rounded-2xl border border-neutral-200" />
+        </div>
+      </div>
+    );
+  }
+
+  if (formError || versionsError) {
+    return (
+      <div className="fixed inset-0 bg-neutral-50 flex items-center justify-center flex-col gap-4" style={{ zIndex: 40, top: 64 }}>
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-2">
+          <IconForms size={32} />
+        </div>
+        <p className="text-neutral-700 font-semibold text-lg tracking-tight">Failed to load form builder</p>
+        <button 
+          onClick={() => { refetchForm(); refetchVersions(); }} 
+          className="px-6 py-2.5 bg-neutral-200 hover:bg-neutral-300 transition-colors rounded-xl font-medium text-sm text-neutral-700 shadow-sm"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
-    // Sits below the fixed navbar (h-16 = 64px, z-50) at z-40
-    // This lets the original DashboardNavbar show through at the top
     <div className="fixed inset-0 bg-neutral-50" style={{ zIndex: 40, top: 64 }}>
       <DndContext
         id="form-builder-dnd-context"
@@ -294,36 +362,46 @@ function BuilderUI({ formId }: { formId: string }) {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {/* Three-column layout with original dashboard-style padding */}
         <div className="flex gap-6 h-full px-6 pt-5 pb-[100px]">
-
-          {/* LEFT — Field Palette */}
           <div className="w-[260px] shrink-0 bg-white rounded-2xl border border-neutral-200 shadow-sm shadow-neutral-200/40 flex flex-col overflow-hidden">
             <FieldPalette />
           </div>
-
-          {/* CENTER — Canvas (CanvasDropZone handles useDroppable) */}
           <CanvasDropZone />
-
-          {/* RIGHT — Field Settings */}
           <div className="w-[300px] shrink-0 bg-white rounded-2xl border border-neutral-200 shadow-sm shadow-neutral-200/40 flex flex-col overflow-hidden">
             <FieldSettings />
           </div>
-
         </div>
 
-        {/* ── Floating Dock Toolbar ── */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        {/* Floating Toolbar & Actions */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4">
           <FloatingDock items={dockLinks}>
-            <input
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              onBlur={handleNameUpdate}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
-              className="bg-transparent border-none outline-none text-sm font-bold text-neutral-700 w-36 focus:ring-2 focus:ring-violet-200 rounded px-2 py-1 transition-all"
-              placeholder="Form Name"
-            />
+            <div className="flex items-center gap-3 w-48">
+              <input
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                onBlur={handleNameUpdate}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
+                className="bg-transparent border-none outline-none text-sm font-bold text-neutral-700 w-full focus:ring-2 focus:ring-violet-200 rounded px-2 py-1 transition-all"
+                placeholder="Form Name"
+              />
+            </div>
           </FloatingDock>
+          
+          <div className="flex items-center gap-3">
+            <div className="w-16 flex justify-end">
+              <span className={`text-[11px] font-medium transition-opacity duration-300 ${saveStatus === "saving" ? "text-neutral-500 opacity-100" : saveStatus === "saved" ? "text-emerald-500 opacity-100" : "opacity-0"}`}>
+                {saveStatus === "saving" ? "Saving..." : "Saved \u2713"}
+              </span>
+            </div>
+            <button 
+              onClick={() => publishForm({ id: formId })}
+              disabled={isPublishing}
+              className="px-5 py-2.5 bg-[#18181b] hover:bg-[#27272a] text-white text-xs font-semibold rounded-2xl shadow-lg shadow-black/20 transition-all flex items-center gap-2 border border-black/10 disabled:opacity-50"
+            >
+              {isPublishing ? <Loader2 size={16} className="animate-spin" /> : <IconUpload size={16} />}
+              Publish
+            </button>
+          </div>
         </div>
 
         <DragOverlay dropAnimation={dropAnimation}>
@@ -352,13 +430,10 @@ function BuilderUI({ formId }: { formId: string }) {
   );
 }
 
-// ─── Page Entry ──────────────────────────────────────────────────
 export default function FormBuilderPage({ params }: { params: Promise<{ formId: string }> }) {
   const { formId } = React.use(params);
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => { setIsMounted(true); }, []);
   if (!isMounted) return null;
-  // Portal renders directly into document.body — completely outside
-  // the Framer Motion transform context of DashboardNavbar
   return createPortal(<BuilderUI formId={formId} />, document.body);
 }

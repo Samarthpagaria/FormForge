@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "motion/react";
 import { 
   Search, 
   Filter, 
@@ -14,41 +13,7 @@ import {
   Trash2 
 } from "lucide-react";
 import Link from "next/link";
-
-const DUMMY_FORMS = [
-  {
-    id: "1",
-    name: "Customer Feedback 2026",
-    status: "published",
-    responses: 24,
-    updatedAt: "2 days ago",
-    type: "feedback"
-  },
-  {
-    id: "2",
-    name: "Event Registration",
-    status: "draft",
-    responses: 0,
-    updatedAt: "5 hours ago",
-    type: "registration"
-  },
-  {
-    id: "3",
-    name: "Job Application",
-    status: "published",
-    responses: 142,
-    updatedAt: "1 week ago",
-    type: "application"
-  },
-  {
-    id: "4",
-    name: "Q3 Employee Survey",
-    status: "published",
-    responses: 89,
-    updatedAt: "3 days ago",
-    type: "survey"
-  },
-];
+import { trpc } from "@/src/trpc/client";
 
 const TEMPLATES_IMAGES = [
   "163cd3adf4e0090bc60f98ebd9d9f475.jpg",
@@ -100,6 +65,15 @@ function getRandomImage(index: number) {
 export default function FormsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+
+  const { data: forms, isLoading, isError, refetch } = trpc.forms.getAllForms.useQuery();
+
+  const filteredForms = forms?.filter((f) => {
+    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || 
+                          (f.description && f.description.toLowerCase().includes(search.toLowerCase()));
+    const matchesFilter = filter === "All" || f.status === filter.toLowerCase();
+    return matchesSearch && matchesFilter;
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || [];
 
   return (
     <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 shadow-sm overflow-hidden">
@@ -160,102 +134,140 @@ export default function FormsPage() {
         </div>
       </div>
 
-      {/* ── Forms Grid ── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0 border border-dashed border-neutral-300 rounded-[3rem] overflow-hidden bg-white/30 backdrop-blur-sm">
-        
-        {DUMMY_FORMS.filter(f => filter === "All" || f.status === filter.toLowerCase()).map((form, idx) => (
-          <div 
-            key={form.id} 
-            className="border-b border-r border-dashed border-neutral-300 flex justify-center items-center hover:bg-white/50 transition-colors group relative p-1.5"
+      {/* ── Dynamic Content Area ── */}
+      {isLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {[...Array(9)].map((_, i) => (
+            <div key={i} className="h-[235px] bg-neutral-200/50 dark:bg-zinc-800/50 animate-pulse rounded-[1.5rem] border border-dashed border-neutral-300" />
+          ))}
+        </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center h-full flex-1">
+          <p className="text-red-500 dark:text-red-400 font-medium mb-4">Failed to load forms.</p>
+          <button 
+            onClick={() => refetch()} 
+            className="px-6 py-2 bg-neutral-200 dark:bg-zinc-800 rounded-full hover:bg-neutral-300 dark:hover:bg-zinc-700 transition-colors font-semibold"
           >
-            {/* Custom Form Card matching the Template Card aesthetic */}
-            <div className="relative w-full max-w-[240px] bg-[#2d351e] rounded-[1.5rem] p-1.5 flex flex-col font-sans shadow-[0_15px_30px_-10px_rgba(45,53,30,0.25)] transition-all duration-300 hover:translate-y-[-2px]">
-              
-              {/* Top Image Section */}
-              <div className="relative w-full h-[150px] bg-[#a8ba8d] rounded-[1rem] overflow-hidden z-20 group-hover:shadow-inner">
-                <img 
-                  src={getRandomImage(idx + 5)} // Offset index so it's different from templates
-                  alt={form.name}
-                  className="w-full h-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                
-                {/* Status Badge Over Image */}
-                <div className="absolute top-2 left-2">
-                  <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-md flex items-center gap-1 backdrop-blur-md ${
-                    form.status === 'published' 
-                      ? 'bg-emerald-500/80 text-white' 
-                      : 'bg-white/20 text-white/90 border border-white/10'
-                  }`}>
-                    <span className={`w-1 h-1 rounded-full ${form.status === 'published' ? 'bg-white' : 'bg-white/50'}`} />
-                    {form.status}
-                  </span>
-                </div>
-              </div>
-
-              {/* Bottom Details Section */}
-              <div className="pt-2 pb-1.5 px-2 flex flex-col mt-0.5">
-                <h3 className="text-white text-sm font-semibold tracking-tight truncate mb-0.5" title={form.name}>
-                  {form.name}
-                </h3>
-                
-                <div className="flex items-center justify-between mt-1">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-white text-lg font-bold">{form.responses}</span>
-                    <span className="text-white/60 text-[10px] font-medium">responses</span>
-                  </div>
-                  <p className="text-white/40 text-[9px] font-medium">
-                    {form.updatedAt}
-                  </p>
-                </div>
-
-                {/* Divider */}
-                <div className="w-full h-[1px] bg-white/10 my-2" />
-
-                {/* Actions */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <Link href={`/forms/${form.id}/builder`}>
-                      <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Edit Form">
-                        <Edit2 size={12} />
-                      </button>
-                    </Link>
-                    <Link href={`/forms/${form.id}/share`}>
-                      <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Share Form">
-                        <Share2 size={12} />
-                      </button>
-                    </Link>
-                    <Link href={`/forms/${form.id}/responses`}>
-                      <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Analytics">
-                        <BarChart2 size={12} />
-                      </button>
-                    </Link>
-                  </div>
-                  <button className="flex items-center gap-1 bg-white/10 hover:bg-red-500/80 transition-colors backdrop-blur-md py-1 pl-1.5 pr-2 rounded-full cursor-pointer text-white/80 hover:text-white shrink-0">
-                    <Trash2 size={10} />
-                    <span className="text-[9px] font-medium tracking-tight">Delete</span>
-                  </button>
-                </div>
-
-              </div>
-            </div>
+            Retry
+          </button>
+        </div>
+      ) : forms?.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center flex-1">
+          <div className="w-16 h-16 bg-[#e3ecd6] rounded-full flex items-center justify-center mb-4 border-2 border-dashed border-[#8ba059]">
+            <Search className="text-[#3a4427]" size={24} />
           </div>
-        ))}
-        
-        {/* Create New Form Placeholder */}
-        <div className="border-b border-r border-dashed border-neutral-300 flex justify-center items-center hover:bg-white/50 transition-colors p-1.5">
+          <h3 className="text-xl font-bold text-neutral-800 mb-2">No forms yet</h3>
+          <p className="text-neutral-500 mb-6 max-w-sm">You haven't created any forms yet. Start building your first form to collect data!</p>
           <Link href="/create-form">
-            <div className="w-full min-w-[200px] max-w-[240px] h-[235px] bg-[#e3ecd6]/30 rounded-[1.5rem] border-2 border-dashed border-[#8ba059]/40 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:bg-[#d9e5c9]/50 hover:border-[#8ba059] hover:translate-y-[-2px] cursor-pointer group">
-              <div className="w-10 h-10 bg-white/60 rounded-full flex items-center justify-center border border-white shadow-sm group-hover:scale-110 transition-transform">
-                <Plus className="text-[#3a4427] group-hover:text-[#2d351e] transition-colors" size={20} />
-              </div>
-              <p className="text-sm font-semibold text-[#3a4427] group-hover:text-[#2d351e] transition-colors">Create New Form</p>
-            </div>
+            <button className="flex items-center gap-2 bg-[#2d351e] hover:bg-[#3a4427] text-white px-6 py-3 rounded-full font-semibold transition-all shadow-md shadow-[#2d351e]/20 hover:-translate-y-0.5">
+              <Plus size={18} /> Create your first form
+            </button>
           </Link>
         </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0 border border-dashed border-neutral-300 rounded-[3rem] overflow-hidden bg-white/30 backdrop-blur-sm">
+          {filteredForms.map((form, idx) => (
+            <div 
+              key={form.id} 
+              className="border-b border-r border-dashed border-neutral-300 flex justify-center items-center hover:bg-white/50 transition-colors group relative p-1.5"
+            >
+              {/* Custom Form Card */}
+              <div className="relative w-full max-w-[240px] bg-[#2d351e] rounded-[1.5rem] p-1.5 flex flex-col font-sans shadow-[0_15px_30px_-10px_rgba(45,53,30,0.25)] transition-all duration-300 hover:translate-y-[-2px]">
+                
+                {/* Top Image Section */}
+                <div className="relative w-full h-[150px] bg-[#a8ba8d] rounded-[1rem] overflow-hidden z-20 group-hover:shadow-inner">
+                  <img 
+                    src={getRandomImage(idx + 5)}
+                    alt={form.name}
+                    className="w-full h-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-2 left-2">
+                    <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-md flex items-center gap-1 backdrop-blur-md ${
+                      form.status === 'published' 
+                        ? 'bg-emerald-500/80 text-white' 
+                        : 'bg-white/20 text-white/90 border border-white/10'
+                    }`}>
+                      <span className={`w-1 h-1 rounded-full ${form.status === 'published' ? 'bg-white' : 'bg-white/50'}`} />
+                      {form.status}
+                    </span>
+                  </div>
+                </div>
 
-      </div>
+                {/* Bottom Details Section */}
+                <div className="pt-2 pb-1.5 px-2 flex flex-col mt-0.5">
+                  <h3 className="text-white text-sm font-semibold tracking-tight truncate mb-0.5" title={form.name}>
+                    {form.name}
+                  </h3>
+                  
+                  {form.description ? (
+                    <p className="text-white/60 text-[10px] line-clamp-1 mb-1" title={form.description}>
+                      {form.description}
+                    </p>
+                  ) : (
+                    <p className="text-white/40 text-[10px] italic line-clamp-1 mb-1">
+                      No description
+                    </p>
+                  )}
 
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center gap-1 truncate w-[60%]">
+                      <span className="text-white/60 text-[10px] font-medium truncate">/{form.slug}</span>
+                    </div>
+                    <p className="text-white/40 text-[9px] font-medium shrink-0">
+                      {new Date(form.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="w-full h-[1px] bg-white/10 my-2" />
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <Link href={`/forms/${form.id}/builder`}>
+                        <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Edit Form">
+                          <Edit2 size={12} />
+                        </button>
+                      </Link>
+                      <Link href={`/forms/${form.id}/share`}>
+                        <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Share Form">
+                          <Share2 size={12} />
+                        </button>
+                      </Link>
+                      <Link href={`/forms/${form.id}/responses`}>
+                        <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Analytics">
+                          <BarChart2 size={12} />
+                        </button>
+                      </Link>
+                    </div>
+                    <button className="flex items-center gap-1 bg-white/10 hover:bg-red-500/80 transition-colors backdrop-blur-md py-1 pl-1.5 pr-2 rounded-full cursor-pointer text-white/80 hover:text-white shrink-0">
+                      <Trash2 size={10} />
+                      <span className="text-[9px] font-medium tracking-tight">Delete</span>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {/* Create New Form Placeholder */}
+          <div className="border-b border-r border-dashed border-neutral-300 flex justify-center items-center hover:bg-white/50 transition-colors p-1.5">
+            <Link href="/create-form">
+              <div className="w-full min-w-[200px] max-w-[240px] h-[235px] bg-[#e3ecd6]/30 rounded-[1.5rem] border-2 border-dashed border-[#8ba059]/40 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:bg-[#d9e5c9]/50 hover:border-[#8ba059] hover:translate-y-[-2px] cursor-pointer group">
+                <div className="w-10 h-10 bg-white/60 rounded-full flex items-center justify-center border border-white shadow-sm group-hover:scale-110 transition-transform">
+                  <Plus className="text-[#3a4427] group-hover:text-[#2d351e] transition-colors" size={20} />
+                </div>
+                <p className="text-sm font-semibold text-[#3a4427] group-hover:text-[#2d351e] transition-colors">Create New Form</p>
+              </div>
+            </Link>
+          </div>
+
+        </div>
+      )}
     </div>
   );
 }

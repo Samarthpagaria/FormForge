@@ -1,7 +1,7 @@
-import { createTRPCRouter, protectedProcedure } from "../init";
+import { createTRPCRouter, protectedProcedure, baseProcedure } from "../init";
 import { z } from "zod";
-import { forms } from "@formforge/db";
-import { eq, and } from "drizzle-orm";
+import { forms, formVersions } from "@formforge/db";
+import { eq, and, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 export const formsRouter = createTRPCRouter({
@@ -230,6 +230,44 @@ export const formsRouter = createTRPCRouter({
       } catch (err) {
         if (err instanceof TRPCError) throw err;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to unpublish form" });
+      }
+    }),
+
+  /**
+   * @name getBySlug
+   * @description gets a form by slug along with its current version
+   * @public
+   * @input slug: string
+   * @returns Form + currentVersion
+   */
+  getBySlug: baseProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const form = await ctx.db
+          .select()
+          .from(forms)
+          .where(eq(forms.slug, input.slug))
+          .limit(1);
+
+        if (!form[0]) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        }
+
+        const latestVersion = await ctx.db
+          .select()
+          .from(formVersions)
+          .where(eq(formVersions.formId, form[0].id))
+          .orderBy(desc(formVersions.createdAt))
+          .limit(1);
+
+        return {
+          form: form[0],
+          currentVersion: latestVersion[0] ?? null,
+        };
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch form by slug" });
       }
     }),
 });
