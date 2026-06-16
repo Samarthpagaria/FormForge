@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "../init";
 import { z } from "zod";
-import { events, forms } from "@formforge/db";
-import { eq, and, desc, count, sql } from "drizzle-orm";
+import { events, forms, submissions } from "@formforge/db";
+import { eq, and, desc, count, sql, inArray, gte, between } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 const eventTypes = z.enum([
@@ -305,6 +305,288 @@ export const analyticsRouter = createTRPCRouter({
       } catch (err) {
         if (err instanceof TRPCError) throw err;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch events" });
+      }
+    }),
+
+  // ─── GLOBAL STATS (across all user's forms) ───────────────────────────────
+
+  getGlobalStats: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const userForms = await ctx.db
+          .select()
+          .from(forms)
+          .where(eq(forms.userId, ctx.auth.userId));
+
+        if (userForms.length === 0) {
+          return {
+            totalForms: 0,
+            totalSubmissions: 0,
+            totalViews: 0,
+            completionRate: 0,
+            avgCompletionTime: 0,
+          };
+        }
+
+        const formIds = userForms.map((f) => f.id);
+
+        const [subCount, viewCount, startCount, submitCount, timeResult] = await Promise.all([
+          ctx.db.select({ count: count() }).from(submissions).where(inArray(submissions.formId, formIds)),
+          ctx.db.select({ count: count() }).from(events).where(and(inArray(events.formId, formIds), eq(events.event, "form_view"))),
+          ctx.db.select({ count: count() }).from(events).where(and(inArray(events.formId, formIds), eq(events.event, "form_start"))),
+          ctx.db.select({ count: count() }).from(events).where(and(inArray(events.formId, formIds), eq(events.event, "form_submit"))),
+          ctx.db.select({ avg: sql<number>`avg((metadata->>'completionTime')::numeric)` }).from(events).where(and(inArray(events.formId, formIds), eq(events.event, "form_submit"))),
+        ]);
+
+        const completionRate = (startCount[0]?.count ?? 0) > 0
+          ? Math.round(((submitCount[0]?.count ?? 0) / (startCount[0]?.count ?? 1)) * 100)
+          : 0;
+
+        return {
+          totalForms: userForms.length,
+          totalSubmissions: subCount[0]?.count ?? 0,
+          totalViews: viewCount[0]?.count ?? 0,
+          completionRate,
+          avgCompletionTime: Math.round(timeResult[0]?.avg ?? 0),
+        };
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch global stats" });
+      }
+    }),
+
+  // ─── GLOBAL SUBMISSIONS OVER TIME (last 30 days) ──────────────────────────
+
+  getGlobalSubmissionsOverTime: protectedProcedure
+    .input(z.object({ days: z.number().default(30) }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
+        if (userForms.length === 0) return [];
+
+        const formIds = userForms.map((f) => f.id);
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - input.days);
+
+        const data = await ctx.db
+          .select({
+            date: sql<string>`DATE(submitted_at)`,
+            count: count(),
+          })
+          .from(submissions)
+          .where(and(inArray(submissions.formId, formIds), gte(submissions.submittedAt, startDate)))
+          .groupBy(sql`DATE(submitted_at)`)
+          .orderBy(sql`DATE(submitted_at)`);
+
+        return data;
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch submissions over time" });
+      }
+    }),
+
+  // ─── GLOBAL TOP PERFORMING FORMS ──────────────────────────────────────────
+
+  getTopForms: protectedProcedure
+    .input(z.object({ limit: z.number().default(6) }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const userForms = await ctx.db.select().from(forms).where(eq(forms.userId, ctx.auth.userId));
+        if (userForms.length === 0) return [];
+
+        const formIds = userForms.map((f) => f.id);
+
+        const topForms = await ctx.db
+          .select({ formId: submissions.formId, count: count() })
+          .from(submissions)
+          .where(inArray(submissions.formId, formIds))
+          .groupBy(submissions.formId)
+          .orderBy(desc(count()))
+          .limit(input.limit);
+
+        return topForms.map((f) => ({
+          formId: f.formId,
+          formName: userForms.find((form) => form.id === f.formId)?.name ?? "Unknown",
+          submissions: f.count,
+        }));
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch top forms" });
+      }
+    }),
+
+  // ─── GLOBAL DEVICE BREAKDOWN ──────────────────────────────────────────────
+
+  getGlobalDeviceBreakdown: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
+        if (userForms.length === 0) return [];
+
+        const formIds = userForms.map((f) => f.id);
+
+        const data = await ctx.db
+          .select({
+            device: sql<string>`metadata->>'device'`,
+            count: count(),
+          })
+          .from(events)
+          .where(and(inArray(events.formId, formIds), eq(events.event, "form_view")))
+          .groupBy(sql`metadata->>'device'`);
+
+        return data;
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch device breakdown" });
+      }
+    }),
+
+  // ─── GLOBAL WEEKLY ACTIVITY HEATMAP ───────────────────────────────────────
+
+  getWeeklyActivityHeatmap: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
+        if (userForms.length === 0) return [];
+
+        const formIds = userForms.map((f) => f.id);
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+        const data = await ctx.db
+          .select({
+            dayOfWeek: sql<number>`EXTRACT(DOW FROM submitted_at)`,
+            hour: sql<number>`EXTRACT(HOUR FROM submitted_at)`,
+            count: count(),
+          })
+          .from(submissions)
+          .where(and(inArray(submissions.formId, formIds), gte(submissions.submittedAt, ninetyDaysAgo)))
+          .groupBy(sql`EXTRACT(DOW FROM submitted_at)`, sql`EXTRACT(HOUR FROM submitted_at)`);
+
+        return data;
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch heatmap data" });
+      }
+    }),
+
+  // ─── GLOBAL COMPLETION TIME DISTRIBUTION ──────────────────────────────────
+
+  getCompletionTimeDistribution: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
+        if (userForms.length === 0) return [];
+
+        const formIds = userForms.map((f) => f.id);
+
+        const data = await ctx.db
+          .select({
+            bucket: sql<string>`
+              CASE 
+                WHEN (metadata->>'completionTime')::numeric < 30 THEN '0-30s'
+                WHEN (metadata->>'completionTime')::numeric < 60 THEN '30-60s'
+                WHEN (metadata->>'completionTime')::numeric < 120 THEN '1-2m'
+                WHEN (metadata->>'completionTime')::numeric < 300 THEN '2-5m'
+                ELSE '5m+'
+              END
+            `,
+            count: count(),
+          })
+          .from(events)
+          .where(and(inArray(events.formId, formIds), eq(events.event, "form_submit")))
+          .groupBy(sql`
+            CASE 
+              WHEN (metadata->>'completionTime')::numeric < 30 THEN '0-30s'
+              WHEN (metadata->>'completionTime')::numeric < 60 THEN '30-60s'
+              WHEN (metadata->>'completionTime')::numeric < 120 THEN '1-2m'
+              WHEN (metadata->>'completionTime')::numeric < 300 THEN '2-5m'
+              ELSE '5m+'
+            END
+          `);
+
+        return data;
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch completion time distribution" });
+      }
+    }),
+
+  // ─── GLOBAL TRAFFIC SOURCES ───────────────────────────────────────────────
+
+  getTrafficSources: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
+        if (userForms.length === 0) return [];
+
+        const formIds = userForms.map((f) => f.id);
+
+        const data = await ctx.db
+          .select({
+            source: sql<string>`metadata->>'source'`,
+            count: count(),
+          })
+          .from(events)
+          .where(and(inArray(events.formId, formIds), eq(events.event, "form_view")))
+          .groupBy(sql`metadata->>'source'`);
+
+        return data.map((d) => ({
+          source: d.source ?? "direct",
+          count: d.count,
+        }));
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch traffic sources" });
+      }
+    }),
+
+  // ─── FORM-SPECIFIC SUBMISSIONS OVER TIME ──────────────────────────────────
+
+  getSubmissionsOverTime: protectedProcedure
+    .input(z.object({ formId: z.string(), days: z.number().default(30) }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const form = await ctx.db.select().from(forms).where(and(eq(forms.id, input.formId), eq(forms.userId, ctx.auth.userId))).limit(1);
+        if (!form[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - input.days);
+
+        const data = await ctx.db
+          .select({
+            date: sql<string>`DATE(submitted_at)`,
+            count: count(),
+          })
+          .from(submissions)
+          .where(and(eq(submissions.formId, input.formId), gte(submissions.submittedAt, startDate)))
+          .groupBy(sql`DATE(submitted_at)`)
+          .orderBy(sql`DATE(submitted_at)`);
+
+        return data;
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch submissions over time" });
+      }
+    }),
+
+  // ─── RECENT SUBMISSIONS GLOBAL ────────────────────────────────────────────
+
+  getRecentSubmissions: protectedProcedure
+    .input(z.object({ limit: z.number().default(8) }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const userForms = await ctx.db.select().from(forms).where(eq(forms.userId, ctx.auth.userId));
+        if (userForms.length === 0) return [];
+
+        const formIds = userForms.map((f) => f.id);
+
+        const recentSubs = await ctx.db
+          .select()
+          .from(submissions)
+          .where(inArray(submissions.formId, formIds))
+          .orderBy(desc(submissions.submittedAt))
+          .limit(input.limit);
+
+        return recentSubs.map((sub) => ({
+          ...sub,
+          formName: userForms.find((f) => f.id === sub.formId)?.name ?? "Unknown",
+        }));
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch recent submissions" });
       }
     }),
 });

@@ -136,6 +136,70 @@ export const formsRouter = createTRPCRouter({
     }),
 
   /**
+   * @name setSchedule
+   * @description updates the schedule settings of a form
+   * @protected
+   * @input id: string, activateAt?: string, deactivateAt?: string, isActive?: boolean
+   * @returns Form
+   */
+  setSchedule: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        activateAt: z.string().optional(),
+        deactivateAt: z.string().optional(),
+        isActive: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { id, ...scheduleSettings } = input;
+
+        // Fetch current form settings
+        const existingForm = await ctx.db
+          .select({ settings: forms.settings })
+          .from(forms)
+          .where(
+            and(
+              eq(forms.id, id),
+              eq(forms.userId, ctx.auth.userId)
+            )
+          )
+          .limit(1);
+
+        if (!existingForm[0]) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        }
+
+        const currentSettings = (existingForm[0].settings as Record<string, any>) || {};
+
+        const updatedSettings = {
+          ...currentSettings,
+          ...scheduleSettings,
+        };
+
+        const updated = await ctx.db
+          .update(forms)
+          .set({
+            settings: updatedSettings,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(forms.id, id),
+              eq(forms.userId, ctx.auth.userId)
+            )
+          )
+          .returning();
+
+        return updated[0];
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to set form schedule" });
+      }
+    }),
+
+  /**
    * @name delete
    * @description deletes a form
    * @protected

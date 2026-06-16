@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Monitor, Smartphone, Tablet, Copy, CheckCircle2, Download, Code, Globe, Lock, Settings, Loader2 } from "lucide-react";
+import { ArrowLeft, Monitor, Smartphone, Tablet, Copy, CheckCircle2, Download, Code, Globe, Lock, Settings, Loader2, Clock, Layout } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { FormRenderer } from "@/components/form-renderer/FormRenderer";
 import { trpc } from "@/src/trpc/client";
+import { toast } from "sonner";
 
 export default function SharePage({ params }: { params: Promise<{ formId: string }> }) {
   const { formId } = React.use(params);
@@ -34,15 +35,57 @@ export default function SharePage({ params }: { params: Promise<{ formId: string
   // Mutations
   const { mutate: publish, isPending: isPublishing } = trpc.forms.publish.useMutation({
     onSuccess: () => {
+      toast.success("Form published!");
       utils.forms.getById.invalidate({ id: formId });
       utils.share.getShareLink.invalidate({ formId });
       utils.share.getQRCode.invalidate({ formId });
-    }
+    },
+    onError: (err) => toast.error(err.message || "Failed to publish form"),
   });
   
   const { mutate: unpublish, isPending: isUnpublishing } = trpc.forms.unpublish.useMutation({
-    onSuccess: () => utils.forms.getById.invalidate({ id: formId })
+    onSuccess: () => {
+      toast.success("Form unpublished.");
+      utils.forms.getById.invalidate({ id: formId });
+    },
+    onError: (err) => toast.error(err.message || "Failed to unpublish form"),
   });
+
+  const { mutate: updateSettings } = trpc.forms.update.useMutation({
+    onSuccess: () => {
+      toast.success("Settings saved");
+      utils.forms.getById.invalidate({ id: formId });
+    },
+    onError: (err) => toast.error(err.message || "Failed to save settings"),
+  });
+
+  const { mutate: setSchedule, isPending: isSavingSchedule } = trpc.forms.setSchedule.useMutation({
+    onSuccess: () => {
+      toast.success("Schedule saved");
+      utils.forms.getById.invalidate({ id: formId });
+    },
+    onError: (err) => toast.error(err.message || "Failed to save schedule"),
+  });
+
+  const settings = (form?.settings as Record<string, any>) || {};
+  const allowMultiple = settings.allowMultipleSubmissions !== false;
+  const displayMode = settings.displayMode || "normal";
+
+  const [scheduleState, setScheduleState] = useState({
+    activateAt: settings.activateAt || "",
+    deactivateAt: settings.deactivateAt || "",
+    isActive: settings.isActive !== false
+  });
+
+  useEffect(() => {
+    if (form) {
+      setScheduleState({
+        activateAt: settings.activateAt || "",
+        deactivateAt: settings.deactivateAt || "",
+        isActive: settings.isActive !== false
+      });
+    }
+  }, [form]);
 
   const formUrl = shareLink?.url || `https://formforge.com/f/${form?.slug || "..."}`;
   const embedCode = `<iframe src="${formUrl}" width="100%" height="600px" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>`;
@@ -83,8 +126,8 @@ export default function SharePage({ params }: { params: Promise<{ formId: string
   };
 
   const schema = useMemo(() => {
-    if (versions && versions.length > 0 && versions[0].schema) {
-      return versions[0].schema;
+    if (versions && versions.length > 0 && versions[0]?.schema) {
+      return versions[0]?.schema || { fields: [], settings: {} };
     }
     return { fields: [], settings: {} }; // Fallback
   }, [versions]);
@@ -285,19 +328,83 @@ export default function SharePage({ params }: { params: Promise<{ formId: string
 
           <div className="h-px bg-neutral-100" />
 
+          {/* Schedule */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm font-bold text-neutral-800 flex items-center gap-2">
+              <Clock size={16} className="text-neutral-400" /> Schedule
+            </h3>
+            <div className="flex flex-col gap-3 bg-neutral-50 border border-neutral-200 rounded-xl p-4">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold text-neutral-600">Activate At</span>
+                <input 
+                  type="datetime-local" 
+                  value={scheduleState.activateAt}
+                  onChange={e => setScheduleState(s => ({...s, activateAt: e.target.value}))}
+                  className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 outline-none focus:ring-2 focus:ring-violet-500/20"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold text-neutral-600">Deactivate At</span>
+                <input 
+                  type="datetime-local" 
+                  value={scheduleState.deactivateAt}
+                  onChange={e => setScheduleState(s => ({...s, deactivateAt: e.target.value}))}
+                  className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 outline-none focus:ring-2 focus:ring-violet-500/20"
+                />
+              </label>
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-xs font-semibold text-neutral-600">Active Now</span>
+                <input 
+                  type="checkbox" 
+                  checked={scheduleState.isActive}
+                  onChange={e => setScheduleState(s => ({...s, isActive: e.target.checked}))}
+                  className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                />
+              </label>
+              <button 
+                onClick={() => setSchedule({ id: formId, ...scheduleState })}
+                disabled={isSavingSchedule}
+                className="mt-2 w-full py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold text-neutral-700 hover:bg-neutral-50 transition-colors shadow-sm flex items-center justify-center"
+              >
+                {isSavingSchedule ? <Loader2 size={14} className="animate-spin" /> : "Save Schedule"}
+              </button>
+            </div>
+          </div>
+
+          <div className="h-px bg-neutral-100" />
+
           {/* Form Settings Mini */}
           <div className="flex flex-col gap-3 pb-8">
             <h3 className="text-sm font-bold text-neutral-800 flex items-center gap-2">
               <Settings size={16} className="text-neutral-400" /> Form Settings
             </h3>
-            <div className="flex flex-col gap-3">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-neutral-600">Close after X responses</span>
-                <select className="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 outline-none focus:ring-2 focus:ring-violet-500/20 disabled:opacity-50">
-                  <option>∞ Unlimited</option>
-                  <option>100 responses</option>
-                  <option>500 responses</option>
-                  <option>1000 responses</option>
+            <div className="flex flex-col gap-4 bg-neutral-50 border border-neutral-200 rounded-xl p-4">
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-xs font-semibold text-neutral-600">Allow multiple submissions</span>
+                <input 
+                  type="checkbox" 
+                  checked={allowMultiple}
+                  onChange={e => updateSettings({ id: formId, settings: { ...settings, allowMultipleSubmissions: e.target.checked } })}
+                  className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                />
+              </label>
+
+              <div className="h-px bg-neutral-200" />
+
+              <label className="flex flex-col gap-2">
+                <span className="text-xs font-semibold text-neutral-600 flex items-center gap-1.5"><Layout size={14} /> Display Mode</span>
+                <select 
+                  value={displayMode}
+                  onChange={e => updateSettings({ id: formId, settings: { ...settings, displayMode: e.target.value } })}
+                  className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 outline-none focus:ring-2 focus:ring-violet-500/20"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="chat">Chat</option>
+                  <option value="terminal">Terminal</option>
+                  <option value="one-by-one">One-by-One</option>
+                  <option value="swipe">Card Swipe</option>
+                  <option value="story">Story</option>
+                  <option value="slide">Slide</option>
                 </select>
               </label>
             </div>

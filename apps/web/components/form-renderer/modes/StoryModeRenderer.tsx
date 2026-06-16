@@ -3,6 +3,7 @@ import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence } from "framer-motion";
 import { FormField } from "../schema";
 import { Send } from "lucide-react";
+import { validateField } from "@formforge/form-engine";
 
 type StoryChunk = {
   id: string;
@@ -12,7 +13,7 @@ type StoryChunk = {
 };
 
 export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
-  const { values, errors, isSubmitting, handleChange, validateField, handleSubmit } = engine;
+  const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
   
   const [chunks, setChunks] = useState<StoryChunk[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,7 +52,9 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
     if (currentIndex >= chunks.length) return;
 
     const chunk = chunks[currentIndex];
-    const field = chunk.field!;
+    if (!chunk) return;
+    const field = chunk.field;
+    if (!field) return;
 
     const val = inputValue.trim();
 
@@ -64,7 +67,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
       }
     }
 
-    const error = validateField(field.id, finalVal);
+    const error = validateField(field, finalVal);
     if (error) {
       setFieldError(error);
       return;
@@ -96,7 +99,8 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
         <AnimatePresence>
           {chunks.slice(0, currentIndex + 1).map((chunk, idx) => {
             const isCurrent = idx === currentIndex;
-            const field = chunk.field!;
+            const field = chunk.field;
+            if (!field) return null;
             const value = values[field.id];
 
             return (

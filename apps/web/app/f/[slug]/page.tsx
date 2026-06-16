@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "motion/react";
-import { CheckCircle2, Lock, Search, Loader2 } from "lucide-react";
+import { CheckCircle2, Lock, Loader2, AlertTriangle, Clock, Search } from "lucide-react";
 import { FormRenderer } from "@/components/form-renderer/FormRenderer";
 import { trpc } from "@/src/trpc/client";
+import { toast } from "sonner";
 
-type FormState = "LOADING" | "NOT_FOUND" | "UNPUBLISHED" | "READY" | "SUCCESS";
+type FormState = "LOADING" | "NOT_FOUND" | "UNPUBLISHED" | "READY" | "SUCCESS" | "ALREADY_SUBMITTED" | "DEACTIVATED" | "NOT_YET_ACTIVE" | "CLOSED";
 
 // Helper functions for basic analytics
 const getDeviceType = () => {
@@ -40,7 +41,7 @@ export default function PublicFormPage({
 }) {
   const { slug } = React.use(params);
   const resolvedSearchParams = React.use(searchParams);
-  const mode = (resolvedSearchParams.mode as string) || "normal";
+  const searchMode = resolvedSearchParams.mode as string | undefined;
   
   const [formState, setFormState] = useState<FormState>("LOADING");
   
@@ -74,6 +75,21 @@ export default function PublicFormPage({
       setFormState("UNPUBLISHED");
       return;
     }
+
+    const settings = (form.settings as Record<string, any>) ?? {};
+    if (settings.isActive === false) {
+      setFormState("DEACTIVATED");
+      return;
+    }
+    if (settings.activateAt && new Date() < new Date(settings.activateAt)) {
+      setFormState("NOT_YET_ACTIVE");
+      return;
+    }
+    if (settings.deactivateAt && new Date() > new Date(settings.deactivateAt)) {
+      setFormState("CLOSED");
+      return;
+    }
+
     setFormState("READY");
   }, [isLoading, isError, form]);
 
@@ -152,9 +168,15 @@ export default function PublicFormPage({
       });
 
       setFormState("SUCCESS");
-    } catch (err) {
-      console.error("Submission failed:", err);
-      // Optional: Add toast notification for failure
+    } catch (err: any) {
+      if (err instanceof Error && err.message.toLowerCase().includes("already submitted")) {
+        setFormState("ALREADY_SUBMITTED");
+      } else if (err?.data?.code === "CONFLICT") {
+        setFormState("ALREADY_SUBMITTED");
+      } else {
+        console.error("Submission failed:", err);
+        toast.error("Failed to submit form. Please try again.");
+      }
     }
   };
 
@@ -240,13 +262,64 @@ export default function PublicFormPage({
     );
   }
 
-  const isSpecialMode = mode !== "normal";
+  if (formState === "ALREADY_SUBMITTED") {
+    return (
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full bg-white rounded-2xl shadow-xl shadow-black/5 border border-neutral-200/50 p-10 flex flex-col items-center justify-center text-center max-w-[600px] mx-auto my-12">
+        <div className="w-16 h-16 bg-red-50 rounded-full border border-red-100 flex items-center justify-center mb-6">
+          <AlertTriangle size={32} className="text-red-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-neutral-900 tracking-tight mb-2">Already Submitted</h2>
+        <p className="text-neutral-500 max-w-sm mb-8">You've already filled out this form.</p>
+      </motion.div>
+    );
+  }
+
+  if (formState === "DEACTIVATED") {
+    return (
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full bg-white rounded-2xl shadow-xl shadow-black/5 border border-neutral-200/50 p-10 flex flex-col items-center justify-center text-center max-w-[600px] mx-auto my-12">
+        <div className="w-16 h-16 bg-neutral-100 rounded-full border border-neutral-200 flex items-center justify-center mb-6">
+          <Lock size={28} className="text-neutral-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-neutral-900 tracking-tight mb-2">Form Deactivated</h2>
+        <p className="text-neutral-500 max-w-sm">This form is currently deactivated and not accepting responses.</p>
+      </motion.div>
+    );
+  }
+
+  if (formState === "NOT_YET_ACTIVE") {
+    const activateAt = (form?.settings as Record<string, any>)?.activateAt;
+    return (
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full bg-white rounded-2xl shadow-xl shadow-black/5 border border-neutral-200/50 p-10 flex flex-col items-center justify-center text-center max-w-[600px] mx-auto my-12">
+        <div className="w-16 h-16 bg-blue-50 rounded-full border border-blue-100 flex items-center justify-center mb-6">
+          <Clock size={28} className="text-blue-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-neutral-900 tracking-tight mb-2">Form not yet active</h2>
+        <p className="text-neutral-500 max-w-sm">This form opens on {new Date(activateAt).toLocaleString()}.</p>
+      </motion.div>
+    );
+  }
+
+  if (formState === "CLOSED") {
+    const deactivateAt = (form?.settings as Record<string, any>)?.deactivateAt;
+    return (
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full bg-white rounded-2xl shadow-xl shadow-black/5 border border-neutral-200/50 p-10 flex flex-col items-center justify-center text-center max-w-[600px] mx-auto my-12">
+        <div className="w-16 h-16 bg-neutral-100 rounded-full border border-neutral-200 flex items-center justify-center mb-6">
+          <Lock size={28} className="text-neutral-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-neutral-900 tracking-tight mb-2">Form Closed</h2>
+        <p className="text-neutral-500 max-w-sm">This form closed on {new Date(deactivateAt).toLocaleString()}.</p>
+      </motion.div>
+    );
+  }
+
+  const displayMode = searchMode || (form?.settings as Record<string, any>)?.displayMode || "normal";
+  const isSpecialMode = displayMode !== "normal";
 
   return isSpecialMode ? (
     <div className="w-full flex justify-center items-center h-full min-h-screen">
       <FormRenderer 
         schema={schema} 
-        mode={mode as any}
+        mode={displayMode as any}
         onSubmit={handleSubmit}
         disabled={submitMutation.isPending}
       />
@@ -269,7 +342,7 @@ export default function PublicFormPage({
         )}
         <FormRenderer 
           schema={schema} 
-          mode={mode as any}
+          mode={displayMode as any}
           onSubmit={handleSubmit}
         />
       </motion.div>

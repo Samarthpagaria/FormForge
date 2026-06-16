@@ -3,6 +3,7 @@ import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Send, CheckCircle2 } from "lucide-react";
 import { FormField } from "../schema";
+import { validateField } from "@formforge/form-engine";
 
 type ChatMessage = {
   id: string;
@@ -13,7 +14,7 @@ type ChatMessage = {
 };
 
 export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
-  const { values, errors, isSubmitting, handleChange, validateField, handleSubmit } = engine;
+  const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: "intro-title", sender: "bot", text: `Hi there! Let's get started with: **${schema.title}**` },
@@ -53,6 +54,7 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
         setIsTyping(true);
         timeoutId = setTimeout(() => {
           const nextField = schema.fields[currentFieldIndex];
+          if (!nextField) return;
           let qText = nextField.label;
           if (nextField.required) qText += " *";
           if (nextField.description) qText += `\n\n_${nextField.description}_`;
@@ -93,10 +95,11 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
     if (currentFieldIndex >= schema.fields.length) return;
     
     const currentField = schema.fields[currentFieldIndex];
+    if (!currentField) return;
     const val = overrideVal !== undefined ? overrideVal : inputValue;
     
     // Validate
-    const error = validateField(currentField.id, val);
+    const error = validateField(currentField, val);
     if (error) {
       setFieldError(error);
       return;
@@ -135,7 +138,7 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
     if (isTyping || !currentField) return null;
     // Only show if the latest message is the question for this field
     const lastMessage = messages[messages.length - 1];
-    if (lastMessage.sender !== "bot" || lastMessage.fieldId !== currentField.id) return null;
+    if (!lastMessage || lastMessage.sender !== "bot" || lastMessage.fieldId !== currentField.id) return null;
 
     if (currentField.type === "radio" && currentField.options) {
       return (

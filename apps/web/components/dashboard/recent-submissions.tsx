@@ -2,20 +2,10 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Monitor, Smartphone, Tablet, ChevronRight, Inbox } from "lucide-react";
+import { Monitor, Smartphone, Tablet, ChevronRight, Inbox, AlertCircle } from "lucide-react";
 
-export interface Submission {
-  id: string;
-  formName: string;
-  respondent: string;
-  device: "desktop" | "mobile" | "tablet";
-  time: string;
-  status: "Completed" | "Partial";
-}
-
-interface RecentSubmissionsProps {
-  submissions: Submission[];
-}
+import { formatDistanceToNow } from "date-fns";
+import { trpc } from "@/src/trpc/client";
 
 const DeviceIcon = ({ device }: { device: "desktop" | "mobile" | "tablet" }) => {
   switch (device) {
@@ -30,9 +20,34 @@ const DeviceIcon = ({ device }: { device: "desktop" | "mobile" | "tablet" }) => 
   }
 };
 
-export function RecentSubmissions({ submissions }: RecentSubmissionsProps) {
-  const visibleSubmissions = submissions.slice(0, 8);
-  const isEmpty = submissions.length === 0;
+export function RecentSubmissions() {
+  const { data: submissions, isLoading, isError, refetch } = trpc.analytics.getRecentSubmissions.useQuery({ limit: 8 });
+
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800/80 rounded-2xl p-5 shadow-sm h-[320px] animate-pulse flex flex-col">
+        <div className="h-6 bg-neutral-200 dark:bg-zinc-800 w-1/3 mb-4 rounded" />
+        <div className="space-y-3 flex-1">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-10 bg-neutral-100 dark:bg-zinc-800/50 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-zinc-800/80 rounded-2xl p-5 shadow-sm h-[320px] flex flex-col items-center justify-center text-center">
+        <AlertCircle className="w-8 h-8 text-red-400 mb-2" />
+        <p className="text-sm text-red-500">Failed to load recent submissions</p>
+        <button onClick={() => refetch()} className="text-xs text-violet-600 mt-2 underline">Retry</button>
+      </div>
+    );
+  }
+
+  const visibleSubmissions = submissions || [];
+  const isEmpty = visibleSubmissions.length === 0;
 
   return (
     <motion.div
@@ -84,40 +99,40 @@ export function RecentSubmissions({ submissions }: RecentSubmissionsProps) {
               </tr>
             </thead>
             <tbody>
-              {visibleSubmissions.map((sub, idx) => (
-                <tr
-                  key={sub.id}
-                  className={`border-b border-neutral-200/45 dark:border-zinc-850/40 hover:bg-neutral-100/40 dark:hover:bg-zinc-800/30 transition-colors duration-200 ${
-                    idx % 2 === 0 ? "bg-transparent" : "bg-neutral-100/20 dark:bg-zinc-800/10"
-                  }`}
-                >
-                  <td className="py-2.5 px-3 font-medium text-neutral-800 dark:text-zinc-200">
-                    {sub.formName}
-                  </td>
-                  <td className="py-2.5 px-3 text-neutral-600 dark:text-zinc-400">
-                    {sub.respondent}
-                  </td>
-                  <td className="py-2.5 px-3">
-                    <div className="flex items-center justify-center">
-                      <DeviceIcon device={sub.device} />
-                    </div>
-                  </td>
-                  <td className="py-2.5 px-3 text-neutral-400 dark:text-zinc-500">
-                    {sub.time}
-                  </td>
-                  <td className="py-2.5 px-3 text-right">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                        sub.status === "Completed"
-                          ? "bg-neutral-900 text-neutral-50 dark:bg-neutral-50 dark:text-neutral-950 border-neutral-900 dark:border-neutral-200"
-                          : "bg-neutral-100 text-neutral-600 dark:bg-zinc-800 dark:text-zinc-400 border-neutral-200 dark:border-zinc-850"
-                      }`}
-                    >
-                      {sub.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {visibleSubmissions.map((sub, idx) => {
+                const meta = sub.meta as Record<string, any>;
+                const device = (meta?.device as "desktop" | "mobile" | "tablet") || "desktop";
+                return (
+                  <tr
+                    key={sub.id}
+                    className={`border-b border-neutral-200/45 dark:border-zinc-850/40 hover:bg-neutral-100/40 dark:hover:bg-zinc-800/30 transition-colors duration-200 ${
+                      idx % 2 === 0 ? "bg-transparent" : "bg-neutral-100/20 dark:bg-zinc-800/10"
+                    }`}
+                  >
+                    <td className="py-2.5 px-3 font-medium text-neutral-800 dark:text-zinc-200">
+                      {sub.formName}
+                    </td>
+                    <td className="py-2.5 px-3 text-neutral-600 dark:text-zinc-400 font-mono">
+                      {sub.sessionId?.slice(0, 8) || "Anonymous"}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="flex items-center justify-center">
+                        <DeviceIcon device={device} />
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-3 text-neutral-400 dark:text-zinc-500">
+                      {sub.submittedAt ? formatDistanceToNow(new Date(sub.submittedAt), { addSuffix: true }) : "N/A"}
+                    </td>
+                    <td className="py-2.5 px-3 text-right">
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border bg-neutral-900 text-neutral-50 dark:bg-neutral-50 dark:text-neutral-950 border-neutral-900 dark:border-neutral-200"
+                      >
+                        Completed
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

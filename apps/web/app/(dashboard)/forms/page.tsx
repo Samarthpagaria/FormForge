@@ -3,17 +3,16 @@
 import React, { useState } from "react";
 import { 
   Search, 
-  Filter, 
-  ArrowUpDown, 
   Plus, 
-  MoreHorizontal, 
   Edit2, 
   BarChart2, 
   Share2, 
-  Trash2 
+  Trash2,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
 import { trpc } from "@/src/trpc/client";
+import { toast } from "sonner";
 
 const TEMPLATES_IMAGES = [
   "163cd3adf4e0090bc60f98ebd9d9f475.jpg",
@@ -65,15 +64,35 @@ function getRandomImage(index: number) {
 export default function FormsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const utils = trpc.useUtils();
 
   const { data: forms, isLoading, isError, refetch } = trpc.forms.getAllForms.useQuery();
+
+  const { mutate: deleteForm } = trpc.forms.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Form deleted successfully");
+      utils.forms.getAllForms.invalidate();
+      setDeletingId(null);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete form");
+      setDeletingId(null);
+    },
+  });
+
+  const handleDelete = (id: string, name: string) => {
+    if (!confirm(`Delete "${name}"? This action cannot be undone.`)) return;
+    setDeletingId(id);
+    deleteForm({ id });
+  };
 
   const filteredForms = forms?.filter((f) => {
     const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || 
                           (f.description && f.description.toLowerCase().includes(search.toLowerCase()));
     const matchesFilter = filter === "All" || f.status === filter.toLowerCase();
     return matchesSearch && matchesFilter;
-  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || [];
+  }).sort((a, b) => new Date(b.createdAt as string).getTime() - new Date(a.createdAt as string).getTime()) || [];
 
   return (
     <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 shadow-sm overflow-hidden">
@@ -217,7 +236,7 @@ export default function FormsPage() {
                       <span className="text-white/60 text-[10px] font-medium truncate">/{form.slug}</span>
                     </div>
                     <p className="text-white/40 text-[9px] font-medium shrink-0">
-                      {new Date(form.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(form.createdAt as string).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
 
@@ -243,9 +262,13 @@ export default function FormsPage() {
                         </button>
                       </Link>
                     </div>
-                    <button className="flex items-center gap-1 bg-white/10 hover:bg-red-500/80 transition-colors backdrop-blur-md py-1 pl-1.5 pr-2 rounded-full cursor-pointer text-white/80 hover:text-white shrink-0">
-                      <Trash2 size={10} />
-                      <span className="text-[9px] font-medium tracking-tight">Delete</span>
+                    <button
+                      onClick={(e) => { e.preventDefault(); handleDelete(form.id, form.name); }}
+                      disabled={deletingId === form.id}
+                      className="flex items-center gap-1 bg-white/10 hover:bg-red-500/80 transition-colors backdrop-blur-md py-1 pl-1.5 pr-2 rounded-full cursor-pointer text-white/80 hover:text-white shrink-0 disabled:opacity-50"
+                    >
+                      {deletingId === form.id ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />}
+                      <span className="text-[9px] font-medium tracking-tight">{deletingId === form.id ? "Deleting..." : "Delete"}</span>
                     </button>
                   </div>
 

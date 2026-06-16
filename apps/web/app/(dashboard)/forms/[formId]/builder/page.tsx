@@ -20,12 +20,14 @@ import {
   rectIntersection,
   CollisionDetection
 } from "@dnd-kit/core";
+import { Settings, Eye, ChevronRight, GripVertical, Plus, Trash2, PlusCircle, ArrowLeft, Save, Send, Undo, Redo, Layout, Heading, CheckSquare, AlignLeft, Calendar, FileText, History } from "lucide-react";
 import { SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from "@dnd-kit/sortable";
 import { FieldPalette } from "@/components/builder/field-palette";
 import { FieldSettings } from "@/components/builder/field-settings";
 import { FieldCard, EmptySlot } from "@/components/builder/field-card";
 import { useFormBuilderStore, FieldType } from "@/stores/useFormBuilderStore";
 import { FloatingDock } from "@/components/ui/floating-dock";
+import { VersionHistoryPanel } from "@/components/builder/version-history-panel";
 import {
   IconSettings,
   IconEye,
@@ -43,6 +45,7 @@ import {
 } from "@tabler/icons-react";
 import { trpc } from "@/src/trpc/client";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Droppable Empty Slot ─────────────────────────────────────────
 function DroppableEmptySlot({ afterFieldId }: { afterFieldId: string }) {
@@ -78,12 +81,16 @@ function DroppableEmptySlot({ afterFieldId }: { afterFieldId: string }) {
 }
 
 // ─── Canvas Drop Zone ────────────────────────────────────────────
-function CanvasDropZone() {
-  const { fields, setActiveField, activeElementId, removeField, duplicateField } = useFormBuilderStore();
+function CanvasDropZone({ previewFields }: { previewFields?: any[] }) {
+  const store = useFormBuilderStore();
+  const fields = previewFields || store.fields;
+  const isPreviewMode = !!previewFields;
+  const { setActiveField, activeElementId, removeField, duplicateField } = store;
 
   const { setNodeRef, isOver } = useDroppable({
     id: "canvas-drop-zone",
     data: { type: "canvas" },
+    disabled: isPreviewMode,
   });
 
   const renderList: React.ReactNode[] = [];
@@ -100,10 +107,10 @@ function CanvasDropZone() {
         helpText={f.helpText}
         required={f.required}
         width={f.width}
-        state={activeElementId === f.id ? "selected" : "default"}
-        onClick={(e) => { e.stopPropagation(); setActiveField(f.id); }}
-        onDelete={() => removeField(f.id)}
-        onDuplicate={() => duplicateField(f.id)}
+        state={isPreviewMode ? "default" : (activeElementId === f.id ? "selected" : "default")}
+        onClick={(e) => { e.stopPropagation(); if (!isPreviewMode) setActiveField(f.id); }}
+        onDelete={isPreviewMode ? undefined : () => removeField(f.id)}
+        onDuplicate={isPreviewMode ? undefined : () => duplicateField(f.id)}
       />
     );
 
@@ -114,7 +121,7 @@ function CanvasDropZone() {
         renderList.push(makeCard(next));
         fi += 2;
       } else {
-        renderList.push(<DroppableEmptySlot key={`slot-${field.id}`} afterFieldId={field.id} />);
+        if (!isPreviewMode) renderList.push(<DroppableEmptySlot key={`slot-${field.id}`} afterFieldId={field.id} />);
         fi += 1;
       }
     } else {
@@ -126,8 +133,8 @@ function CanvasDropZone() {
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 rounded-2xl border-2 transition-all duration-200 overflow-y-auto custom-scrollbar p-8 flex flex-col ${
-        isOver
+      className={`flex-1 rounded-2xl border-2 transition-all duration-200 overflow-y-auto custom-scrollbar p-8 flex flex-col relative ${
+        isOver && !isPreviewMode
           ? "border-violet-400 bg-violet-50/20 shadow-[0_0_0_4px_rgba(139,92,246,0.08)]"
           : "border-neutral-200 bg-white shadow-sm"
       }`}
@@ -179,8 +186,12 @@ function BuilderUI({ formId }: { formId: string }) {
   const [formName, setFormName] = useState("");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [previewingVersion, setPreviewingVersion] = useState<any>(null);
 
-  const { mutate: updateForm } = trpc.forms.update.useMutation();
+  const { mutate: updateForm } = trpc.forms.update.useMutation({
+    onError: (err) => toast.error(err.message || "Failed to update form name"),
+  });
   const { mutate: createVersion } = trpc.formVersions.create.useMutation({
     onSuccess: () => {
       setSaveStatus("saved");
@@ -188,13 +199,21 @@ function BuilderUI({ formId }: { formId: string }) {
     },
     onError: () => {
       setSaveStatus("idle");
+      toast.error("Failed to save form");
     }
   });
 
   const { mutate: publishForm, isPending: isPublishing } = trpc.forms.publish.useMutation({
     onSuccess: () => {
-      alert("Form published successfully!");
-    }
+      toast.success("Form published successfully!");
+      utils.forms.getById.invalidate({ id: formId });
+    },
+    onError: (err) => toast.error(err.message || "Failed to publish form"),
+  });
+
+  const { mutate: saveAsTemplate, isPending: isSavingTemplate } = trpc.templates.createUserTemplate.useMutation({
+    onSuccess: () => toast.success("Saved as template!"),
+    onError: (err) => toast.error(err.message || "Failed to save template"),
   });
 
   // Load Initial Data
@@ -366,9 +385,39 @@ function BuilderUI({ formId }: { formId: string }) {
           <div className="w-[260px] shrink-0 bg-white rounded-2xl border border-neutral-200 shadow-sm shadow-neutral-200/40 flex flex-col overflow-hidden">
             <FieldPalette />
           </div>
-          <CanvasDropZone />
-          <div className="w-[300px] shrink-0 bg-white rounded-2xl border border-neutral-200 shadow-sm shadow-neutral-200/40 flex flex-col overflow-hidden">
-            <FieldSettings />
+          
+          <div className="flex-1 flex flex-col gap-4 relative">
+            {previewingVersion && (
+              <div className="bg-neutral-800 text-white p-3 rounded-2xl shadow-lg flex items-center justify-between text-sm px-6">
+                <span className="font-semibold">👁 Previewing v{versions?.length! - versions?.findIndex(v => v.id === previewingVersion.id)!} — {new Date(previewingVersion.createdAt).toLocaleString()}</span>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setPreviewingVersion(null)} className="text-neutral-300 hover:text-white transition-colors">
+                    ← Back to current
+                  </button>
+                </div>
+              </div>
+            )}
+            <CanvasDropZone previewFields={previewingVersion?.schema?.fields} />
+          </div>
+
+          <div className="w-[300px] shrink-0 bg-white rounded-2xl border border-neutral-200 shadow-sm shadow-neutral-200/40 flex flex-col overflow-hidden transition-all duration-300">
+            {isHistoryOpen ? (
+              <VersionHistoryPanel 
+                formId={formId} 
+                currentVersionId={versions?.[0]?.id || ""}
+                previewingVersionId={previewingVersion?.id || null}
+                onClose={() => setIsHistoryOpen(false)}
+                onPreview={(version) => setPreviewingVersion(version)}
+                onRestoreSuccess={() => {
+                  refetchVersions();
+                  refetchForm();
+                  setIsHistoryOpen(false);
+                  setPreviewingVersion(null);
+                }}
+              />
+            ) : (
+              <FieldSettings />
+            )}
           </div>
         </div>
 
@@ -393,6 +442,23 @@ function BuilderUI({ formId }: { formId: string }) {
                 {saveStatus === "saving" ? "Saving..." : "Saved \u2713"}
               </span>
             </div>
+
+            <button 
+              onClick={() => saveAsTemplate({ schema: { fields } as any, name: `${formName} Template` })}
+              disabled={isSavingTemplate}
+              className="px-4 py-2.5 bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-semibold rounded-2xl shadow-lg transition-all flex items-center gap-2 border border-neutral-200 disabled:opacity-50"
+            >
+              {isSavingTemplate ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+              Save Template
+            </button>
+
+            <button 
+              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+              className={`px-4 py-2.5 ${isHistoryOpen ? "bg-violet-100 text-violet-700 border-violet-200" : "bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200"} text-xs font-semibold rounded-2xl shadow-lg transition-all flex items-center gap-2 border`}
+            >
+              <History size={16} />
+              History
+            </button>
             <button 
               onClick={() => publishForm({ id: formId })}
               disabled={isPublishing}

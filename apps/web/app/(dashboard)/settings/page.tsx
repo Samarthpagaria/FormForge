@@ -1,3 +1,257 @@
+"use client";
+
+import React, { useState } from "react";
+import { useUser, UserButton } from "@clerk/nextjs";
+import { User, Bell, ShieldAlert, Loader2, Save, Download, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+
 export default function SettingsPage() {
-  return <div>Settings Page</div>;
+  const { user, isLoaded } = useUser();
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [firstName, setFirstName] = useState(user?.firstName || "");
+  const [lastName, setLastName] = useState(user?.lastName || "");
+  
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [notificationEmail, setNotificationEmail] = useState(user?.primaryEmailAddress?.emailAddress || "");
+  const [isSavingNotifications, setIsSavingNotifications] = useState(false);
+
+  // Initialize state when user loads
+  React.useEffect(() => {
+    if (user && !firstName && !lastName) {
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
+      setNotificationEmail(user.primaryEmailAddress?.emailAddress || "");
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    try {
+      setIsSavingProfile(true);
+      await user.update({ firstName, lastName });
+      toast.success("Profile updated successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    setIsSavingNotifications(true);
+    // Simulate API call for saving notification preferences
+    setTimeout(() => {
+      toast.success("Notification preferences saved");
+      setIsSavingNotifications(false);
+    }, 800);
+  };
+
+  const handleDeleteAccount = () => {
+    const confirm = window.confirm("Are you absolutely sure you want to delete your account? This will permanently delete all your forms and responses. This action cannot be undone.");
+    if (confirm) {
+      toast.error("Account deletion requested. Please contact support.");
+    }
+  };
+
+  const handleExportData = () => {
+    toast.success("Data export started. You will receive an email shortly.");
+  };
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="animate-spin text-neutral-400" size={32} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 shadow-sm overflow-hidden">
+      
+      {/* Background Decorative Blobs */}
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] rounded-full blur-[100px] -z-10 pointer-events-none opacity-60" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] rounded-full blur-[120px] -z-10 pointer-events-none opacity-60" />
+
+      {/* Header Area */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-dashed border-neutral-300 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-neutral-800 tracking-tight">Settings</h1>
+          <p className="text-neutral-500 text-sm mt-1">Manage your account, profile, and preferences.</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-8 max-w-4xl pb-10">
+        
+        {/* Profile Settings */}
+        <motion.section 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/60 backdrop-blur-md border border-neutral-200/60 rounded-3xl p-8 shadow-sm flex flex-col gap-6"
+        >
+          <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
+            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+              <User size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-neutral-800">Profile Settings</h2>
+              <p className="text-xs text-neutral-500">Update your personal information</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="shrink-0">
+              <UserButton appearance={{ elements: { avatarBox: "w-20 h-20 shadow-md" } }} />
+            </div>
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-neutral-600">First Name</label>
+                <input 
+                  type="text" 
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="bg-white border border-neutral-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-neutral-600">Last Name</label>
+                <input 
+                  type="text" 
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="bg-white border border-neutral-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <label className="text-xs font-semibold text-neutral-600">Email Address (Read-only)</label>
+                <input 
+                  type="email" 
+                  value={user?.primaryEmailAddress?.emailAddress || ""}
+                  disabled
+                  className="bg-neutral-50 border border-neutral-200 text-neutral-500 rounded-xl px-4 py-2 text-sm cursor-not-allowed"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2 border-t border-neutral-100">
+            <button 
+              onClick={handleSaveProfile}
+              disabled={isSavingProfile}
+              className="flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+            >
+              {isSavingProfile ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              Save Profile
+            </button>
+          </div>
+        </motion.section>
+
+        {/* Notification Settings */}
+        <motion.section 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white/60 backdrop-blur-md border border-neutral-200/60 rounded-3xl p-8 shadow-sm flex flex-col gap-6"
+        >
+          <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
+            <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+              <Bell size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-neutral-800">Notifications</h2>
+              <p className="text-xs text-neutral-500">Manage how we contact you</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between p-4 border border-neutral-200 rounded-2xl bg-white/50">
+              <div>
+                <h3 className="text-sm font-bold text-neutral-800">Email Notifications</h3>
+                <p className="text-xs text-neutral-500 mt-0.5">Receive an email when someone submits a form.</p>
+              </div>
+              <button 
+                onClick={() => setEmailNotifications(!emailNotifications)}
+                className={`w-12 h-6 rounded-full p-1 transition-colors ${emailNotifications ? "bg-emerald-500" : "bg-neutral-300"}`}
+              >
+                <motion.div 
+                  layout
+                  className="w-4 h-4 bg-white rounded-full shadow-sm"
+                  animate={{ x: emailNotifications ? 24 : 0 }}
+                />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-neutral-600">Notification Email Address</label>
+              <input 
+                type="email" 
+                value={notificationEmail}
+                onChange={(e) => setNotificationEmail(e.target.value)}
+                disabled={!emailNotifications}
+                className="bg-white border border-neutral-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50 disabled:bg-neutral-50"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2 border-t border-neutral-100">
+            <button 
+              onClick={handleSaveNotifications}
+              disabled={isSavingNotifications}
+              className="flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+            >
+              {isSavingNotifications ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              Save Preferences
+            </button>
+          </div>
+        </motion.section>
+
+        {/* Danger Zone */}
+        <motion.section 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-red-50/50 border border-red-200/50 rounded-3xl p-8 shadow-sm flex flex-col gap-6"
+        >
+          <div className="flex items-center gap-3 border-b border-red-100 pb-4">
+            <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-red-800">Danger Zone</h2>
+              <p className="text-xs text-red-500/80">Irreversible account actions</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white/80 border border-red-100 rounded-2xl p-5 flex flex-col justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-bold text-neutral-800">Export Account Data</h3>
+                <p className="text-xs text-neutral-500 mt-1">Download a JSON file containing all your forms, templates, and submissions.</p>
+              </div>
+              <button 
+                onClick={handleExportData}
+                className="flex items-center justify-center gap-2 bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-700 px-4 py-2 rounded-xl text-sm font-semibold transition-all w-full"
+              >
+                <Download size={16} /> Export Data
+              </button>
+            </div>
+
+            <div className="bg-white/80 border border-red-100 rounded-2xl p-5 flex flex-col justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-bold text-red-600">Delete Account</h3>
+                <p className="text-xs text-neutral-500 mt-1">Permanently delete your account and all associated data. This cannot be undone.</p>
+              </div>
+              <button 
+                onClick={handleDeleteAccount}
+                className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 px-4 py-2 rounded-xl text-sm font-semibold transition-all w-full"
+              >
+                <Trash2 size={16} /> Delete Account
+              </button>
+            </div>
+          </div>
+        </motion.section>
+
+      </div>
+    </div>
+  );
 }

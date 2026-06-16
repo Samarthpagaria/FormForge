@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowUpRight, Loader2 } from "lucide-react";
+import { ArrowUpRight, Loader2, Trash2, Plus, X } from "lucide-react";
 import { trpc } from "@/src/trpc/client";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // Sample template images from public/templates
 const TEMPLATES_IMAGES = [
@@ -58,18 +59,52 @@ export default function TemplatesPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const utils = trpc.useUtils();
 
   const { data: categories, isLoading: loadingCategories } = trpc.templates.getAllCategories.useQuery();
   const { data: templates, isLoading: loadingTemplates } = trpc.templates.getAll.useQuery();
   
   const { mutate: createForm } = trpc.templates.createFormFromTemplate.useMutation({
     onSuccess: (data) => {
+      toast.success("Form created from template!");
       router.push(`/forms/${data.id}/builder`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to create form from template");
     },
     onSettled: () => {
       setCreatingId(null);
     }
   });
+
+  const { mutate: createCategory, isPending: isCreatingCat } = trpc.templates.createCategory.useMutation({
+    onSuccess: () => {
+      toast.success("Category created!");
+      setShowNewCategory(false);
+      setNewCategoryName("");
+      utils.templates.getAllCategories.invalidate();
+    },
+    onError: (err) => toast.error(err.message || "Failed to create category"),
+  });
+
+  const { mutate: deleteTemplate } = trpc.templates.deleteUserTemplate.useMutation({
+    onSuccess: () => {
+      toast.success("Template deleted");
+      utils.templates.getAll.invalidate();
+    },
+    onError: (err) => toast.error(err.message || "Failed to delete template"),
+    onSettled: () => setDeletingId(null),
+  });
+
+  const handleCreateCategory = () => {
+    if (newCategoryName.trim()) {
+      createCategory({ name: newCategoryName.trim() });
+    }
+  };
 
   const handleUseTemplate = (templateId: string, name: string, description?: string | null) => {
     setCreatingId(templateId);
@@ -121,6 +156,34 @@ export default function TemplatesPage() {
                   {cat.name}
                 </button>
               ))}
+
+              {/* New Category Input/Button */}
+              {showNewCategory ? (
+                <div className="flex items-center bg-white rounded-full border border-neutral-300 pl-3 pr-1 py-1 shadow-sm h-8">
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Category name"
+                    value={newCategoryName}
+                    onChange={e => setNewCategoryName(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleCreateCategory()}
+                    className="bg-transparent text-xs text-neutral-700 outline-none w-24"
+                  />
+                  <button onClick={handleCreateCategory} disabled={isCreatingCat} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-full ml-1">
+                    {isCreatingCat ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+                  </button>
+                  <button onClick={() => setShowNewCategory(false)} className="p-1 text-neutral-400 hover:bg-neutral-100 rounded-full">
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setShowNewCategory(true)}
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-neutral-300 text-neutral-500 hover:text-neutral-800 hover:border-neutral-400 shadow-sm transition-colors flex items-center gap-1"
+                >
+                  <Plus size={12} /> New
+                </button>
+              )}
             </>
           )}
         </div>
@@ -158,6 +221,22 @@ export default function TemplatesPage() {
                     className="w-full h-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                  
+                  {/* Delete button for user templates */}
+                  {!template.isGlobal && (
+                    <button
+                      disabled={deletingId === template.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingId(template.id);
+                        deleteTemplate({ id: template.id });
+                      }}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 backdrop-blur-sm text-white rounded-full opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                      title="Delete Template"
+                    >
+                      {deletingId === template.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    </button>
+                  )}
                 </div>
 
                 {/* Bottom Details Section */}

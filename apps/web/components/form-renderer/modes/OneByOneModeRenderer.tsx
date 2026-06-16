@@ -3,9 +3,10 @@ import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDown, ArrowUp, Check } from "lucide-react";
 import { FormField } from "../schema";
+import { validateField } from "@formforge/form-engine";
 
 export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
-  const { values, errors, isSubmitting, handleChange, validateField, handleSubmit } = engine;
+  const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<"up" | "down">("down");
@@ -30,6 +31,7 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
         if (code >= 0 && code < currentField.options.length) {
           e.preventDefault();
           const opt = currentField.options[code];
+          if (!opt) return;
           
           if (currentField.type === "radio") {
             handleChange(currentField.id, opt);
@@ -53,7 +55,7 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
     if (isComplete) return;
     
     // Validate current field
-    const error = validateField(currentField!.id, values[currentField!.id]);
+    const error = validateField(currentField!, values[currentField!.id]);
     if (error) {
       setFieldError(error);
       return;

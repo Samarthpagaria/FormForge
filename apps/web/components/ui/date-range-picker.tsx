@@ -129,13 +129,13 @@ export function CustomDateRangePicker() {
         {/* Bottom Footer Area */}
         <div className="border-t border-neutral-100 p-3 flex flex-wrap items-center justify-between gap-3 bg-white mt-auto">
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <DateField value={tempValue?.start} onChange={(val) => setTempValue(prev => ({ start: val, end: prev?.end || val }))} aria-label="Start date" className="border border-neutral-200 rounded-lg px-3 py-2 flex items-center bg-white shadow-sm text-sm font-medium text-neutral-700">
+            <DateField value={tempValue?.start} onChange={(val) => { if (val) setTempValue(prev => ({ start: val, end: prev?.end || val })) }} aria-label="Start date" className="border border-neutral-200 rounded-lg px-3 py-2 flex items-center bg-white shadow-sm text-sm font-medium text-neutral-700">
               <DateInput className="flex">
                 {(segment) => <DateSegment segment={segment} className="focus:bg-violet-100 focus:text-violet-900 focus:outline-none rounded px-0.5" />}
               </DateInput>
             </DateField>
             <span className="text-neutral-300 font-medium">–</span>
-            <DateField value={tempValue?.end} onChange={(val) => setTempValue(prev => ({ start: prev?.start || val, end: val }))} aria-label="End date" className="border border-neutral-200 rounded-lg px-3 py-2 flex items-center bg-white shadow-sm text-sm font-medium text-neutral-700">
+            <DateField value={tempValue?.end} onChange={(val) => { if (val) setTempValue(prev => ({ start: prev?.start || val, end: val })) }} aria-label="End date" className="border border-neutral-200 rounded-lg px-3 py-2 flex items-center bg-white shadow-sm text-sm font-medium text-neutral-700">
               <DateInput className="flex">
                 {(segment) => <DateSegment segment={segment} className="focus:bg-violet-100 focus:text-violet-900 focus:outline-none rounded px-0.5" />}
               </DateInput>

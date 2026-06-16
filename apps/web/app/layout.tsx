@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCReactProvider } from "@/src/trpc/provider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -32,6 +33,7 @@ export default function RootLayout({
             {children}
           </TRPCReactProvider>
         </ClerkProvider>
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   );

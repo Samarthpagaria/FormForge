@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "../init";
 import { z } from "zod";
 import { submissions, submissionAnswers, forms, formVersions, users } from "@formforge/db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendSubmissionEmail } from "../../services/email";
 
@@ -26,14 +26,14 @@ export const responsesRouter = createTRPCRouter({
           })
         ),
         meta: z.object({
-  ip: z.string().optional(),
-  userAgent: z.string().optional(),
-  country: z.string().optional(),
-  completionTime: z.number().optional(),
-  device: z.enum(["desktop", "mobile", "tablet"]).optional(),
-  browser: z.string().optional(),
-  os: z.string().optional(),
-}).optional(),
+          ip: z.string().optional(),
+          userAgent: z.string().optional(),
+          country: z.string().optional(),
+          completionTime: z.number().optional(),
+          device: z.enum(["desktop", "mobile", "tablet"]).optional(),
+          browser: z.string().optional(),
+          os: z.string().optional(),
+        }).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -52,6 +52,77 @@ export const responsesRouter = createTRPCRouter({
 
         if (!form[0]) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Form not found or not published" });
+        }
+
+        // ── Schedule checks (Feature 2) ──
+        const settings = (form[0].settings as Record<string, any>) ?? {};
+
+        if (settings.isActive === false) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "This form is currently deactivated",
+          });
+        }
+
+        if (settings.activateAt && new Date() < new Date(settings.activateAt)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `This form opens on ${new Date(settings.activateAt).toLocaleString()}`,
+          });
+        }
+
+        if (settings.deactivateAt && new Date() > new Date(settings.deactivateAt)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "This form has closed",
+          });
+        }
+
+        // ── Duplicate submission check (Feature 1) ──
+        if (settings.allowMultipleSubmissions === false) {
+          const ip = input.meta?.ip ?? "unknown";
+
+          // Check by IP
+          if (ip !== "unknown") {
+            const existingByIp = await ctx.db
+              .select()
+              .from(submissions)
+              .where(
+                and(
+                  eq(submissions.formId, input.formId),
+                  sql`meta->>'ip' = ${ip}`
+                )
+              )
+              .limit(1);
+
+            if (existingByIp[0]) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: "You have already submitted this form",
+              });
+            }
+          }
+
+          // Check by sessionId
+          if (input.sessionId) {
+            const existingBySession = await ctx.db
+              .select()
+              .from(submissions)
+              .where(
+                and(
+                  eq(submissions.formId, input.formId),
+                  eq(submissions.sessionId, input.sessionId)
+                )
+              )
+              .limit(1);
+
+            if (existingBySession[0]) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message: "You have already submitted this form",
+              });
+            }
+          }
         }
 
         // verify form version exists
@@ -82,32 +153,37 @@ export const responsesRouter = createTRPCRouter({
           .returning();
 
         // insert answers
-        if (input.answers.length > 0) {
+        if (input.answers.length > 0 && newSubmission[0]) {
           await ctx.db.insert(submissionAnswers).values(
             input.answers.map((answer) => ({
-              submissionId: newSubmission[0].id,
+              submissionId: newSubmission[0]!.id,
               fieldKey: answer.fieldKey,
               value: answer.value,
             }))
           );
-        } 
+        }
 
-        // email service to creator
-        const formOwner = await ctx.db
-  .select()
-  .from(users)
-  .where(eq(users.id, form[0].userId))
-  .limit(1);
+        // ── Email notification (Feature 3 — hardened) ──
+        try {
+          const formOwner = await ctx.db
+            .select()
+            .from(users)
+            .where(eq(users.id, form[0].userId))
+            .limit(1);
 
-if (formOwner[0]?.email) {
-  await sendSubmissionEmail({
-    formOwnerEmail: formOwner[0].email,
-    formName: form[0].name,
-    submissionId: newSubmission[0].id,
-    answers: input.answers,
-    submittedAt: new Date(),
-  });
-}
+          if (formOwner[0]?.email && newSubmission[0]) {
+            await sendSubmissionEmail({
+              formOwnerEmail: formOwner[0].email,
+              formName: form[0].name,
+              submissionId: newSubmission[0]!.id,
+              answers: input.answers,
+              submittedAt: new Date(),
+            });
+          }
+        } catch (emailErr) {
+          console.error("Email notification failed:", emailErr);
+          // Don't throw — submission already saved
+        }
 
         return newSubmission[0];
       } catch (err) {
@@ -249,7 +325,7 @@ if (formOwner[0]?.email) {
           .where(
             eq(
               submissionAnswers.submissionId,
-              allSubmissions[0].id
+              allSubmissions[0]!.id
             )
           );
 

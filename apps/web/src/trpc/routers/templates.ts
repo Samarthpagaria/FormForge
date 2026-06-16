@@ -327,7 +327,7 @@ export const templatesRouter = createTRPCRouter({
         const newVersion = await ctx.db
           .insert(formVersions)
           .values({
-            formId: newForm[0].id,
+            formId: newForm[0]!.id,
             version: "1",
             schema: template[0].schema,
           })
@@ -335,10 +335,10 @@ export const templatesRouter = createTRPCRouter({
 
         await ctx.db
           .update(forms)
-          .set({ currentVersionId: newVersion[0].id })
-          .where(eq(forms.id, newForm[0].id));
+          .set({ currentVersionId: newVersion[0]!.id })
+          .where(eq(forms.id, newForm[0]!.id));
 
-        return newForm[0];
+        return newForm[0]!;
       } catch (err) {
         if (err instanceof TRPCError) throw err;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create form from template" });

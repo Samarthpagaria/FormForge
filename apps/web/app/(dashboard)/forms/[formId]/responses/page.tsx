@@ -1,6 +1,6 @@
-"use client";
+  "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { 
   ArrowLeft, 
@@ -14,6 +14,7 @@ import {
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { motion, AnimatePresence } from "motion/react";
 import { trpc } from "@/src/trpc/client";
+import { toast } from "sonner";
 
 export default function ResponsesPage({ params }: { params: Promise<{ formId: string }> }) {
   const { formId } = React.use(params);
@@ -48,7 +49,7 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
     try {
       const data = await utils.responses.exportCSV.fetch({ formId });
       if (!data.csv) {
-        alert("No responses to export.");
+        toast.warning("No responses to export.");
         return;
       }
       const blob = new Blob([data.csv], { type: 'text/csv' });
@@ -57,11 +58,26 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
       a.href = url;
       a.download = `responses_${formId}.csv`;
       a.click();
+      toast.success("CSV exported successfully!");
     } catch (e) {
-      alert("Failed to export CSV.");
+      toast.error("Failed to export CSV.");
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleExportSingle = () => {
+    if (!activeSubDetails) return;
+    const headers = ["Field", "Answer"];
+    const rows = activeSubDetails.answers.map(a => [a.fieldKey || "Unknown", String(a.value || "")]);
+    const csvContent = [headers.join(","), ...rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `submission_${activeSubDetails.id.split("-")[0]}.csv`;
+    a.click();
+    toast.success("Submission exported!");
   };
 
   return (
@@ -216,12 +232,22 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
                     <h2 className="text-lg font-bold text-neutral-800">Submission Details</h2>
                     <p className="text-xs text-neutral-500 mt-1">ID: <span className="font-mono">{selectedSub.split("-")[0]}...</span></p>
                   </div>
-                  <button 
-                    onClick={() => setSelectedSub(null)}
-                    className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
-                  >
-                    <ChevronRight size={18} />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button 
+                      onClick={handleExportSingle}
+                      className="p-1.5 text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
+                      title="Export this submission"
+                    >
+                      <Download size={16} />
+                    </button>
+                    <button 
+                      onClick={() => setSelectedSub(null)}
+                      className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                      title="Close"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="p-6 flex-1 overflow-y-auto">

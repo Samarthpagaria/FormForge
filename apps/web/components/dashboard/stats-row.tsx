@@ -29,7 +29,7 @@ export function AnimatedNumber({ value, decimals = 0, prefix = "", suffix = "" }
 }
 
 export function StatsRow() {
-  const { data: forms, isLoading, isError } = trpc.forms.getAllForms.useQuery();
+  const { data: globalStats, isLoading, isError, refetch } = trpc.analytics.getGlobalStats.useQuery();
 
   if (isLoading) {
     return (
@@ -47,19 +47,19 @@ export function StatsRow() {
   if (isError) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="col-span-full h-[104px] flex items-center justify-center bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-2xl">
+        <div className="col-span-full h-[104px] flex flex-col items-center justify-center bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-2xl gap-2">
           <p className="text-sm text-red-600 dark:text-red-400 font-medium">Failed to load statistics.</p>
+          <button onClick={() => refetch()} className="text-xs text-violet-600 dark:text-violet-400 underline hover:text-violet-700">Retry</button>
         </div>
       </div>
     );
   }
 
   const dynamicStats = [
-    { title: "Forms created",        value: forms?.length || 0,    decimals: 0, suffix: "", icon: FileText, trend: "Current total" },
-    // TODO: Connect remaining stats to real global metrics when available
-    { title: "Submitted responses",  value: 1248,  decimals: 0, suffix: "", icon: Inbox,    trend: "+18% vs last month" },
-    { title: "Unique views",         value: 3842,  decimals: 0, suffix: "", icon: Eye,      trend: "+12% vs last month" },
-    { title: "Avg. completion",      value: 68.2,  decimals: 1, suffix: "%", icon: Percent,  trend: "+2.1% this week" },
+    { title: "Forms created",        value: globalStats?.totalForms || 0,       decimals: 0, suffix: "",  icon: FileText, trend: "Current total" },
+    { title: "Submitted responses",  value: globalStats?.totalSubmissions || 0, decimals: 0, suffix: "",  icon: Inbox,    trend: "Across all forms" },
+    { title: "Unique views",         value: globalStats?.totalViews || 0,       decimals: 0, suffix: "",  icon: Eye,      trend: "Across all forms" },
+    { title: "Avg. completion",      value: globalStats?.completionRate || 0,   decimals: 0, suffix: "%", icon: Percent,  trend: "Overall avg." },
   ];
 
   return (
@@ -84,11 +84,11 @@ export function StatsRow() {
                 <span className="text-[10px] font-semibold text-neutral-400 dark:text-zinc-500 uppercase tracking-widest leading-none">
                   {stat.title}
                 </span>
-                <span className="text-2xl font-bold text-neutral-900 dark:text-zinc-50 tracking-tight mt-2 block">
+                <span className={`text-2xl font-bold tracking-tight mt-2 block ${stat.value === 0 ? "text-neutral-400 dark:text-zinc-600" : "text-neutral-900 dark:text-zinc-50"}`}>
                   <AnimatedNumber value={stat.value} decimals={stat.decimals} suffix={stat.suffix} />
                 </span>
                 <span className="text-[10px] font-normal text-neutral-400 dark:text-zinc-500 mt-2 block">
-                  {stat.trend}
+                  {stat.value === 0 ? "No data yet" : stat.trend}
                 </span>
               </div>
 

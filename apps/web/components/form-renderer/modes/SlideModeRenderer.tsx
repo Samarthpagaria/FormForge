@@ -3,9 +3,10 @@ import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence } from "framer-motion";
 import { FormField } from "../schema";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { validateField } from "@formforge/form-engine";
 
 export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
-  const { values, errors, isSubmitting, handleChange, validateField, handleSubmit } = engine;
+  const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
   
   const [[page, direction], setPage] = useState([0, 0]);
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -17,7 +18,8 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
     if (newDirection > 0 && !isComplete) {
       // Validate current
       const currentField = schema.fields[page];
-      const error = validateField(currentField.id, values[currentField.id]);
+      if (!currentField) return;
+      const error = validateField(currentField, values[currentField.id]);
       if (error) {
         setFieldError(error);
         return;

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Sparkles, Loader2, LayoutTemplate } from "lucide-react";
 import { trpc } from "@/src/trpc/client";
+import { toast } from "sonner";
 
 /* ─── Slanted divider ──────────────────────────────────── */
 function SlantedDivider() {
@@ -56,15 +57,23 @@ export default function CreateFormPage() {
 
   const { mutate: createForm, isPending: isCreatingBlank, error: blankError } = trpc.forms.create.useMutation({
     onSuccess: (data) => {
-      router.push(`/forms/${data.id}/builder`);
-    }
+      toast.success("Form created! Redirecting to builder...");
+      if (data?.id) router.push(`/forms/${data.id}/builder`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to create form");
+    },
   });
 
   const { data: templates, isLoading: loadingTemplates } = trpc.templates.getAll.useQuery();
   const { mutate: createFromTemplate, isPending: isCreatingFromTemplate, error: templateError } = trpc.templates.createFormFromTemplate.useMutation({
     onSuccess: (data) => {
+      toast.success("Form created from template!");
       router.push(`/forms/${data.id}/builder`);
-    }
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to create form from template");
+    },
   });
 
   const handleCreateBlank = () => {
@@ -74,7 +83,7 @@ export default function CreateFormPage() {
 
   const handleUseTemplate = (templateId: string) => {
     if (!name.trim()) {
-      alert("Please enter a Form Name on the left before using a template.");
+      toast.warning("Please enter a form name on the left before using a template.");
       return;
     }
     createFromTemplate({ templateId, name: name.trim(), description: desc.trim() });

@@ -4,17 +4,9 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { StatsRow } from "@/components/dashboard/stats-row";
 import { ChartsRow } from "@/components/dashboard/charts-row";
-import { RecentSubmissions, Submission } from "@/components/dashboard/recent-submissions";
+import { RecentSubmissions } from "@/components/dashboard/recent-submissions";
 import { FloatingActions } from "@/components/dashboard/floating-actions";
 import { Calendar } from "lucide-react";
-
-const mockSubmissions: Submission[] = [
-  { id: "sub-1", formName: "Feedback Survey",    respondent: "alex.jones@example.com",    device: "desktop", time: "2 mins ago",  status: "Completed" },
-  { id: "sub-2", formName: "Newsletter Sign-up", respondent: "sarah.m@outlook.com",       device: "mobile",  time: "14 mins ago", status: "Completed" },
-  { id: "sub-3", formName: "Contact Form",       respondent: "inquiries@company.com",     device: "tablet",  time: "1 hour ago",  status: "Partial"   },
-  { id: "sub-4", formName: "Product Order Form", respondent: "support@shop.net",          device: "desktop", time: "3 hours ago", status: "Completed" },
-  { id: "sub-5", formName: "Event RSVP",         respondent: "rsvp@party.org",            device: "mobile",  time: "Yesterday",   status: "Completed" },
-];
 
 export default function DashboardPage() {
   const [refreshKey, setRefreshKey]   = useState(0);
@@ -68,7 +60,7 @@ export default function DashboardPage() {
           <ChartsRow />
 
           {/* Bento row 3 — recent submissions full-width */}
-          <RecentSubmissions submissions={mockSubmissions} />
+          <RecentSubmissions />
         </motion.div>
       </AnimatePresence>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence } from "framer-motion";
+import { validateField } from "@formforge/form-engine";
 
 type TerminalLine = {
   id: string;
@@ -12,7 +13,7 @@ type TerminalLine = {
 };
 
 export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
-  const { values, errors, isSubmitting, handleChange, validateField, handleSubmit } = engine;
+  const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
 
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
@@ -49,6 +50,7 @@ export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeR
 
     if (currentFieldIndex < schema.fields.length) {
       const field = schema.fields[currentFieldIndex];
+      if (!field) return;
       // Only add question if it's not already the last line
       setLines(prev => {
         const last = prev[prev.length - 1];
@@ -82,7 +84,8 @@ export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeR
       });
     } else if (currentFieldIndex === schema.fields.length) {
       setLines(prev => {
-        if (prev[prev.length-1].id === "submit-prompt") return prev;
+        const last = prev[prev.length - 1];
+        if (last && last.id === "submit-prompt") return prev;
         return [
           ...prev, 
           { id: "space-end", type: "system", text: "" },
@@ -132,6 +135,7 @@ export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeR
     }
 
     const currentField = schema.fields[currentFieldIndex];
+    if (!currentField) return;
     
     // Add user input to terminal
     setLines(prev => [...prev, { id: `in-${currentField.id}-${Date.now()}`, type: "input", text: `> ${val}` }]);
@@ -156,7 +160,8 @@ export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeR
         for (const p of parts) {
           const idx = parseInt(p) - 1;
           if (!isNaN(idx) && idx >= 0 && idx < currentField.options.length) {
-            selected.push(currentField.options[idx]);
+            const opt = currentField.options[idx];
+            if (opt) selected.push(opt);
           } else {
             const exact = currentField.options.find(o => o.toLowerCase() === p.toLowerCase());
             if (exact) {
@@ -174,8 +179,10 @@ export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeR
       }
     }
 
+    if (!currentField) return;
+
     // Validate
-    const error = validateField(currentField.id, parsedVal);
+    const error = validateField(currentField, parsedVal);
     if (error) {
       setLines(prev => [...prev, { id: `err-${currentField.id}-${Date.now()}`, type: "error", text: `x ${error}` }]);
       return;

@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { FormField } from "../schema";
+import { validateField } from "@formforge/form-engine";
 
 export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
-  const { values, errors, isSubmitting, handleChange, validateField, handleSubmit } = engine;
+  const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<number>(0);
@@ -16,10 +17,11 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
   const handleSwipe = (swipeDir: "left" | "right") => {
     if (isComplete) return;
     const currentField = schema.fields[currentIndex];
+    if (!currentField) return;
 
     // Validate if it's text/email (requires input)
     if (currentField.type === "text" || currentField.type === "email" || currentField.type === "number" || currentField.type === "textarea") {
-      const error = validateField(currentField.id, values[currentField.id]);
+      const error = validateField(currentField, values[currentField.id]);
       if (error) {
         setFieldError(error);
         return;
@@ -35,14 +37,14 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
         handleChange(currentField.id, val);
       } else {
         // If more options, just ensure one is selected
-        const error = validateField(currentField.id, values[currentField.id]);
+        const error = validateField(currentField, values[currentField.id]);
         if (error) {
           setFieldError("Please select an option before swiping");
           return;
         }
       }
     } else if (currentField.type === "checkbox") {
-      const error = validateField(currentField.id, values[currentField.id]);
+      const error = validateField(currentField, values[currentField.id]);
       if (error) {
         setFieldError("Please select at least one option");
         return;

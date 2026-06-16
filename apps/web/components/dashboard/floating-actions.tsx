@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, RefreshCw, Settings } from "lucide-react";
 import Link from "next/link";
+import { AiAssistant } from "./ai-assistant";
 
 interface FloatingActionsProps {
   onRefresh: () => void;
@@ -27,8 +28,16 @@ export function FloatingActions({
   onAIClick,
   isRefreshing = false,
 }: FloatingActionsProps) {
+  const [isAIOpen, setIsAIOpen] = useState(false);
+
+  const handleAIClick = () => {
+    setIsAIOpen(true);
+    if (onAIClick) onAIClick();
+  };
+
   return (
-    <div className="fixed bottom-6 right-6 flex flex-col gap-2.5 z-50">
+    <>
+      <div className="fixed bottom-6 right-6 flex flex-col gap-2.5 z-50">
 
       {/* Settings */}
       <div className="group relative">
@@ -72,7 +81,7 @@ export function FloatingActions({
       <div className="group relative">
         <Tooltip label="AI Assistant" />
         <motion.button
-          onClick={onAIClick}
+          onClick={handleAIClick}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
           animate={{
@@ -90,5 +99,8 @@ export function FloatingActions({
       </div>
 
     </div>
+    
+    <AiAssistant isOpen={isAIOpen} onClose={() => setIsAIOpen(false)} />
+    </>
   );
 }
