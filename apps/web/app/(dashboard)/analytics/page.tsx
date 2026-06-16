@@ -9,7 +9,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar
 } from "recharts";
 import { trpc } from "@/src/trpc/client";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
 
 // Reusable Framer Motion Variants
@@ -58,26 +58,42 @@ export default function AnalyticsPage() {
   const { data: mapRaw, isLoading: mapLoading, isError: mapError, refetch: mapRefetch } = trpc.analytics.getGlobalMapData.useQuery(queryOptions);
 
   // Mapping data
-  const submissionsOverTime = sotRaw?.map(d => ({
-    date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    submissions: d.count
-  })) || [];
+  const submissionsOverTime = useMemo(() => {
+    if (!sotRaw || sotRaw.length === 0) return [];
+    
+    const result = [];
+    const today = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const match = sotRaw.find(raw => {
+        const rawDate = new Date(raw.date);
+        return rawDate.getDate() === d.getDate() && rawDate.getMonth() === d.getMonth() && rawDate.getFullYear() === d.getFullYear();
+      });
+      result.push({
+        date: dateStr,
+        submissions: match ? Number(match.count) : 0
+      });
+    }
+    return result;
+  }, [sotRaw, days]);
 
   const colorMap: Record<string, string> = { desktop: "#8b5cf6", mobile: "#c4b5fd", tablet: "#ede9fe" };
   const deviceData = deviceRaw?.map(d => ({
     name: d.device ? d.device.charAt(0).toUpperCase() + d.device.slice(1) : "Unknown",
-    value: d.count,
+    value: Number(d.count),
     color: colorMap[d.device || "desktop"] || "#8b5cf6"
   })) || [];
 
   const trafficData = trafficRaw?.map(d => ({
     source: d.source ? d.source.charAt(0).toUpperCase() + d.source.slice(1) : "Unknown",
-    percentage: globalStats?.totalViews ? Math.round((d.count / globalStats.totalViews) * 100) : 0
+    percentage: globalStats?.totalViews ? Math.round((Number(d.count) / globalStats.totalViews) * 100) : 0
   })) || [];
 
   const timeDistribution = ctRaw?.map(d => ({
     bucket: d.bucket,
-    percentage: globalStats?.totalSubmissions ? Math.round((d.count / globalStats.totalSubmissions) * 100) : 0
+    percentage: globalStats?.totalSubmissions ? Math.round((Number(d.count) / globalStats.totalSubmissions) * 100) : 0
   })) || [];
 
   // Generate heatmap matrix (7 days x 24 hours, or simplified as 7 days x 52 weeks if that's what was mocked)
@@ -89,7 +105,7 @@ export default function AnalyticsPage() {
       const day = d.dayOfWeek;
       const hour = d.hour;
       if (day >= 0 && day <= 6 && hour >= 0 && hour <= 23 && heatmapMatrix[day]) {
-        heatmapMatrix[day][hour] = d.count;
+        heatmapMatrix[day][hour] = Number(d.count);
       }
     });
   }
@@ -466,7 +482,7 @@ export default function AnalyticsPage() {
 
           {/* ── SECTION 6: Map Visualization ── */}
           <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 shadow-sm flex flex-col w-full overflow-hidden">
-            <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-6 flex items-center gap-2"><Globe size={14} /> Global Views</p>
+            <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-6 flex items-center gap-2"><Globe size={14} /> Global Responses</p>
             {mapLoading ? (
               <div className="animate-pulse bg-neutral-200/50 rounded-xl h-[300px] w-full" />
             ) : mapError ? (
@@ -480,16 +496,17 @@ export default function AnalyticsPage() {
                 <ComposableMap projectionConfig={{ scale: 140 }} width={800} height={400} style={{ width: "100%", height: "100%" }}>
                   <Geographies geography={geoUrl}>
                     {({ geographies }) => {
-                      const maxValue = Math.max(...(mapRaw || []).map(d => d.value), 1);
+                      const regions = mapRaw?.regions || [];
+                      const maxValue = Math.max(...regions.map(d => Number(d.value)), 1);
                       const colorScale = scaleLinear<string>().domain([0, maxValue]).range(["#ede9fe", "#8b5cf6"]);
                       
                       return geographies.map((geo) => {
-                        const d = (mapRaw || []).find((s) => s.id === geo.id || s.id === geo.properties?.ISO_A2 || s.id === geo.properties?.ISO_A3);
+                        const d = regions.find((s) => s.id === geo.id || s.id === geo.properties?.ISO_A2 || s.id === geo.properties?.ISO_A3);
                         return (
                           <Geography
                             key={geo.rsmKey}
                             geography={geo}
-                            fill={d ? colorScale(d.value) : "#f5f5f5"}
+                            fill={d ? colorScale(Number(d.value)) : "#f5f5f5"}
                             stroke="#ffffff"
                             strokeWidth={0.5}
                             style={{
@@ -502,6 +519,11 @@ export default function AnalyticsPage() {
                       });
                     }}
                   </Geographies>
+                  {mapRaw?.points?.map((pt, i) => (
+                    <Marker key={i} coordinates={[pt.lng, pt.lat]}>
+                      <circle r={Math.min(Math.max(pt.value * 2, 4), 12)} fill="#ef4444" fillOpacity={0.7} stroke="#ffffff" strokeWidth={1.5} />
+                    </Marker>
+                  ))}
                 </ComposableMap>
               </div>
             )}

@@ -586,25 +586,38 @@ export const analyticsRouter = createTRPCRouter({
           formIds = formIds.filter(id => input.formIds!.includes(id));
         }
 
-        if (formIds.length === 0) return [];
+        if (formIds.length === 0) return { regions: [], points: [] };
 
-        const data = await ctx.db
+        const regionData = await ctx.db
           .select({
-            country: sql<string>`metadata->>'country'`,
+            country: sql<string>`meta->>'country'`,
             count: count(),
           })
-          .from(events)
+          .from(submissions)
           .where(and(
-            inArray(events.formId, formIds), 
-            eq(events.event, "form_view"),
-            sql`metadata->>'country' IS NOT NULL`
+            inArray(submissions.formId, formIds), 
+            sql`meta->>'country' IS NOT NULL`,
+            sql`meta->>'country' != 'Unknown'`
           ))
-          .groupBy(sql`metadata->>'country'`);
+          .groupBy(sql`meta->>'country'`);
 
-        return data.map((d) => ({
-          id: d.country, // usually alpha-3 or alpha-2 code
-          value: d.count,
-        }));
+        const pointData = await ctx.db
+          .select({
+            lat: sql<number>`(meta->>'lat')::numeric`,
+            lng: sql<number>`(meta->>'lng')::numeric`,
+            count: count(),
+          })
+          .from(submissions)
+          .where(and(
+            inArray(submissions.formId, formIds),
+            sql`meta->>'lat' IS NOT NULL`
+          ))
+          .groupBy(sql`(meta->>'lat')::numeric`, sql`(meta->>'lng')::numeric`);
+
+        return {
+          regions: regionData.map((d) => ({ id: d.country, value: d.count })),
+          points: pointData.map((d) => ({ lat: Number(d.lat), lng: Number(d.lng), value: d.count }))
+        };
       } catch (err) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch map data" });
       }

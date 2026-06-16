@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { StatsRow } from "@/components/dashboard/stats-row";
 import { ChartsRow } from "@/components/dashboard/charts-row";
 import { RecentSubmissions } from "@/components/dashboard/recent-submissions";
+import { MapRow } from "@/components/dashboard/map-row";
 import { FloatingActions } from "@/components/dashboard/floating-actions";
 import { Calendar } from "lucide-react";
 
@@ -58,6 +59,9 @@ export default function DashboardPage() {
 
           {/* Bento row 2 — charts */}
           <ChartsRow />
+
+          {/* Map Row */}
+          <MapRow />
 
           {/* Bento row 3 — recent submissions full-width */}
           <RecentSubmissions />

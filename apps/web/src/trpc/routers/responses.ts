@@ -29,6 +29,8 @@ export const responsesRouter = createTRPCRouter({
           ip: z.string().optional(),
           userAgent: z.string().optional(),
           country: z.string().optional(),
+          lat: z.number().optional(),
+          lng: z.number().optional(),
           completionTime: z.number().optional(),
           device: z.enum(["desktop", "mobile", "tablet"]).optional(),
           browser: z.string().optional(),

@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { Inbox, Download, Search, Monitor, Smartphone, Tablet, ChevronDown } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import { Inbox, Download, Search, Monitor, Smartphone, Tablet, ChevronDown, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { trpc } from "@/src/trpc/client";
 import { toast } from "sonner";
 // @ts-ignore
 import Papa from "papaparse";
+import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 
 const DeviceIcon = ({ device }: { device: string }) => {
   switch (device) {
@@ -19,7 +21,12 @@ const DeviceIcon = ({ device }: { device: string }) => {
 
 export default function GlobalResponsesPage() {
   const [search, setSearch] = useState("");
-  const { data: submissions, isLoading } = trpc.analytics.getRecentSubmissions.useQuery(undefined as any);
+  const [selectedSub, setSelectedSub] = useState<string | null>(null);
+  const { data: submissions, isLoading } = trpc.analytics.getRecentSubmissions.useQuery({ limit: 100 });
+  const { data: activeSubDetails, isLoading: isLoadingDetails } = trpc.responses.getById.useQuery(
+    { id: selectedSub || "" },
+    { enabled: !!selectedSub }
+  );
 
   const handleExportCSV = () => {
     if (!submissions || submissions.length === 0) {
@@ -98,7 +105,8 @@ export default function GlobalResponsesPage() {
       </div>
 
       {/* Content Area */}
-      <div className="bg-white/50 backdrop-blur-md border border-neutral-200/60 rounded-3xl p-6 shadow-sm flex-1 flex flex-col">
+      <div className="flex gap-6 flex-1 min-h-[400px]">
+        <div className={`bg-white/50 backdrop-blur-md border border-neutral-200/60 rounded-3xl p-6 shadow-sm flex flex-col transition-all duration-300 ${selectedSub ? 'w-2/3 hidden lg:flex' : 'w-full'}`}>
         {isLoading ? (
           <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
@@ -121,10 +129,12 @@ export default function GlobalResponsesPage() {
               <thead>
                 <tr className="border-b border-neutral-200 text-xs font-semibold uppercase tracking-wider text-neutral-400">
                   <th className="py-3 px-4">Form Name</th>
-                  <th className="py-3 px-4">Respondent</th>
-                  <th className="py-3 px-4 text-center">Device</th>
+                  <th className="py-3 px-4">Version</th>
                   <th className="py-3 px-4">Date / Time</th>
-                  <th className="py-3 px-4 text-right">Status</th>
+                  <th className="py-3 px-4">Device</th>
+                  <th className="py-3 px-4">OS</th>
+                  <th className="py-3 px-4">Browser</th>
+                  <th className="py-3 px-4 text-right">Country</th>
                 </tr>
               </thead>
               <tbody>
@@ -132,38 +142,175 @@ export default function GlobalResponsesPage() {
                   const meta = sub.meta as Record<string, any>;
                   const device = (meta?.device as string) || "desktop";
                   return (
-                    <tr
+                    <motion.tr
                       key={sub.id}
-                      className={`border-b border-neutral-200/45 hover:bg-white/60 transition-colors ${
-                        idx % 2 === 0 ? "bg-transparent" : "bg-neutral-50/30"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      onClick={() => setSelectedSub(selectedSub === sub.id ? null : sub.id)}
+                      className={`cursor-pointer border-b border-neutral-200/45 transition-colors ${
+                        selectedSub === sub.id ? 'bg-[#d9e5c9]/30' : idx % 2 === 0 ? "bg-transparent hover:bg-white/60" : "bg-neutral-50/30 hover:bg-white/60"
                       }`}
                     >
                       <td className="py-4 px-4 font-medium text-neutral-800">
                         {sub.formName}
                       </td>
-                      <td className="py-4 px-4 text-neutral-600 font-mono text-xs">
-                        {sub.sessionId?.slice(0, 8) || "Anonymous"}
+                      <td className="py-4 px-4 text-neutral-600 font-mono text-xs" title={sub.formVersionId}>
+                        {sub.formVersionId?.slice(0, 8) || "N/A"}
                       </td>
                       <td className="py-4 px-4">
-                        <div className="flex items-center justify-center">
-                          <DeviceIcon device={device} />
+                        <div className="font-medium text-neutral-800 text-sm">
+                          {sub.submittedAt ? format(new Date(sub.submittedAt), "MMM d, yyyy") : "N/A"}
+                        </div>
+                        <div className="text-xs text-neutral-400">
+                          {sub.submittedAt ? format(new Date(sub.submittedAt), "h:mm a") : ""}
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-neutral-500 text-xs">
-                        {sub.submittedAt ? formatDistanceToNow(new Date(sub.submittedAt), { addSuffix: true }) : "N/A"}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2 text-neutral-600 text-sm capitalize">
+                          <DeviceIcon device={device} />
+                          {device}
+                        </div>
                       </td>
-                      <td className="py-4 px-4 text-right">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase border bg-[#e3ecd6] text-[#3a4427] border-[#8ba059]/30">
-                          Completed
-                        </span>
+                      <td className="py-4 px-4 text-neutral-600 text-sm">
+                        {meta?.os || "Unknown"}
                       </td>
-                    </tr>
+                      <td className="py-4 px-4 text-neutral-600 text-sm">
+                        {meta?.browser || "Unknown"}
+                      </td>
+                      <td className="py-4 px-4 text-right text-neutral-600 text-sm uppercase">
+                        {meta?.country || "Unknown"}
+                      </td>
+                    </motion.tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
         )}
+        </div>
+
+        {/* Side Panel (Submission Details) */}
+        <AnimatePresence mode="popLayout">
+          {selectedSub && (
+            <motion.div 
+              initial={{ opacity: 0, x: 50, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 50, scale: 0.95 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+              className="w-full lg:w-1/3 bg-white/80 backdrop-blur-md border border-neutral-200/60 rounded-[2rem] shadow-xl shadow-neutral-200/40 overflow-hidden flex flex-col"
+            >
+              <div className="p-6 border-b border-neutral-100 bg-neutral-50/50 flex items-start justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-neutral-800">Submission Details</h2>
+                  <p className="text-xs text-neutral-500 mt-1">ID: <span className="font-mono">{selectedSub.split("-")[0]}...</span></p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button 
+                    onClick={() => setSelectedSub(null)}
+                    className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                    title="Close"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 flex-1 overflow-y-auto">
+                {isLoadingDetails ? (
+                  <div className="space-y-4">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i}>
+                         <div className="h-3 w-24 bg-neutral-200 animate-pulse rounded mb-2" />
+                         <div className="h-10 w-full bg-neutral-100 animate-pulse rounded-lg" />
+                      </div>
+                    ))}
+                  </div>
+                ) : activeSubDetails ? (
+                  <div className="space-y-6">
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+                        <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">Submitted</p>
+                        <p className="text-sm font-semibold text-neutral-700">
+                          {activeSubDetails.submittedAt ? new Date(activeSubDetails.submittedAt).toLocaleString() : "N/A"}
+                        </p>
+                      </div>
+                      <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+                        <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">Device</p>
+                        <p className="text-sm font-semibold text-neutral-700 capitalize">
+                          {(activeSubDetails.meta as any)?.device || "Unknown"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {((activeSubDetails.meta as any)?.country && (activeSubDetails.meta as any)?.country !== 'Unknown') || ((activeSubDetails.meta as any)?.lat && (activeSubDetails.meta as any)?.lng) ? (
+                      <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100 overflow-hidden">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">Location</p>
+                          <p className="text-[10px] font-semibold text-neutral-500">
+                            {(activeSubDetails.meta as any)?.country !== 'Unknown' ? (activeSubDetails.meta as any)?.country : "Unknown Country"}
+                            {(activeSubDetails.meta as any)?.ip && (activeSubDetails.meta as any)?.ip !== 'unknown' && ` • ${(activeSubDetails.meta as any)?.ip}`}
+                          </p>
+                        </div>
+                        <div className="w-full h-[160px] bg-white rounded-lg border border-neutral-200 overflow-hidden flex items-center justify-center">
+                          <ComposableMap projectionConfig={{ scale: 120 }} width={400} height={200} style={{ width: "100%", height: "100%" }}>
+                            <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json">
+                              {({ geographies }) => (
+                                geographies.map(geo => {
+                                  const c = (activeSubDetails.meta as any)?.country;
+                                  const isMatch = c && c !== 'Unknown' && (
+                                    geo.id === c || 
+                                    geo.properties?.ISO_A2 === c || 
+                                    geo.properties?.ISO_A3 === c
+                                  );
+                                  return (
+                                    <Geography
+                                      key={geo.rsmKey}
+                                      geography={geo}
+                                      fill={isMatch ? "#c4b5fd" : "#f5f5f5"}
+                                      stroke="#ffffff"
+                                      strokeWidth={0.5}
+                                      style={{ default: { outline: "none" }, hover: { outline: "none" }, pressed: { outline: "none" } }}
+                                    />
+                                  )
+                                })
+                              )}
+                            </Geographies>
+                            {(activeSubDetails.meta as any)?.lat && (activeSubDetails.meta as any)?.lng && (
+                              <Marker coordinates={[(activeSubDetails.meta as any).lng, (activeSubDetails.meta as any).lat]}>
+                                <circle r={4} fill="#ef4444" stroke="#ffffff" strokeWidth={1} />
+                                <circle r={12} fill="#ef4444" fillOpacity={0.2} />
+                              </Marker>
+                            )}
+                          </ComposableMap>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className="w-full h-px bg-neutral-100" />
+
+                    {activeSubDetails.answers.length === 0 ? (
+                       <p className="text-sm text-neutral-500 italic">No answers found for this submission.</p>
+                    ) : (
+                       activeSubDetails.answers.map((answer, i) => (
+                         <div key={i}>
+                           <p className="text-xs font-semibold text-neutral-500 mb-2">{answer.fieldKey}</p>
+                           <div className="text-sm text-neutral-800 bg-white border border-neutral-200 px-3 py-2 rounded-lg break-words">
+                             {String(answer.value)}
+                           </div>
+                         </div>
+                       ))
+                    )}
+
+                  </div>
+                ) : (
+                  <p className="text-red-500 text-sm">Failed to load submission details.</p>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

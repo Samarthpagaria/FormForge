@@ -28,6 +28,17 @@ const getBrowser = () => {
   return "Unknown";
 };
 
+const getOS = () => {
+  if (typeof window === "undefined") return "Unknown";
+  const ua = navigator.userAgent;
+  if (ua.includes("Win")) return "Windows";
+  if (ua.includes("Mac")) return "macOS";
+  if (ua.includes("Linux")) return "Linux";
+  if (ua.includes("Android")) return "Android";
+  if (ua.includes("like Mac")) return "iOS";
+  return "Unknown";
+};
+
 const generateSessionId = () => {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
 };
@@ -58,12 +69,23 @@ export default function PublicFormPage({
   });
   
   const [userIp, setUserIp] = useState<string | null>(null);
+  const [userCountry, setUserCountry] = useState<string | null>(null);
+  const [userLat, setUserLat] = useState<number | undefined>(undefined);
+  const [userLng, setUserLng] = useState<number | undefined>(undefined);
   
   useEffect(() => {
-    fetch("https://api.ipify.org?format=json")
+    fetch("https://get.geojs.io/v1/ip/geo.json")
       .then(res => res.json())
-      .then(data => setUserIp(data.ip))
-      .catch(() => setUserIp("unknown"));
+      .then(data => {
+        setUserIp(data.ip);
+        setUserCountry(data.country_code || data.country || "Unknown");
+        setUserLat(data.latitude ? parseFloat(data.latitude) : undefined);
+        setUserLng(data.longitude ? parseFloat(data.longitude) : undefined);
+      })
+      .catch(() => {
+        setUserIp("unknown");
+        setUserCountry("Unknown");
+      });
   }, []);
 
   const checkDuplicateQuery = trpc.responses.checkDuplicate.useQuery(
@@ -167,18 +189,6 @@ export default function PublicFormPage({
     if (!form || !currentVersion) return;
     
     try {
-      // Fetch IP for rate limiting / unique submission checks
-      let ip = "unknown";
-      try {
-        const ipRes = await fetch("https://api.ipify.org?format=json");
-        if (ipRes.ok) {
-          const ipData = await ipRes.json();
-          ip = ipData.ip;
-        }
-      } catch (e) {
-        console.warn("Could not fetch IP");
-      }
-
       // Format answers for backend
       const answers = Object.entries(formData).map(([fieldKey, value]) => ({
         fieldKey,
@@ -190,10 +200,15 @@ export default function PublicFormPage({
         formVersionId: currentVersion.id,
         answers,
         meta: {
-          ip,
+          ip: userIp || "unknown",
+          country: userCountry || "Unknown",
+          lat: userLat,
+          lng: userLng,
           device: getDeviceType(),
           browser: getBrowser(),
+          os: getOS(),
           userAgent: navigator.userAgent,
+          completionTime: Math.round((Date.now() - startTime.current) / 1000),
         }
       });
 
