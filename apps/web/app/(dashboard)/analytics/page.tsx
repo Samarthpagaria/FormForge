@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, BarChart2, PieChart as PieChartIcon, AlertCircle } from "lucide-react";
+import { ArrowLeft, RefreshCw, BarChart2, PieChart as PieChartIcon, AlertCircle, ChevronDown, Check, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar
 } from "recharts";
 import { trpc } from "@/src/trpc/client";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { scaleLinear } from "d3-scale";
 
 // Reusable Framer Motion Variants
 const containerVariants = {
@@ -33,17 +35,27 @@ const getHeatmapColor = (level: number) => {
   }
 };
 
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<"7" | "30" | "90" | "all">("30");
+  const [selectedFormIds, setSelectedFormIds] = useState<string[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const days = dateRange === "all" ? 365 : parseInt(dateRange);
 
-  const { data: globalStats, isLoading: statsLoading, isError: statsError, refetch: statsRefetch } = trpc.analytics.getGlobalStats.useQuery();
-  const { data: sotRaw, isLoading: sotLoading, isError: sotError, refetch: sotRefetch } = trpc.analytics.getGlobalSubmissionsOverTime.useQuery({ days });
-  const { data: deviceRaw, isLoading: deviceLoading, isError: deviceError, refetch: deviceRefetch } = trpc.analytics.getGlobalDeviceBreakdown.useQuery();
-  const { data: heatmapRaw, isLoading: heatmapLoading, isError: heatmapError, refetch: heatmapRefetch } = trpc.analytics.getWeeklyActivityHeatmap.useQuery();
-  const { data: ctRaw, isLoading: ctLoading, isError: ctError, refetch: ctRefetch } = trpc.analytics.getCompletionTimeDistribution.useQuery();
-  const { data: trafficRaw, isLoading: trafficLoading, isError: trafficError, refetch: trafficRefetch } = trpc.analytics.getTrafficSources.useQuery();
+  const { data: allForms } = trpc.forms.getAllForms.useQuery();
+
+  const queryOptions = selectedFormIds.length > 0 ? { formIds: selectedFormIds } : {};
+  const queryOptionsWithDays = selectedFormIds.length > 0 ? { days, formIds: selectedFormIds } : { days };
+
+  const { data: globalStats, isLoading: statsLoading, isError: statsError, refetch: statsRefetch } = trpc.analytics.getGlobalStats.useQuery(queryOptions);
+  const { data: sotRaw, isLoading: sotLoading, isError: sotError, refetch: sotRefetch } = trpc.analytics.getGlobalSubmissionsOverTime.useQuery(queryOptionsWithDays);
+  const { data: deviceRaw, isLoading: deviceLoading, isError: deviceError, refetch: deviceRefetch } = trpc.analytics.getGlobalDeviceBreakdown.useQuery(queryOptions);
+  const { data: heatmapRaw, isLoading: heatmapLoading, isError: heatmapError, refetch: heatmapRefetch } = trpc.analytics.getWeeklyActivityHeatmap.useQuery(queryOptions);
+  const { data: ctRaw, isLoading: ctLoading, isError: ctError, refetch: ctRefetch } = trpc.analytics.getCompletionTimeDistribution.useQuery(queryOptions);
+  const { data: trafficRaw, isLoading: trafficLoading, isError: trafficError, refetch: trafficRefetch } = trpc.analytics.getTrafficSources.useQuery(queryOptions);
+  const { data: mapRaw, isLoading: mapLoading, isError: mapError, refetch: mapRefetch } = trpc.analytics.getGlobalMapData.useQuery(queryOptions);
 
   // Mapping data
   const submissionsOverTime = sotRaw?.map(d => ({
@@ -117,23 +129,74 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* ── Date Range Filter ── */}
-        <div className="flex items-center gap-4 mb-6 bg-white/80 backdrop-blur-md p-3 rounded-xl border border-neutral-200/60 shadow-sm self-start">
-          <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider pl-2">Timeframe:</span>
-          <div className="flex gap-2">
-            {["7", "30", "90", "all"].map((range) => (
-              <button
-                key={range}
-                onClick={() => setDateRange(range as any)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  dateRange === range 
-                    ? "bg-violet-600 text-white shadow-sm" 
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                }`}
-              >
-                {range === "all" ? "All time" : `Last ${range} Days`}
-              </button>
-            ))}
+        {/* ── Filters ── */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+          {/* Date Range */}
+          <div className="flex items-center gap-4 bg-white/80 backdrop-blur-md p-3 rounded-xl border border-neutral-200/60 shadow-sm self-start">
+            <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider pl-2">Timeframe:</span>
+            <div className="flex gap-2">
+              {["7", "30", "90", "all"].map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setDateRange(range as any)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                    dateRange === range 
+                      ? "bg-violet-600 text-white shadow-sm" 
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                  }`}
+                >
+                  {range === "all" ? "All time" : `Last ${range} Days`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Forms Filter */}
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-3 h-[48px] rounded-xl border border-neutral-200/60 shadow-sm text-sm font-semibold text-neutral-700 hover:bg-white transition-colors"
+            >
+              <span>{selectedFormIds.length === 0 ? "All Forms" : `${selectedFormIds.length} Forms Selected`}</span>
+              <ChevronDown size={16} className={`transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            <AnimatePresence>
+              {isDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full left-0 mt-2 w-64 bg-white border border-neutral-200/60 rounded-xl shadow-xl z-50 p-2 max-h-64 overflow-y-auto"
+                >
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-100 mb-2">
+                    <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Filter Forms</span>
+                    {selectedFormIds.length > 0 && (
+                      <button 
+                        onClick={() => setSelectedFormIds([])}
+                        className="text-xs font-semibold text-violet-600 hover:text-violet-700"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  {allForms?.map(form => (
+                    <label key={form.id} className="flex items-center gap-3 px-3 py-2 hover:bg-neutral-50 rounded-lg cursor-pointer transition-colors" onClick={() => {
+                      setSelectedFormIds(prev => prev.includes(form.id) ? prev.filter(id => id !== form.id) : [...prev, form.id]);
+                    }}>
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedFormIds.includes(form.id) ? "bg-violet-600 border-violet-600" : "border-neutral-300"}`}>
+                        {selectedFormIds.includes(form.id) && <Check size={12} className="text-white" strokeWidth={3} />}
+                      </div>
+                      <span className="text-sm font-medium text-neutral-700 truncate">{form.name}</span>
+                    </label>
+                  ))}
+                  {(!allForms || allForms.length === 0) && (
+                    <div className="px-3 py-4 text-center text-xs text-neutral-400">No forms found</div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -400,6 +463,49 @@ export default function AnalyticsPage() {
             </motion.div>
 
           </div>
+
+          {/* ── SECTION 6: Map Visualization ── */}
+          <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 shadow-sm flex flex-col w-full overflow-hidden">
+            <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-6 flex items-center gap-2"><Globe size={14} /> Global Views</p>
+            {mapLoading ? (
+              <div className="animate-pulse bg-neutral-200/50 rounded-xl h-[300px] w-full" />
+            ) : mapError ? (
+              <div className="flex flex-col items-center justify-center h-[300px] text-center">
+                <AlertCircle className="w-8 h-8 text-red-300 mb-2" />
+                <p className="text-sm text-red-400">Failed to load map data</p>
+                <button onClick={() => mapRefetch()} className="text-xs text-violet-600 mt-2 underline">Retry</button>
+              </div>
+            ) : (
+              <div className="w-full h-[300px] flex items-center justify-center">
+                <ComposableMap projectionConfig={{ scale: 140 }} width={800} height={400} style={{ width: "100%", height: "100%" }}>
+                  <Geographies geography={geoUrl}>
+                    {({ geographies }) => {
+                      const maxValue = Math.max(...(mapRaw || []).map(d => d.value), 1);
+                      const colorScale = scaleLinear<string>().domain([0, maxValue]).range(["#ede9fe", "#8b5cf6"]);
+                      
+                      return geographies.map((geo) => {
+                        const d = (mapRaw || []).find((s) => s.id === geo.id || s.id === geo.properties?.ISO_A2 || s.id === geo.properties?.ISO_A3);
+                        return (
+                          <Geography
+                            key={geo.rsmKey}
+                            geography={geo}
+                            fill={d ? colorScale(d.value) : "#f5f5f5"}
+                            stroke="#ffffff"
+                            strokeWidth={0.5}
+                            style={{
+                              default: { outline: "none", transition: "all 250ms" },
+                              hover: { fill: "#7c3aed", outline: "none", transition: "all 250ms" },
+                              pressed: { fill: "#6d28d9", outline: "none" },
+                            }}
+                          />
+                        );
+                      });
+                    }}
+                  </Geographies>
+                </ComposableMap>
+              </div>
+            )}
+          </motion.div>
 
         </motion.div>
 

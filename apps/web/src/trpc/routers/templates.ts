@@ -364,6 +364,36 @@ export const templatesRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        let finalName = input.name;
+        
+        // Auto-increment name if duplicate exists when creating from template
+        let existingForm = await ctx.db
+          .select()
+          .from(forms)
+          .where(
+            and(
+              eq(forms.name, finalName),
+              eq(forms.userId, ctx.auth.userId)
+            )
+          )
+          .limit(1);
+
+        let counter = 1;
+        while (existingForm[0]) {
+          finalName = `${input.name} (${counter})`;
+          existingForm = await ctx.db
+            .select()
+            .from(forms)
+            .where(
+              and(
+                eq(forms.name, finalName),
+                eq(forms.userId, ctx.auth.userId)
+              )
+            )
+            .limit(1);
+          counter++;
+        }
+
         const template = await ctx.db
           .select()
           .from(templates)
@@ -382,10 +412,10 @@ export const templatesRouter = createTRPCRouter({
         const newForm = await ctx.db
           .insert(forms)
           .values({
-            name: input.name,
+            name: finalName,
             description: input.description,
             userId: ctx.auth.userId,
-            slug: `${input.name.toLowerCase().replace(/\s+/g, "-")}-${Math.random().toString(36).slice(2, 7)}`,
+            slug: `${finalName.toLowerCase().replace(/\s+/g, "-")}-${Math.random().toString(36).slice(2, 7)}`,
             status: "draft",
             draftSchema: template[0].schema,
           })

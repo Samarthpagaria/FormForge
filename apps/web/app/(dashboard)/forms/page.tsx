@@ -8,7 +8,8 @@ import {
   BarChart2, 
   Share2, 
   Trash2,
-  Loader2
+  Loader2,
+  Eye
 } from "lucide-react";
 import Link from "next/link";
 import { trpc } from "@/src/trpc/client";
@@ -246,6 +247,11 @@ export default function FormsPage() {
                   {/* Actions */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
+                      <Link href={`/forms/${form.id}`}>
+                        <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="View Form Details">
+                          <Eye size={12} />
+                        </button>
+                      </Link>
                       <Link href={`/forms/${form.id}/builder`}>
                         <button className="p-1 bg-white/5 hover:bg-white/20 rounded-md transition-colors text-white/70 hover:text-white" title="Edit Form">
                           <Edit2 size={12} />

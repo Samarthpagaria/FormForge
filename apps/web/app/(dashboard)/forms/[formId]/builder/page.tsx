@@ -196,7 +196,10 @@ function BuilderUI({ formId }: { formId: string }) {
   const [previewingVersion, setPreviewingVersion] = useState<any>(null);
 
   const { mutate: updateForm } = trpc.forms.update.useMutation({
-    onError: (err) => toast.error(err.message || "Failed to update form name"),
+    onError: (err) => {
+      toast.error(err.message || "Failed to update form name");
+      setFormName(form?.name || "");
+    }
   });
   const { mutate: updateDraft } = trpc.forms.update.useMutation({
     onSuccess: () => {
@@ -238,13 +241,30 @@ function BuilderUI({ formId }: { formId: string }) {
     if (form && versions && !isInitialized) {
       setFormName(form.name);
       
+      const normalizeFields = (rawFields: any[]) => {
+        return rawFields.map((f: any) => {
+          let type = f.type;
+          if (type === "text") type = "short_text";
+          else if (type === "textarea") type = "long_text";
+          else if (type === "tel") type = "phone";
+          else if (type === "select") type = "dropdown";
+
+          return {
+            ...f,
+            id: f.id || `field-${Math.random().toString(36).substr(2, 9)}`,
+            type: type,
+            width: f.width || "full",
+          };
+        });
+      };
+
       let loadedFields = [];
       if (form.draftSchema && Array.isArray((form.draftSchema as any).fields) && (form.draftSchema as any).fields.length > 0) {
-        loadedFields = (form.draftSchema as any).fields;
+        loadedFields = normalizeFields((form.draftSchema as any).fields);
       } else {
         const latestVersion = versions[0];
         if (latestVersion && latestVersion.schema && Array.isArray((latestVersion.schema as any).fields)) {
-          loadedFields = (latestVersion.schema as any).fields;
+          loadedFields = normalizeFields((latestVersion.schema as any).fields);
         }
       }
       
@@ -437,7 +457,7 @@ function BuilderUI({ formId }: { formId: string }) {
               onChange={(e) => setFormName(e.target.value)}
               onBlur={handleNameUpdate}
               onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
-              className="bg-transparent border-none outline-none text-sm font-semibold text-neutral-800 w-32 focus:ring-0 placeholder-neutral-400"
+              className="bg-transparent border-none outline-none text-sm font-semibold text-neutral-800 min-w-[200px] max-w-[400px] focus:ring-0 placeholder-neutral-400"
               placeholder="Form Name"
             />
           </div>

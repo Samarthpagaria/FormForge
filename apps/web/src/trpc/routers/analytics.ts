@@ -311,7 +311,8 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL STATS (across all user's forms) ───────────────────────────────
 
   getGlobalStats: protectedProcedure
-    .query(async ({ ctx }) => {
+    .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
+    .query(async ({ ctx, input }) => {
       try {
         const userForms = await ctx.db
           .select()
@@ -328,7 +329,14 @@ export const analyticsRouter = createTRPCRouter({
           };
         }
 
-        const formIds = userForms.map((f) => f.id);
+        let formIds = userForms.map((f) => f.id);
+        if (input?.formIds && input.formIds.length > 0) {
+          formIds = formIds.filter(id => input.formIds!.includes(id));
+        }
+
+        if (formIds.length === 0) {
+          return { totalForms: 0, totalSubmissions: 0, totalViews: 0, completionRate: 0, avgCompletionTime: 0 };
+        }
 
         const [subCount, viewCount, startCount, submitCount, timeResult] = await Promise.all([
           ctx.db.select({ count: count() }).from(submissions).where(inArray(submissions.formId, formIds)),
@@ -343,7 +351,7 @@ export const analyticsRouter = createTRPCRouter({
           : 0;
 
         return {
-          totalForms: userForms.length,
+          totalForms: formIds.length,
           totalSubmissions: subCount[0]?.count ?? 0,
           totalViews: viewCount[0]?.count ?? 0,
           completionRate,
@@ -357,13 +365,19 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL SUBMISSIONS OVER TIME (last 30 days) ──────────────────────────
 
   getGlobalSubmissionsOverTime: protectedProcedure
-    .input(z.object({ days: z.number().default(30) }))
+    .input(z.object({ days: z.number().default(30), formIds: z.array(z.string()).optional() }))
     .query(async ({ ctx, input }) => {
       try {
         const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
         if (userForms.length === 0) return [];
 
-        const formIds = userForms.map((f) => f.id);
+        let formIds = userForms.map((f) => f.id);
+        if (input.formIds && input.formIds.length > 0) {
+          formIds = formIds.filter(id => input.formIds!.includes(id));
+        }
+
+        if (formIds.length === 0) return [];
+
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - input.days);
 
@@ -415,12 +429,18 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL DEVICE BREAKDOWN ──────────────────────────────────────────────
 
   getGlobalDeviceBreakdown: protectedProcedure
-    .query(async ({ ctx }) => {
+    .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
+    .query(async ({ ctx, input }) => {
       try {
         const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
         if (userForms.length === 0) return [];
 
-        const formIds = userForms.map((f) => f.id);
+        let formIds = userForms.map((f) => f.id);
+        if (input?.formIds && input.formIds.length > 0) {
+          formIds = formIds.filter(id => input.formIds!.includes(id));
+        }
+
+        if (formIds.length === 0) return [];
 
         const data = await ctx.db
           .select({
@@ -440,12 +460,18 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL WEEKLY ACTIVITY HEATMAP ───────────────────────────────────────
 
   getWeeklyActivityHeatmap: protectedProcedure
-    .query(async ({ ctx }) => {
+    .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
+    .query(async ({ ctx, input }) => {
       try {
         const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
         if (userForms.length === 0) return [];
 
-        const formIds = userForms.map((f) => f.id);
+        let formIds = userForms.map((f) => f.id);
+        if (input?.formIds && input.formIds.length > 0) {
+          formIds = formIds.filter(id => input.formIds!.includes(id));
+        }
+
+        if (formIds.length === 0) return [];
         const ninetyDaysAgo = new Date();
         ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
@@ -468,12 +494,18 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL COMPLETION TIME DISTRIBUTION ──────────────────────────────────
 
   getCompletionTimeDistribution: protectedProcedure
-    .query(async ({ ctx }) => {
+    .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
+    .query(async ({ ctx, input }) => {
       try {
         const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
         if (userForms.length === 0) return [];
 
-        const formIds = userForms.map((f) => f.id);
+        let formIds = userForms.map((f) => f.id);
+        if (input?.formIds && input.formIds.length > 0) {
+          formIds = formIds.filter(id => input.formIds!.includes(id));
+        }
+
+        if (formIds.length === 0) return [];
 
         const data = await ctx.db
           .select({
@@ -509,12 +541,18 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL TRAFFIC SOURCES ───────────────────────────────────────────────
 
   getTrafficSources: protectedProcedure
-    .query(async ({ ctx }) => {
+    .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
+    .query(async ({ ctx, input }) => {
       try {
         const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
         if (userForms.length === 0) return [];
 
-        const formIds = userForms.map((f) => f.id);
+        let formIds = userForms.map((f) => f.id);
+        if (input?.formIds && input.formIds.length > 0) {
+          formIds = formIds.filter(id => input.formIds!.includes(id));
+        }
+
+        if (formIds.length === 0) return [];
 
         const data = await ctx.db
           .select({
@@ -531,6 +569,44 @@ export const analyticsRouter = createTRPCRouter({
         }));
       } catch (err) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch traffic sources" });
+      }
+    }),
+
+  // ─── GLOBAL MAP DATA ──────────────────────────────────────────────────────
+
+  getGlobalMapData: protectedProcedure
+    .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      try {
+        const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
+        if (userForms.length === 0) return [];
+
+        let formIds = userForms.map((f) => f.id);
+        if (input?.formIds && input.formIds.length > 0) {
+          formIds = formIds.filter(id => input.formIds!.includes(id));
+        }
+
+        if (formIds.length === 0) return [];
+
+        const data = await ctx.db
+          .select({
+            country: sql<string>`metadata->>'country'`,
+            count: count(),
+          })
+          .from(events)
+          .where(and(
+            inArray(events.formId, formIds), 
+            eq(events.event, "form_view"),
+            sql`metadata->>'country' IS NOT NULL`
+          ))
+          .groupBy(sql`metadata->>'country'`);
+
+        return data.map((d) => ({
+          id: d.country, // usually alpha-3 or alpha-2 code
+          value: d.count,
+        }));
+      } catch (err) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch map data" });
       }
     }),
 

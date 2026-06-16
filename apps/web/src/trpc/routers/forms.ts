@@ -21,6 +21,21 @@ export const formsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        const existingForm = await ctx.db
+          .select()
+          .from(forms)
+          .where(
+            and(
+              eq(forms.name, input.name),
+              eq(forms.userId, ctx.auth.userId)
+            )
+          )
+          .limit(1);
+
+        if (existingForm[0]) {
+          throw new TRPCError({ code: "CONFLICT", message: "A form with this name already exists. Please choose a different name." });
+        }
+
         const newForm = await ctx.db
           .insert(forms)
           .values({
@@ -34,6 +49,7 @@ export const formsRouter = createTRPCRouter({
 
         return newForm[0];
       } catch (err) {
+        if (err instanceof TRPCError) throw err;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create form" });
       }
     }),
@@ -110,6 +126,23 @@ export const formsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         const { id, ...rest } = input;
+
+        if (rest.name) {
+          const existingForm = await ctx.db
+            .select()
+            .from(forms)
+            .where(
+              and(
+                eq(forms.name, rest.name),
+                eq(forms.userId, ctx.auth.userId)
+              )
+            )
+            .limit(1);
+
+          if (existingForm[0] && existingForm[0].id !== id) {
+            throw new TRPCError({ code: "CONFLICT", message: "A form with this name already exists. Please choose a different name." });
+          }
+        }
 
         const updated = await ctx.db
           .update(forms)
