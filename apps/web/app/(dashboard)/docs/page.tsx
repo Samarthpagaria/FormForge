@@ -65,11 +65,16 @@ export default function DocsPage() {
           </div>
           <h2 className="text-xl font-bold text-white mb-3 relative z-10">API Reference</h2>
           <p className="text-neutral-400 text-sm leading-relaxed mb-6 relative z-10">
-            Automate your workflows by connecting FormForge to your existing tools. Read submissions programmatically or trigger webhooks.
+            Explore the FormForge REST API with interactive Scalar documentation. Test endpoints, review schemas, and integrate programmatically.
           </p>
-          <div className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-neutral-800 text-neutral-300 relative z-10">
-            Coming Soon
-          </div>
+          <a
+            href="/api/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold bg-violet-600 text-white hover:bg-violet-500 transition-colors relative z-10"
+          >
+            Open Scalar Docs
+          </a>
         </div>
 
       </div>

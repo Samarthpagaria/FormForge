@@ -8,9 +8,9 @@ import fireAnimation from "../public/Fire.json";
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
-export function Logo({ isLanding = false }: { isLanding?: boolean }) {
+export function Logo({ isLanding = false, href = "/dashboard" }: { isLanding?: boolean; href?: string }) {
   return (
-    <Link href="/dashboard" className="flex items-center gap-2 select-none">
+    <Link href={href} className="flex items-center gap-2 select-none">
       {isLanding ? (
         <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center pb-2">
           <Lottie animationData={fireAnimation} loop={true} autoplay={true} style={{ width: "100%", height: "100%" }} />

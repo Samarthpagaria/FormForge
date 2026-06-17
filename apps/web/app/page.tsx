@@ -1,6 +1,10 @@
 import { LandingNavbar } from "@/components/landing-navbar";
 import { LandingHero } from "@/components/landing-hero";
 import { FeaturesAlternatingLayout01 } from "@/components/landing-features";
+import { LandingWhyChooseUs } from "@/components/landing-why-choose-us";
+import { LandingTestimonials } from "@/components/landing-testimonials";
+import { LandingFaq } from "@/components/landing-faq";
+import { LandingFooter } from "@/components/landing-footer";
 
 export default function Home() {
   return (
@@ -8,6 +12,10 @@ export default function Home() {
       <LandingNavbar />
       <LandingHero />
       <FeaturesAlternatingLayout01 />
+      <LandingWhyChooseUs />
+      <LandingTestimonials />
+      <LandingFaq />
+      <LandingFooter />
     </main>
   );
 }

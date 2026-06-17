@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Play, Layout, Shield, History } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
+import { LordiconIcon } from "@/components/ui/lordicon-icon";
+import { LORDICONS } from "@/lib/lordicons";
 import DisplayCards from "@/components/ui/display-cards";
 import { ThreeDMarqueeDemo } from "@/components/3d-marquee-demo";
 
@@ -51,7 +53,11 @@ export function LandingHero() {
   }, []);
 
   const handleGetStarted = () => {
-    router.push(isSignedIn ? "/dashboard" : "/sign-in");
+    router.push(isSignedIn ? "/dashboard" : "/sign-up");
+  };
+
+  const handleWatchDemo = () => {
+    document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const activeWord = DYNAMIC_WORDS[wordIndex];
@@ -63,21 +69,21 @@ export function LandingHero() {
       title: "7 Display Modes",
       description: "One form, many experiences",
       date: "Customization",
-      icon: <Layout className="size-4 text-violet-500" />
+      icon: <LordiconIcon src={LORDICONS.layout} size={18} trigger="hover" />
     },
     {
       className: "[grid-area:stack] translate-x-12 translate-y-8 hover:-translate-y-1 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
       title: "Smart Protection",
       description: "No duplicate submissions",
       date: "Security",
-      icon: <Shield className="size-4 text-emerald-500" />
+      icon: <LordiconIcon src={LORDICONS.shield} size={18} trigger="hover" />
     },
     {
       className: "[grid-area:stack] translate-x-24 translate-y-16 hover:translate-y-8",
       title: "Full History",
-      description: "Rollback anytime to any verison",
+      description: "Rollback anytime to any version",
       date: "Versioning",
-      icon: <History className="size-4 text-blue-500" />
+      icon: <LordiconIcon src={LORDICONS.history} size={18} trigger="hover" />
     }
   ];
 
@@ -140,6 +146,7 @@ the bloat of legacy form builders.
 
             {/* Watch Demo Button */}
             <button
+              onClick={handleWatchDemo}
               className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-neutral-700 dark:text-zinc-300 bg-white/70 dark:bg-zinc-900/70 border border-neutral-200/80 dark:border-zinc-800/80 backdrop-blur-md hover:bg-neutral-100/80 dark:hover:bg-zinc-800/80 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-sm w-full sm:w-auto text-center cursor-pointer"
             >
               <Play size={12} className="fill-current" />

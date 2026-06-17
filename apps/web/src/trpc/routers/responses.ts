@@ -3,6 +3,7 @@ import { z } from "zod";
 import { submissions, submissionAnswers, forms, formVersions, users } from "@formforge/db";
 import { eq, and, desc, sql, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { sendSubmissionEmail } from "../../services/email";
 
 export const responsesRouter = createTRPCRouter({
@@ -179,10 +180,26 @@ export const responsesRouter = createTRPCRouter({
             .from(submissions)
             .where(eq(submissions.formId, form[0].id));
 
-          if (formOwner[0]?.email && newSubmission[0]) {
+          let ownerEmail = formOwner[0]?.email;
+          let ownerName = formOwner[0]?.name ?? null;
+
+          if (!ownerEmail) {
+            try {
+              const client = await clerkClient();
+              const clerkUser = await client.users.getUser(form[0].userId);
+              ownerEmail = clerkUser.emailAddresses[0]?.emailAddress;
+              ownerName =
+                [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim() ||
+                ownerName;
+            } catch (clerkErr) {
+              console.warn("[email] Could not resolve owner email from Clerk:", clerkErr);
+            }
+          }
+
+          if (ownerEmail && newSubmission[0]) {
             await sendSubmissionEmail({
-              formOwnerEmail: formOwner[0].email,
-              formOwnerName: formOwner[0].name,
+              formOwnerEmail: ownerEmail,
+              formOwnerName: ownerName,
               formId: form[0].id,
               formName: form[0].name,
               submissionId: newSubmission[0]!.id,

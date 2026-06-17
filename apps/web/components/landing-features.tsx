@@ -2,25 +2,20 @@
 
 import React from "react";
 import type { FC, HTMLAttributes } from "react";
-import { 
-  Link01, 
-  File02, 
-  ClockRefresh, 
-  Calendar, 
-  Shield01, 
-  Mail01
-} from "@untitledui/icons";
+import { CheckCircle2 } from "lucide-react";
+import { LordiconIcon } from "@/components/ui/lordicon-icon";
+import { LORDICONS } from "@/lib/lordicons";
 import { cx } from "@/lib/utils/cx";
 
-// Custom inline FeaturedIcon component supporting color-themed states
 interface FeaturedIconProps {
-  icon: React.ComponentType<{ className?: string }>;
+  iconSrc: string;
   color: string;
 }
 
-const FeaturedIcon: FC<FeaturedIconProps> = ({ icon: Icon, color }) => {
+const FeaturedIcon: FC<FeaturedIconProps> = ({ iconSrc, color }) => {
   const colorClasses: Record<string, string> = {
     emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/20",
+    cyan: "bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/20",
     violet: "bg-violet-100 text-violet-650 dark:bg-violet-950/40 dark:text-violet-400 border-violet-200/50 dark:border-violet-900/20",
     blue: "bg-blue-50 text-blue-650 dark:bg-blue-950/40 dark:text-blue-400 border-blue-100 dark:border-blue-900/20",
     amber: "bg-amber-50 text-amber-650 dark:bg-amber-950/40 dark:text-amber-400 border-amber-100 dark:border-amber-900/20",
@@ -30,7 +25,7 @@ const FeaturedIcon: FC<FeaturedIconProps> = ({ icon: Icon, color }) => {
 
   return (
     <div className={cx("flex items-center justify-center size-12 rounded-xl border mb-5 shadow-xs", colorClasses[color] || colorClasses.violet)}>
-      <Icon className="size-6" />
+      <LordiconIcon src={iconSrc} size={28} trigger="loop" />
     </div>
   );
 };
@@ -45,6 +40,7 @@ interface CheckItemTextProps {
 const CheckItemText: FC<CheckItemTextProps> = ({ boldText, text, color }) => {
   const dotClasses: Record<string, string> = {
     emerald: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-900/20",
+    cyan: "bg-cyan-100 text-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-400 border-cyan-200/50 dark:border-cyan-900/20",
     violet: "bg-violet-100 text-violet-650 dark:bg-violet-950/50 dark:text-violet-400 border-violet-200/50 dark:border-violet-900/20",
     blue: "bg-blue-100 text-blue-650 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/20",
     amber: "bg-amber-100 text-amber-650 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/20",
@@ -54,10 +50,8 @@ const CheckItemText: FC<CheckItemTextProps> = ({ boldText, text, color }) => {
 
   return (
     <li className="flex items-start gap-3 text-neutral-600 dark:text-zinc-450 text-sm leading-relaxed">
-      <div className={cx("flex-shrink-0 flex items-center justify-center size-5 rounded-full mt-0.5 border", dotClasses[color] || dotClasses.violet)}>
-        <svg className="size-2.5 stroke-[4.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
+      <div className={cx("flex-shrink-0 flex items-center justify-center size-5 rounded-md mt-0.5 border", dotClasses[color] || dotClasses.violet)}>
+        <CheckCircle2 className="size-3 stroke-[2.5]" />
       </div>
       <div>
         <strong className="font-semibold text-neutral-800 dark:text-zinc-200">{boldText}</strong>
@@ -88,7 +82,7 @@ const AlternateImageMockup: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 
 // Structured features configuration
 interface FeatureItem {
-  icon: React.ComponentType<{ className?: string }>;
+  iconSrc: string;
   label: string;
   color: string;
   titlePart1: string;
@@ -101,14 +95,14 @@ interface FeatureItem {
 
 const FEATURES: FeatureItem[] = [
   {
-    icon: Link01,
+    iconSrc: LORDICONS.share,
     label: "SHARING",
     color: "emerald",
     titlePart1: "Share anywhere, ",
     titleHighlight: "instantly",
     titlePart2: ".",
     gradientClass: "from-emerald-500 to-teal-500 dark:from-emerald-450 dark:to-teal-450",
-    description: "Every form gets a clean public URL and an auto-generated QR code. Print it, embed it, or drop it in a link — no extra setup required.",
+    description: "Every form gets a clean public URL and an auto-generated QR code. Print it, embed it, or drop it in a link with no extra setup required.",
     bullets: [
       { bold: "Print-ready", text: "Generate high-resolution printable QR codes instantly." },
       { bold: "Short links", text: "Share clean, branded URLs with custom slugs." },
@@ -116,29 +110,29 @@ const FEATURES: FeatureItem[] = [
     ]
   },
   {
-    icon: File02,
+    iconSrc: LORDICONS.template,
     label: "TEMPLATES",
-    color: "violet",
+    color: "cyan",
     titlePart1: "Skip the ",
     titleHighlight: "blank page",
     titlePart2: ".",
-    gradientClass: "from-violet-500 to-fuchsia-500 dark:from-violet-450 dark:to-fuchsia-450",
-    description: "Start from a library of ready-made templates across feedback, events, education, and more — or save your own as a custom template for next time.",
+    gradientClass: "from-cyan-500 to-teal-500 dark:from-cyan-450 dark:to-teal-450",
+    description: "Start from a library of ready-made templates across feedback, events, education, and more, or save your own as a custom template for next time.",
     bullets: [
-      { bold: "100+ layouts", text: "Access templates for surveys, registration, and leads." },
+      { bold: "10+ layouts", text: "Access templates for surveys, registration, and leads." },
       { bold: "Team sharing", text: "Save any form draft as a reusable library item." },
       { bold: "One-click build", text: "Launch themes, colors, and field layouts in a tap." }
     ]
   },
   {
-    icon: ClockRefresh,
+    iconSrc: LORDICONS.version,
     label: "VERSION CONTROL",
     color: "blue",
     titlePart1: "Every edit, ",
     titleHighlight: "remembered",
     titlePart2: ".",
     gradientClass: "from-blue-500 to-sky-550 dark:from-blue-450 dark:to-sky-450",
-    description: "FormForge saves a new version automatically as you build. Preview any past version and roll back instantly — nothing is ever truly lost.",
+    description: "FormForge saves a new version automatically as you build. Preview any past version and roll back instantly. Nothing is ever truly lost.",
     bullets: [
       { bold: "Autosave drafts", text: "Secure, incremental history snapshots of your schemas." },
       { bold: "Live previews", text: "Compare diffs side-by-side between past versions." },
@@ -146,14 +140,14 @@ const FEATURES: FeatureItem[] = [
     ]
   },
   {
-    icon: Calendar,
+    iconSrc: LORDICONS.calendar,
     label: "AUTOMATION",
     color: "amber",
     titlePart1: "Forms that ",
     titleHighlight: "open and close",
     titlePart2: " themselves.",
     gradientClass: "from-amber-500 to-orange-500 dark:from-amber-450 dark:to-orange-450",
-    description: "Schedule exactly when a form goes live and when it shuts down. Set it once, and let FormForge handle the rest — no manual toggling.",
+    description: "Schedule exactly when a form goes live and when it shuts down. Set it once, and let FormForge handle the rest with no manual toggling.",
     bullets: [
       { bold: "Timer locks", text: "Configure precise publishing and closing schedules." },
       { bold: "Custom notices", text: "Customize messages for visitors who arrive late." },
@@ -161,14 +155,14 @@ const FEATURES: FeatureItem[] = [
     ]
   },
   {
-    icon: Shield01,
+    iconSrc: LORDICONS.shield,
     label: "INTEGRITY",
     color: "rose",
     titlePart1: "You decide who responds, and ",
     titleHighlight: "how often",
     titlePart2: ".",
     gradientClass: "from-rose-500 to-pink-500 dark:from-rose-450 dark:to-pink-450",
-    description: "Restrict forms to one response per person using IP detection, or open them up for unlimited submissions — the choice is yours, per form.",
+    description: "Restrict forms to one response per person using IP detection, or open them up for unlimited submissions. The choice is yours, per form.",
     bullets: [
       { bold: "Spam block", text: "Prevent duplication using IP and cookie tracking." },
       { bold: "White-listing", text: "Confine response access to specific emails or domains." },
@@ -176,14 +170,14 @@ const FEATURES: FeatureItem[] = [
     ]
   },
   {
-    icon: Mail01,
+    iconSrc: LORDICONS.bell,
     label: "NOTIFICATIONS",
     color: "indigo",
     titlePart1: "Know the ",
     titleHighlight: "exact moment",
     titlePart2: " someone responds.",
-    gradientClass: "from-indigo-500 to-purple-550 dark:from-indigo-450 dark:to-purple-450",
-    description: "Get a clean, branded email the instant a new submission comes in — complete with every answer, ready to read without logging in.",
+    gradientClass: "from-indigo-500 to-sky-550 dark:from-indigo-450 dark:to-sky-450",
+    description: "Get a clean, branded email the instant a new submission comes in, complete with every answer, ready to read without logging in.",
     bullets: [
       { bold: "Instant alerts", text: "Real-time notifications sent directly to your inbox." },
       { bold: "Mobile layouts", text: "Perfect email formats readable on any device screen." },
@@ -194,12 +188,15 @@ const FEATURES: FeatureItem[] = [
 
 export const FeaturesAlternatingLayout01 = () => {
   return (
-    <section className="flex flex-col gap-12 overflow-hidden bg-[#f5f5f3] dark:bg-[#09090b] py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24">
+    <section id="features" className="flex flex-col gap-12 overflow-hidden bg-[#f5f5f3] dark:bg-[#09090b] py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24">
       
       {/* Top Header Section */}
       <div className="mx-auto w-full max-w-7xl px-6 md:px-12 lg:px-24">
         <div className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
-          <span className="text-sm font-semibold text-violet-650 dark:text-violet-400">Features</span>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-400 dark:text-zinc-500">
+            Sharing · Templates · Versioning · Automation · Integrity · Notifications
+          </p>
+          <span className="mt-4 text-sm font-semibold text-violet-650 dark:text-violet-400">Features</span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-zinc-50 leading-tight">
             Beautiful capabilities to collect smarter
           </h2>
@@ -215,6 +212,7 @@ export const FeaturesAlternatingLayout01 = () => {
           const isEven = idx % 2 === 0;
           const labelColors: Record<string, string> = {
             emerald: "text-emerald-600 dark:text-emerald-400",
+            cyan: "text-cyan-600 dark:text-cyan-400",
             violet: "text-violet-600 dark:text-violet-400",
             blue: "text-blue-600 dark:text-blue-400",
             amber: "text-amber-600 dark:text-amber-400",
@@ -230,7 +228,7 @@ export const FeaturesAlternatingLayout01 = () => {
                 "max-w-xl flex-1 self-center",
                 !isEven && "lg:order-last"
               )}>
-                <FeaturedIcon icon={feat.icon} color={feat.color} />
+                <FeaturedIcon iconSrc={feat.iconSrc} color={feat.color} />
                 
                 {/* Colored Category Tag */}
                 <div className={cx("text-[11px] font-bold tracking-widest uppercase mb-2.5", labelColors[feat.color] || labelColors.violet)}>
