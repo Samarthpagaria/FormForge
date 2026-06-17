@@ -2,14 +2,24 @@
 
 import React from "react";
 import Link from "next/link";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import dynamic from "next/dynamic";
+import { FileText } from "lucide-react";
+import fireAnimation from "../public/Fire.json";
 
-export function Logo() {
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
+
+export function Logo({ isLanding = false }: { isLanding?: boolean }) {
   return (
     <Link href="/dashboard" className="flex items-center gap-2 select-none">
-      <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center pb-2">
-        <DotLottieReact src="/Fire.json" loop autoplay />
-      </div>
+      {isLanding ? (
+        <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center pb-2">
+          <Lottie animationData={fireAnimation} loop={true} autoplay={true} style={{ width: "100%", height: "100%" }} />
+        </div>
+      ) : (
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-sm">
+          <FileText size={18} className="stroke-[2.5]" />
+        </div>
+      )}
       <span className="text-2xl font-sans font-semibold tracking-med text-black dark:text-white">
         FormForge
       </span>

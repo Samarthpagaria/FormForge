@@ -139,8 +139,8 @@ function CanvasDropZone({ previewFields }: { previewFields?: any[] }) {
       ref={setNodeRef}
       className={`flex-1 rounded-2xl border-2 transition-all duration-200 overflow-y-auto custom-scrollbar p-8 flex flex-col relative ${
         isOver && !isPreviewMode
-          ? "border-violet-400 bg-violet-50/20 shadow-[0_0_0_4px_rgba(139,92,246,0.08)]"
-          : "border-neutral-200 bg-white shadow-sm"
+          ? "border-violet-400 dark:border-violet-500 bg-violet-50/20 dark:bg-violet-900/20 shadow-[0_0_0_4px_rgba(139,92,246,0.08)]"
+          : "border-neutral-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm"
       }`}
     >
       {fields.length === 0 ? (
@@ -396,7 +396,7 @@ function BuilderUI({ formId }: { formId: string }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-neutral-50" style={{ zIndex: 40, top: 64 }}>
+    <div className="fixed inset-0 bg-neutral-50 dark:bg-zinc-950" style={{ zIndex: 40, top: 64 }}>
       <DndContext
         id="form-builder-dnd-context"
         sensors={sensors}
@@ -407,7 +407,7 @@ function BuilderUI({ formId }: { formId: string }) {
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-6 h-full px-6 pt-5 pb-[100px]">
-          <div className="w-[260px] shrink-0 bg-white rounded-2xl border border-neutral-200 shadow-sm shadow-neutral-200/40 flex flex-col overflow-hidden">
+          <div className="w-[260px] shrink-0 bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200 dark:border-zinc-800 shadow-sm shadow-neutral-200/40 dark:shadow-none flex flex-col overflow-hidden">
             <FieldPalette />
           </div>
           
@@ -430,7 +430,7 @@ function BuilderUI({ formId }: { formId: string }) {
             <CanvasDropZone previewFields={previewingVersion?.schema?.fields} />
           </div>
 
-          <div className="w-[300px] shrink-0 bg-white rounded-2xl border border-neutral-200 shadow-sm shadow-neutral-200/40 flex flex-col overflow-hidden transition-all duration-300">
+          <div className="w-[300px] shrink-0 bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200 dark:border-zinc-800 shadow-sm shadow-neutral-200/40 dark:shadow-none flex flex-col overflow-hidden transition-all duration-300">
             {isHistoryOpen ? (
               <VersionHistoryPanel 
                 formId={formId} 
@@ -449,26 +449,26 @@ function BuilderUI({ formId }: { formId: string }) {
         </div>
 
         {/* Floating Toolbar & Actions */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-white border border-neutral-200 shadow-xl shadow-black/10 rounded-full p-2 h-16">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 shadow-xl shadow-black/10 dark:shadow-black/40 rounded-full p-2 h-16">
           {/* Name */}
-          <div className="flex items-center px-4 border-r border-neutral-200 h-full">
+          <div className="flex items-center px-4 border-r border-neutral-200 dark:border-zinc-800 h-full">
             <input
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               onBlur={handleNameUpdate}
               onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
-              className="bg-transparent border-none outline-none text-sm font-semibold text-neutral-800 min-w-[200px] max-w-[400px] focus:ring-0 placeholder-neutral-400"
+              className="bg-transparent border-none outline-none text-sm font-semibold text-neutral-800 dark:text-zinc-100 min-w-[200px] max-w-[400px] focus:ring-0 placeholder-neutral-400 dark:placeholder-zinc-600"
               placeholder="Form Name"
             />
           </div>
 
           {/* Current Options */}
           <div className="relative group flex items-center">
-            <a href={form?.slug ? `/f/${form.slug}?draft=true` : "#"} target="_blank" title="Preview your current draft in a new tab" className="px-4 py-2 text-sm font-medium hover:bg-neutral-100 rounded-full flex items-center gap-2 text-neutral-600 transition-colors">
+            <a href={form?.slug ? `/f/${form.slug}?draft=true` : "#"} target="_blank" title="Preview your current draft in a new tab" className="px-4 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-full flex items-center gap-2 text-neutral-600 dark:text-zinc-300 transition-colors">
               <IconEye size={18} /> Preview
             </a>
             {/* Main Dropdown */}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col bg-white border border-neutral-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-xl w-48 z-50">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-xl w-48 z-50">
               
               {/* Draft Menu Item (Nested) */}
               <div className="relative group/draft">
@@ -514,19 +514,19 @@ function BuilderUI({ formId }: { formId: string }) {
             </div>
           </div>
 
-          <div className="w-px h-8 bg-neutral-200 mx-1" />
+          <div className="w-px h-8 bg-neutral-200 dark:bg-zinc-800 mx-1" />
 
           {/* Actions */}
           <button 
             onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-            className={`px-4 py-2 ${isHistoryOpen ? "bg-violet-100 text-violet-700" : "hover:bg-neutral-100 text-neutral-600"} text-sm font-medium rounded-full transition-colors flex items-center gap-2`}
+            className={`px-4 py-2 ${isHistoryOpen ? "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400" : "hover:bg-neutral-100 dark:hover:bg-zinc-800 text-neutral-600 dark:text-zinc-300"} text-sm font-medium rounded-full transition-colors flex items-center gap-2`}
           >
             <History size={18} /> History
           </button>
 
           <button 
             onClick={() => setIsTemplateModalOpen(true)}
-            className="px-4 py-2 hover:bg-neutral-100 text-neutral-600 text-sm font-medium rounded-full transition-colors flex items-center gap-2"
+            className="px-4 py-2 hover:bg-neutral-100 dark:hover:bg-zinc-800 text-neutral-600 dark:text-zinc-300 text-sm font-medium rounded-full transition-colors flex items-center gap-2"
             title="Save as reusable dashboard template"
           >
             <FileText size={18} />
@@ -536,7 +536,7 @@ function BuilderUI({ formId }: { formId: string }) {
           <button
             onClick={() => createSnapshot({ formId })}
             disabled={isCreatingSnapshot}
-            className="px-4 py-2 hover:bg-neutral-100 text-neutral-600 text-sm font-medium rounded-full transition-colors flex items-center gap-2"
+            className="px-4 py-2 hover:bg-neutral-100 dark:hover:bg-zinc-800 text-neutral-600 dark:text-zinc-300 text-sm font-medium rounded-full transition-colors flex items-center gap-2"
             title="Save to history but keep private"
           >
             {isCreatingSnapshot ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
@@ -546,7 +546,7 @@ function BuilderUI({ formId }: { formId: string }) {
           <button 
             onClick={() => publishVersion({ formId })}
             disabled={isPublishing}
-            className="px-6 py-2 bg-[#18181b] hover:bg-[#27272a] text-white text-sm font-medium rounded-full shadow-md transition-all flex items-center gap-2 disabled:opacity-50 ml-1"
+            className="px-6 py-2 bg-[#18181b] dark:bg-zinc-100 hover:bg-[#27272a] dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-medium rounded-full shadow-md transition-all flex items-center gap-2 disabled:opacity-50 ml-1"
             title="Push changes live to public"
           >
             {isPublishing ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}

@@ -96,18 +96,18 @@ export default function FormsPage() {
   }).sort((a, b) => new Date(b.createdAt as string).getTime() - new Date(a.createdAt as string).getTime()) || [];
 
   return (
-    <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 shadow-sm overflow-hidden">
+    <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] dark:bg-zinc-950 flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 dark:border-zinc-800 shadow-sm overflow-hidden">
       
       {/* ── Background Decorative Blobs ── */}
-      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] rounded-full blur-[100px] -z-10 pointer-events-none opacity-60" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] rounded-full blur-[120px] -z-10 pointer-events-none opacity-60" />
-      <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-[#f0ecd6] rounded-full blur-[90px] -z-10 pointer-events-none opacity-50" />
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] dark:bg-emerald-900/10 rounded-full blur-[100px] -z-10 pointer-events-none opacity-60" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] dark:bg-emerald-900/5 rounded-full blur-[120px] -z-10 pointer-events-none opacity-60" />
+      <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-[#f0ecd6] dark:bg-yellow-900/5 rounded-full blur-[90px] -z-10 pointer-events-none opacity-50" />
 
       {/* ── Header Area ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-6 border-b border-dashed border-neutral-300 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-800 tracking-tight">Your Forms</h1>
-          <p className="text-neutral-500 text-sm mt-1">Manage and track all your form submissions</p>
+          <h1 className="text-3xl font-bold text-neutral-800 dark:text-zinc-100 tracking-tight">Your Forms</h1>
+          <p className="text-neutral-500 dark:text-zinc-400 text-sm mt-1">Manage and track all your form submissions</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -130,7 +130,7 @@ export default function FormsPage() {
             placeholder="Search forms..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/50 border border-dashed border-neutral-300 text-sm rounded-full pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2d351e]/20 transition-all backdrop-blur-sm"
+            className="w-full bg-white/50 dark:bg-zinc-900/50 border border-dashed border-neutral-300 dark:border-zinc-800 text-neutral-900 dark:text-zinc-100 text-sm rounded-full pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2d351e]/20 dark:focus:ring-zinc-700 transition-all backdrop-blur-sm"
           />
         </div>
 
@@ -143,8 +143,8 @@ export default function FormsPage() {
                 onClick={() => setFilter(f)}
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                   filter === f 
-                    ? "bg-[#2d351e] text-white shadow-md shadow-[#2d351e]/20" 
-                    : "bg-transparent text-neutral-600 hover:bg-neutral-200 border border-neutral-300 border-dashed"
+                    ? "bg-[#2d351e] dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md shadow-[#2d351e]/20" 
+                    : "bg-transparent text-neutral-600 dark:text-zinc-400 hover:bg-neutral-200 dark:hover:bg-zinc-800 border border-neutral-300 dark:border-zinc-700 border-dashed"
                 }`}
               >
                 {f}
@@ -185,17 +185,17 @@ export default function FormsPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0 border border-dashed border-neutral-300 rounded-[3rem] overflow-hidden bg-white/30 backdrop-blur-sm">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0 border border-dashed border-neutral-300 dark:border-zinc-800 rounded-[3rem] overflow-hidden bg-white/30 dark:bg-zinc-900/30 backdrop-blur-sm">
           {filteredForms.map((form, idx) => (
             <div 
               key={form.id} 
-              className="border-b border-r border-dashed border-neutral-300 flex justify-center items-center hover:bg-white/50 transition-colors group relative p-1.5"
+              className="border-b border-r border-dashed border-neutral-300 dark:border-zinc-800 flex justify-center items-center hover:bg-white/50 dark:hover:bg-zinc-800/50 transition-colors group relative p-1.5"
             >
               {/* Custom Form Card */}
-              <div className="relative w-full max-w-[240px] bg-[#2d351e] rounded-[1.5rem] p-1.5 flex flex-col font-sans shadow-[0_15px_30px_-10px_rgba(45,53,30,0.25)] transition-all duration-300 hover:translate-y-[-2px]">
+              <div className="relative w-full max-w-[240px] bg-[#2d351e] dark:bg-zinc-800 rounded-[1.5rem] p-1.5 flex flex-col font-sans shadow-[0_15px_30px_-10px_rgba(45,53,30,0.25)] dark:shadow-none transition-all duration-300 hover:translate-y-[-2px]">
                 
                 {/* Top Image Section */}
-                <div className="relative w-full h-[150px] bg-[#a8ba8d] rounded-[1rem] overflow-hidden z-20 group-hover:shadow-inner">
+                <div className="relative w-full h-[150px] bg-[#a8ba8d] dark:bg-zinc-700 rounded-[1rem] overflow-hidden z-20 group-hover:shadow-inner">
                   <img 
                     src={getRandomImage(idx + 5)}
                     alt={form.name}
@@ -284,13 +284,13 @@ export default function FormsPage() {
           ))}
           
           {/* Create New Form Placeholder */}
-          <div className="border-b border-r border-dashed border-neutral-300 flex justify-center items-center hover:bg-white/50 transition-colors p-1.5">
+          <div className="border-b border-r border-dashed border-neutral-300 dark:border-zinc-800 flex justify-center items-center hover:bg-white/50 dark:hover:bg-zinc-800/50 transition-colors p-1.5">
             <Link href="/create-form">
-              <div className="w-full min-w-[200px] max-w-[240px] h-[235px] bg-[#e3ecd6]/30 rounded-[1.5rem] border-2 border-dashed border-[#8ba059]/40 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:bg-[#d9e5c9]/50 hover:border-[#8ba059] hover:translate-y-[-2px] cursor-pointer group">
-                <div className="w-10 h-10 bg-white/60 rounded-full flex items-center justify-center border border-white shadow-sm group-hover:scale-110 transition-transform">
-                  <Plus className="text-[#3a4427] group-hover:text-[#2d351e] transition-colors" size={20} />
+              <div className="w-full min-w-[200px] max-w-[240px] h-[235px] bg-[#e3ecd6]/30 dark:bg-zinc-800/30 rounded-[1.5rem] border-2 border-dashed border-[#8ba059]/40 dark:border-zinc-700 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:bg-[#d9e5c9]/50 dark:hover:bg-zinc-700/50 hover:border-[#8ba059] dark:hover:border-zinc-500 hover:translate-y-[-2px] cursor-pointer group">
+                <div className="w-10 h-10 bg-white/60 dark:bg-zinc-700/60 rounded-full flex items-center justify-center border border-white dark:border-zinc-600 shadow-sm group-hover:scale-110 transition-transform">
+                  <Plus className="text-[#3a4427] dark:text-zinc-400 group-hover:text-[#2d351e] dark:group-hover:text-zinc-200 transition-colors" size={20} />
                 </div>
-                <p className="text-sm font-semibold text-[#3a4427] group-hover:text-[#2d351e] transition-colors">Create New Form</p>
+                <p className="text-sm font-semibold text-[#3a4427] dark:text-zinc-400 group-hover:text-[#2d351e] dark:group-hover:text-zinc-200 transition-colors">Create New Form</p>
               </div>
             </Link>
           </div>

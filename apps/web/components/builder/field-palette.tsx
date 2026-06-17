@@ -73,15 +73,15 @@ export function FieldDraggable({ field }: { field: FieldItem }) {
       {...listeners}
       {...attributes}
       style={{ touchAction: 'none' }}
-      className={`group flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-grab hover:bg-neutral-100 transition-all duration-200 ${isDragging ? 'opacity-50' : ''}`}
+      className={`group flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-grab hover:bg-neutral-100 dark:hover:bg-zinc-800 transition-all duration-200 ${isDragging ? 'opacity-50' : ''}`}
     >
       {/* Visual drag handle */}
       <div className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity">
         <GripVertical size={14} className="stroke-[2]" />
       </div>
       <div className="flex items-center gap-2.5 flex-1">
-        <Icon size={16} className="text-neutral-500 stroke-[1.5]" />
-        <span className="text-sm font-medium text-neutral-800">
+        <Icon size={16} className="text-neutral-500 dark:text-zinc-400 stroke-[1.5]" />
+        <span className="text-sm font-medium text-neutral-800 dark:text-zinc-200">
           {field.label}
         </span>
       </div>
@@ -104,10 +104,10 @@ export function FieldPalette() {
   }, [search]);
 
   return (
-    <div className="w-full flex-shrink-0 bg-white flex flex-col h-full overflow-y-auto custom-scrollbar">
+    <div className="w-full flex-shrink-0 bg-white dark:bg-zinc-900 flex flex-col h-full overflow-y-auto custom-scrollbar">
       {/* Header / Search placeholder */}
-      <div className="p-4 pb-2 sticky top-0 bg-white z-10">
-        <h2 className="text-sm font-bold tracking-tight text-neutral-900 mb-3">
+      <div className="p-4 pb-2 sticky top-0 bg-white dark:bg-zinc-900 z-10">
+        <h2 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-zinc-100 mb-3">
           Fields
         </h2>
         <input
@@ -115,7 +115,7 @@ export function FieldPalette() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search fields..."
-          className="w-full text-xs bg-white/60 border border-neutral-200/80 rounded-md px-3 py-2 outline-none focus:bg-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all placeholder:text-neutral-400"
+          className="w-full text-xs bg-white/60 dark:bg-zinc-800/60 border border-neutral-200/80 dark:border-zinc-700 rounded-md px-3 py-2 outline-none focus:bg-white dark:focus:bg-zinc-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all placeholder:text-neutral-400 dark:placeholder:text-zinc-500 text-neutral-900 dark:text-zinc-100"
         />
       </div>
 
@@ -135,7 +135,7 @@ export function FieldPalette() {
             </div>
             {/* Divider */}
             {idx < filteredSections.length - 1 && (
-              <div className="h-px bg-neutral-200/60 mx-2 my-1" />
+              <div className="h-px bg-neutral-200/60 dark:bg-zinc-800/60 mx-2 my-1" />
             )}
           </React.Fragment>
         ))}

@@ -27,12 +27,12 @@ export function FieldSettings() {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* ── Header ── */}
-      <div className="p-4 border-b border-neutral-100 sticky top-0 bg-white z-10 flex items-center justify-between">
+      <div className="p-4 border-b border-neutral-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-900 z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-neutral-100 rounded flex items-center justify-center">
+          <div className="w-6 h-6 bg-neutral-100 dark:bg-zinc-800 rounded flex items-center justify-center text-neutral-800 dark:text-zinc-200">
             <Type size={13} strokeWidth={2.5} />
           </div>
-          <h2 className="text-sm font-bold text-neutral-900 capitalize">
+          <h2 className="text-sm font-bold text-neutral-900 dark:text-zinc-100 capitalize">
             {activeField.type.replace(/_/g, " ")}
           </h2>
         </div>
@@ -72,14 +72,14 @@ export function FieldSettings() {
           {/* Required toggle */}
           <div className="flex items-center justify-between pt-1">
             <div>
-              <p className="text-xs font-semibold text-neutral-800">Required</p>
-              <p className="text-[11px] text-neutral-400">Must be filled before submit</p>
+              <p className="text-xs font-semibold text-neutral-800 dark:text-zinc-100">Required</p>
+              <p className="text-[11px] text-neutral-400 dark:text-zinc-500">Must be filled before submit</p>
             </div>
             <div
               role="switch"
               aria-checked={activeField.required}
               onClick={() => updateFieldProps(activeField.id, { required: !activeField.required })}
-              className={`w-9 h-5 rounded-full flex items-center p-0.5 cursor-pointer transition-colors ${activeField.required ? "bg-violet-600" : "bg-neutral-200"}`}
+              className={`w-9 h-5 rounded-full flex items-center p-0.5 cursor-pointer transition-colors ${activeField.required ? "bg-violet-600 dark:bg-violet-500" : "bg-neutral-200 dark:bg-zinc-700"}`}
             >
               <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${activeField.required ? "translate-x-4" : "translate-x-0"}`} />
             </div>
@@ -221,16 +221,16 @@ export function FieldSettings() {
       </div>
 
       {/* ── Bottom Actions ── */}
-      <div className="p-4 border-t border-neutral-100 bg-neutral-50/50 flex flex-col gap-2">
+      <div className="p-4 border-t border-neutral-100 dark:border-zinc-800 bg-neutral-50/50 dark:bg-zinc-900 flex flex-col gap-2 mt-auto">
         <button
           onClick={() => duplicateField(activeField.id)}
-          className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition-colors"
+          className="flex items-center justify-center gap-2 w-full py-2 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-lg text-xs font-semibold text-neutral-700 dark:text-zinc-300 hover:bg-neutral-50 dark:hover:bg-zinc-700 shadow-sm transition-colors"
         >
           <Copy size={14} /> Duplicate Field
         </button>
         <button
           onClick={() => removeField(activeField.id)}
-          className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-red-200 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 shadow-sm transition-colors"
+          className="flex items-center justify-center gap-2 w-full py-2 bg-white dark:bg-zinc-800 border border-red-200 dark:border-red-900/50 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-900/80 shadow-sm transition-colors"
         >
           <Trash2 size={14} /> Delete Field
         </button>
@@ -241,7 +241,7 @@ export function FieldSettings() {
 
 /* ── Sub-components ──────────────────────────────── */
 
-const inputClass = "w-full text-sm text-neutral-900 placeholder-neutral-300 bg-white border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all shadow-sm";
+const inputClass = "w-full text-sm text-neutral-900 dark:text-zinc-100 placeholder-neutral-300 dark:placeholder-zinc-600 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-lg px-3 py-2 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:focus:ring-violet-900/30 transition-all shadow-sm";
 
 function SettingsInput({
   label,
@@ -269,7 +269,7 @@ function SettingsInput({
 }
 
 function Divider() {
-  return <div className="h-px bg-neutral-100 w-full" />;
+  return <div className="h-px bg-neutral-100 dark:bg-zinc-800 w-full" />;
 }
 
 function OptionsEditor({

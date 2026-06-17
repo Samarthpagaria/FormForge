@@ -66,11 +66,11 @@ export function FieldCard({
       style={style}
       onClick={onClick}
       className={cn(
-        "group relative flex flex-col p-4 min-h-[80px] bg-white rounded-xl transition-all duration-200 cursor-pointer",
+        "group relative flex flex-col p-4 min-h-[80px] bg-white dark:bg-zinc-900 rounded-xl transition-all duration-200 cursor-pointer",
         width === "half" ? "col-span-6" : "col-span-12",
         isSelected
-          ? "border border-violet-300 shadow-md ring-2 ring-violet-100"
-          : "border border-neutral-200/80 shadow-sm hover:shadow-md hover:border-neutral-300",
+          ? "border border-violet-300 dark:border-violet-600 shadow-md ring-2 ring-violet-100 dark:ring-violet-900/30"
+          : "border border-neutral-200/80 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-neutral-300 dark:hover:border-zinc-700",
         isDragging && "opacity-60 shadow-lg scale-[1.01] cursor-grabbing relative z-50"
       )}
     >
@@ -87,7 +87,7 @@ export function FieldCard({
             <GripVertical size={16} />
           </div>
           {/* Label */}
-          <span className="text-sm font-semibold text-neutral-800">{label}</span>
+          <span className="text-sm font-semibold text-neutral-800 dark:text-zinc-100">{label}</span>
           {required && (
             <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
               Required
@@ -99,14 +99,14 @@ export function FieldCard({
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => { e.stopPropagation(); onDuplicate?.(); }}
-            className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+            className="p-1.5 text-neutral-400 dark:text-zinc-500 hover:text-neutral-700 dark:hover:text-zinc-300 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
             title="Duplicate field"
           >
             <Copy size={14} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-            className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            className="p-1.5 text-neutral-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
             title="Delete field"
           >
             <X size={14} />
@@ -117,19 +117,19 @@ export function FieldCard({
       {/* Field Preview */}
       <div className="mb-1 pointer-events-none">
         {(type === "short_text" || type === "email" || type === "phone" || type === "number") && (
-          <div className="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg flex items-center text-sm text-neutral-400">
+          <div className="w-full h-10 px-3 py-2 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-lg flex items-center text-sm text-neutral-400 dark:text-zinc-500">
             {placeholder}
           </div>
         )}
 
         {type === "long_text" && (
-          <div className="w-full h-20 px-3 py-2 bg-white border border-neutral-200 rounded-lg flex items-start text-sm text-neutral-400">
+          <div className="w-full h-20 px-3 py-2 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-lg flex items-start text-sm text-neutral-400 dark:text-zinc-500">
             {placeholder}
           </div>
         )}
 
         {type === "dropdown" && (
-          <div className="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg flex items-center justify-between text-sm text-neutral-400">
+          <div className="w-full h-10 px-3 py-2 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-lg flex items-center justify-between text-sm text-neutral-400 dark:text-zinc-500">
             <span>Choose an option</span>
             <ChevronDown size={16} />
           </div>
@@ -166,15 +166,15 @@ export function FieldCard({
         )}
 
         {type === "date" && (
-          <div className="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg flex items-center justify-between text-sm text-neutral-400">
+          <div className="w-full h-10 px-3 py-2 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-lg flex items-center justify-between text-sm text-neutral-400 dark:text-zinc-500">
             <span>MM / DD / YYYY</span>
             <Calendar size={16} />
           </div>
         )}
 
         {type === "file" && (
-          <div className="w-full h-20 bg-neutral-100/60 border-2 border-dashed border-neutral-200 rounded-lg flex flex-col items-center justify-center gap-1.5 text-sm text-neutral-500">
-            <UploadCloud size={18} className="text-neutral-400" />
+          <div className="w-full h-20 bg-neutral-100/60 dark:bg-zinc-800/60 border-2 border-dashed border-neutral-200 dark:border-zinc-700 rounded-lg flex flex-col items-center justify-center gap-1.5 text-sm text-neutral-500 dark:text-zinc-400">
+            <UploadCloud size={18} className="text-neutral-400 dark:text-zinc-500" />
             <span>Click or drag to upload</span>
           </div>
         )}
@@ -200,14 +200,14 @@ export function FieldCard({
 
 export function EmptySlot() {
   return (
-    <div className="col-span-6 min-h-[100px] rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50/60 flex flex-col items-center justify-center gap-2 select-none group">
-      <div className="w-7 h-7 rounded-full bg-neutral-100 group-hover:bg-neutral-200 flex items-center justify-center transition-colors">
+    <div className="col-span-6 min-h-[100px] rounded-xl border-2 border-dashed border-neutral-200 dark:border-zinc-700 bg-neutral-50/60 dark:bg-zinc-800/60 flex flex-col items-center justify-center gap-2 select-none group">
+      <div className="w-7 h-7 rounded-full bg-neutral-100 dark:bg-zinc-800 group-hover:bg-neutral-200 dark:group-hover:bg-zinc-700 flex items-center justify-center transition-colors">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
       </div>
-      <p className="text-[11px] font-semibold text-neutral-400 tracking-wide uppercase">Half-width slot</p>
+      <p className="text-[11px] font-semibold text-neutral-400 dark:text-zinc-500 tracking-wide uppercase">Half-width slot</p>
     </div>
   );
 }
