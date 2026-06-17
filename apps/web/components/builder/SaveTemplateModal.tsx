@@ -28,7 +28,7 @@ export function SaveTemplateModal({ isOpen, onClose, defaultName, onSave, isSavi
   const { mutate: createCategory, isPending: isCreatingCat } = trpc.templates.createCategory.useMutation({
     onSuccess: (newCat) => {
       toast.success("Category created!");
-      setCategoryId(newCat.id);
+      if (newCat?.id) setCategoryId(newCat.id);
       setIsCreatingCategory(false);
       setNewCategoryName("");
       utils.templates.getAllCategories.invalidate();

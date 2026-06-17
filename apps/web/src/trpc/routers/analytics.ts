@@ -22,6 +22,7 @@ export const analyticsRouter = createTRPCRouter({
    * @returns Event
    */
   trackEvent: baseProcedure
+    
     .input(
       z.object({
         formId: z.string(),
@@ -77,6 +78,7 @@ export const analyticsRouter = createTRPCRouter({
    * @returns { views, starts, submissions, completionRate, avgTimeSpent }
    */
   getSummary: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -184,6 +186,7 @@ export const analyticsRouter = createTRPCRouter({
    * @returns { fieldKey, dropoffs }[]
    */
   getDropoffAnalysis: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -232,6 +235,7 @@ export const analyticsRouter = createTRPCRouter({
    * @returns { device, count }[]
    */
   getDeviceStats: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -279,6 +283,7 @@ export const analyticsRouter = createTRPCRouter({
    * @returns Event[]
    */
   getRawEvents: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -311,6 +316,7 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL STATS (across all user's forms) ───────────────────────────────
 
   getGlobalStats: protectedProcedure
+    
     .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
     .query(async ({ ctx, input }) => {
       try {
@@ -365,6 +371,7 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL SUBMISSIONS OVER TIME (last 30 days) ──────────────────────────
 
   getGlobalSubmissionsOverTime: protectedProcedure
+    
     .input(z.object({ days: z.number().default(30), formIds: z.array(z.string()).optional() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -400,6 +407,7 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL TOP PERFORMING FORMS ──────────────────────────────────────────
 
   getTopForms: protectedProcedure
+    
     .input(z.object({ limit: z.number().default(6) }))
     .query(async ({ ctx, input }) => {
       try {
@@ -429,6 +437,7 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL DEVICE BREAKDOWN ──────────────────────────────────────────────
 
   getGlobalDeviceBreakdown: protectedProcedure
+    
     .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
     .query(async ({ ctx, input }) => {
       try {
@@ -460,6 +469,7 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL WEEKLY ACTIVITY HEATMAP ───────────────────────────────────────
 
   getWeeklyActivityHeatmap: protectedProcedure
+    
     .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
     .query(async ({ ctx, input }) => {
       try {
@@ -494,6 +504,7 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL COMPLETION TIME DISTRIBUTION ──────────────────────────────────
 
   getCompletionTimeDistribution: protectedProcedure
+    
     .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
     .query(async ({ ctx, input }) => {
       try {
@@ -541,6 +552,7 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL TRAFFIC SOURCES ───────────────────────────────────────────────
 
   getTrafficSources: protectedProcedure
+    
     .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
     .query(async ({ ctx, input }) => {
       try {
@@ -575,11 +587,12 @@ export const analyticsRouter = createTRPCRouter({
   // ─── GLOBAL MAP DATA ──────────────────────────────────────────────────────
 
   getGlobalMapData: protectedProcedure
+    
     .input(z.object({ formIds: z.array(z.string()).optional() }).optional())
     .query(async ({ ctx, input }) => {
       try {
         const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
-        if (userForms.length === 0) return [];
+        if (userForms.length === 0) return { regions: [], points: [] };
 
         let formIds = userForms.map((f) => f.id);
         if (input?.formIds && input.formIds.length > 0) {
@@ -655,6 +668,7 @@ export const analyticsRouter = createTRPCRouter({
   // ─── RECENT SUBMISSIONS GLOBAL ────────────────────────────────────────────
 
   getRecentSubmissions: protectedProcedure
+    
     .input(z.object({ limit: z.number().default(8) }))
     .query(async ({ ctx, input }) => {
       try {

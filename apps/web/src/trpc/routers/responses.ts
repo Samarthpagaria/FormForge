@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "../init";
 import { z } from "zod";
 import { submissions, submissionAnswers, forms, formVersions, users } from "@formforge/db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendSubmissionEmail } from "../../services/email";
 
@@ -14,6 +14,7 @@ export const responsesRouter = createTRPCRouter({
    * @returns Submission
    */
   submit: baseProcedure
+    
     .input(
       z.object({
         formId: z.string(),
@@ -250,6 +251,7 @@ export const responsesRouter = createTRPCRouter({
    * @returns Submission[]
    */
   getAll: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -288,6 +290,7 @@ export const responsesRouter = createTRPCRouter({
    * @returns Submission + Answers
    */
   getById: protectedProcedure
+    
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -338,6 +341,7 @@ export const responsesRouter = createTRPCRouter({
    * @returns { csv: string }
    */
   exportCSV: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {

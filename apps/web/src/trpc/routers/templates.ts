@@ -12,6 +12,7 @@ export const templatesRouter = createTRPCRouter({
    * @returns TemplateCategory[]
    */
   getAllCategories: protectedProcedure
+    
     .query(async ({ ctx }) => {
       try {
         return await ctx.db
@@ -36,7 +37,8 @@ export const templatesRouter = createTRPCRouter({
    * @returns TemplateCategory
    */
   createCategory: protectedProcedure
-    .input(z.object({ name: z.string().min(1).max(100) }))
+    
+    .input(z.object({ name: z.string().min(1).max(50) }))
     .mutation(async ({ ctx, input }) => {
       try {
         // check if category with same name already exists for user
@@ -145,6 +147,7 @@ export const templatesRouter = createTRPCRouter({
    * @returns { success: boolean }
    */
   deleteCategory: protectedProcedure
+    
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
@@ -190,6 +193,7 @@ export const templatesRouter = createTRPCRouter({
    * @returns Template[]
    */
   getAll: protectedProcedure
+    
     .query(async ({ ctx }) => {
       try {
         return await ctx.db
@@ -254,6 +258,7 @@ export const templatesRouter = createTRPCRouter({
    * @returns Template
    */
     createUserTemplate: protectedProcedure
+    
     .input(
       z.object({
         name: z.string().min(1).max(255),
@@ -310,6 +315,7 @@ export const templatesRouter = createTRPCRouter({
    * @returns { success: boolean }
    */
   deleteUserTemplate: protectedProcedure
+    
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
@@ -355,6 +361,7 @@ export const templatesRouter = createTRPCRouter({
    * @returns Form
    */
   createFormFromTemplate: protectedProcedure
+    
     .input(
       z.object({
         templateId: z.string(),

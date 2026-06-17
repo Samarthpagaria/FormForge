@@ -90,6 +90,19 @@ export function FieldDraggable({ field }: { field: FieldItem }) {
 }
 
 export function FieldPalette() {
+  const [search, setSearch] = React.useState("");
+
+  const filteredSections = React.useMemo(() => {
+    if (!search.trim()) return FIELD_SECTIONS;
+    const lowerSearch = search.toLowerCase();
+    return FIELD_SECTIONS.map((section) => ({
+      ...section,
+      fields: section.fields.filter((f) =>
+        f.label.toLowerCase().includes(lowerSearch)
+      ),
+    })).filter((section) => section.fields.length > 0);
+  }, [search]);
+
   return (
     <div className="w-full flex-shrink-0 bg-white flex flex-col h-full overflow-y-auto custom-scrollbar">
       {/* Header / Search placeholder */}
@@ -99,6 +112,8 @@ export function FieldPalette() {
         </h2>
         <input
           type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Search fields..."
           className="w-full text-xs bg-white/60 border border-neutral-200/80 rounded-md px-3 py-2 outline-none focus:bg-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all placeholder:text-neutral-400"
         />
@@ -106,7 +121,7 @@ export function FieldPalette() {
 
       {/* Field Sections */}
       <div className="flex flex-col px-3 py-2">
-        {FIELD_SECTIONS.map((section, idx) => (
+        {filteredSections.map((section, idx) => (
           <React.Fragment key={section.title}>
             <div className="py-2.5">
               <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2 px-2">
@@ -119,7 +134,7 @@ export function FieldPalette() {
               </div>
             </div>
             {/* Divider */}
-            {idx < FIELD_SECTIONS.length - 1 && (
+            {idx < filteredSections.length - 1 && (
               <div className="h-px bg-neutral-200/60 mx-2 my-1" />
             )}
           </React.Fragment>

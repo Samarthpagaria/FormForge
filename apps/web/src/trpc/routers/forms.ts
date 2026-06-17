@@ -13,6 +13,7 @@ export const formsRouter = createTRPCRouter({
    * @returns Form
    */
   create: protectedProcedure
+    
     .input(
       z.object({
         name: z.string().min(1).max(100),
@@ -61,6 +62,7 @@ export const formsRouter = createTRPCRouter({
    * @returns Form[]
    */
   getAllForms: protectedProcedure
+    
     .query(async ({ ctx }) => {
       try {
         return await ctx.db
@@ -80,6 +82,7 @@ export const formsRouter = createTRPCRouter({
    * @returns Form
    */
   getById: protectedProcedure
+    
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -113,6 +116,7 @@ export const formsRouter = createTRPCRouter({
    * @returns Form
    */
   update: protectedProcedure
+    
     .input(
       z.object({
         id: z.string(),
@@ -177,6 +181,7 @@ export const formsRouter = createTRPCRouter({
    * @returns Form
    */
   setSchedule: protectedProcedure
+    
     .input(
       z.object({
         id: z.string(),
@@ -241,6 +246,7 @@ export const formsRouter = createTRPCRouter({
    * @returns { success: boolean }
    */
   delete: protectedProcedure
+    
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
@@ -273,6 +279,7 @@ export const formsRouter = createTRPCRouter({
    * @returns Form
    */
   publish: protectedProcedure
+    
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
@@ -306,6 +313,7 @@ export const formsRouter = createTRPCRouter({
    * @returns Form
    */
   unpublish: protectedProcedure
+    
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
@@ -339,6 +347,7 @@ export const formsRouter = createTRPCRouter({
    * @returns Form + currentVersion
    */
   getBySlug: baseProcedure
+    
     .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {
       try {

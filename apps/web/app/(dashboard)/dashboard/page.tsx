@@ -6,7 +6,6 @@ import { StatsRow } from "@/components/dashboard/stats-row";
 import { ChartsRow } from "@/components/dashboard/charts-row";
 import { RecentSubmissions } from "@/components/dashboard/recent-submissions";
 import { MapRow } from "@/components/dashboard/map-row";
-import { FloatingActions } from "@/components/dashboard/floating-actions";
 import { Calendar } from "lucide-react";
 
 export default function DashboardPage() {
@@ -67,13 +66,6 @@ export default function DashboardPage() {
           <RecentSubmissions />
         </motion.div>
       </AnimatePresence>
-
-      {/* FAB */}
-      <FloatingActions
-        onRefresh={handleRefresh}
-        isRefreshing={isRefreshing}
-        onAIClick={() => console.log("AI")}
-      />
     </div>
   );
 }

@@ -414,12 +414,12 @@ function BuilderUI({ formId }: { formId: string }) {
           <div className="flex-1 flex flex-col gap-4 relative pt-2">
             <div className="absolute top-0 right-4 z-10 pointer-events-none">
               <span className="bg-white/90 backdrop-blur-sm shadow-sm text-neutral-500 text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full border border-neutral-200">
-                {previewingVersion ? `Preview v${previewingVersion.version}` : versions?.length ? `Draft (v${Number(versions[0].version) + 1})` : 'Draft'}
+                {previewingVersion ? `Preview v${previewingVersion.version}` : (versions && versions.length > 0 && versions[0]) ? `Draft (v${Number(versions[0].version) + 1})` : 'Draft'}
               </span>
             </div>
             {previewingVersion && (
               <div className="bg-neutral-800 text-white p-3 rounded-2xl shadow-lg flex items-center justify-between text-sm px-6">
-                <span className="font-semibold">👁 Previewing v{versions?.length! - versions?.findIndex(v => v.id === previewingVersion.id)!} — {new Date(previewingVersion.createdAt).toLocaleString()}</span>
+                <span className="font-semibold">👁 Previewing v{versions ? versions.length - versions.findIndex(v => v.id === previewingVersion.id) : 1} — {previewingVersion.createdAt ? new Date(previewingVersion.createdAt).toLocaleString() : ""}</span>
                 <div className="flex items-center gap-3">
                   <button onClick={() => setPreviewingVersion(null)} className="text-neutral-300 hover:text-white transition-colors pointer-events-auto">
                     ← Back to current

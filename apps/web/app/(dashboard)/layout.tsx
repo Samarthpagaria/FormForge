@@ -2,6 +2,7 @@
 
 import React from "react";
 import { DashboardNavbar } from "@/components/dashboard-navbar";
+import { FloatingActions } from "@/components/dashboard/floating-actions";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 w-full px-6 pt-20">
         {children}
       </main>
+      <FloatingActions />
     </div>
   );
 }

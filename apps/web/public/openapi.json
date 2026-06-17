@@ -1,0 +1,454 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "FormForge API",
+    "version": "1.0.0",
+    "description": "The FormForge REST API allows developers to programmatically create forms, collect responses, and track analytics."
+  },
+  "servers": [
+    { "url": "http://localhost:3000/api/trpc", "description": "Development" }
+  ],
+  "tags": [
+    { "name": "Forms", "description": "Create and manage forms" },
+    { "name": "Responses", "description": "Submit and retrieve form responses" },
+    { "name": "Analytics", "description": "Track and analyze form performance" },
+    { "name": "Templates", "description": "Use and manage form templates" },
+    { "name": "Share", "description": "Share forms via links and QR codes" },
+    { "name": "Form Versions", "description": "Manage form version history" }
+  ],
+  "paths": {
+    "/forms.create": {
+      "post": {
+        "tags": ["Forms"],
+        "summary": "Create a new form",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+                  "description": { "type": "string", "maxLength": 1000 }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Form created successfully" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/forms.getAllForms": {
+      "get": {
+        "tags": ["Forms"],
+        "summary": "Get all forms for authenticated user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of forms" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/forms.getById": {
+      "get": {
+        "tags": ["Forms"],
+        "summary": "Get a single form by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"id\": \"form-id\"}" }
+        ],
+        "responses": {
+          "200": { "description": "Form details" },
+          "404": { "description": "Form not found" }
+        }
+      }
+    },
+    "/forms.getBySlug": {
+      "get": {
+        "tags": ["Forms"],
+        "summary": "Get published form by slug (public)",
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"slug\": \"my-form-abc\"}" }
+        ],
+        "responses": {
+          "200": { "description": "Published form" },
+          "404": { "description": "Form not found" }
+        }
+      }
+    },
+    "/forms.update": {
+      "post": {
+        "tags": ["Forms"],
+        "summary": "Update a form",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "status": { "type": "string", "enum": ["draft", "published"] }
+                },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Form updated" },
+          "404": { "description": "Form not found" }
+        }
+      }
+    },
+    "/forms.delete": {
+      "post": {
+        "tags": ["Forms"],
+        "summary": "Delete a form",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "id": { "type": "string" } },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Form deleted" },
+          "404": { "description": "Form not found" }
+        }
+      }
+    },
+    "/forms.publish": {
+      "post": {
+        "tags": ["Forms"],
+        "summary": "Publish a form",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "id": { "type": "string" } },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Form published" }
+        }
+      }
+    },
+    "/forms.unpublish": {
+      "post": {
+        "tags": ["Forms"],
+        "summary": "Unpublish a form",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "id": { "type": "string" } },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Form unpublished" }
+        }
+      }
+    },
+    "/responses.submit": {
+      "post": {
+        "tags": ["Responses"],
+        "summary": "Submit a form response (public)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "formId": { "type": "string" },
+                  "formVersionId": { "type": "string" },
+                  "sessionId": { "type": "string" },
+                  "answers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "fieldKey": { "type": "string" },
+                        "value": {}
+                      }
+                    }
+                  },
+                  "meta": {
+                    "type": "object",
+                    "properties": {
+                      "ip": { "type": "string" },
+                      "userAgent": { "type": "string" },
+                      "device": { "type": "string", "enum": ["desktop", "mobile", "tablet"] },
+                      "browser": { "type": "string" },
+                      "os": { "type": "string" },
+                      "completionTime": { "type": "number" }
+                    }
+                  }
+                },
+                "required": ["formId", "formVersionId", "answers"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Submission recorded" },
+          "409": { "description": "Already submitted" },
+          "403": { "description": "Form not active" }
+        }
+      }
+    },
+    "/responses.getAll": {
+      "get": {
+        "tags": ["Responses"],
+        "summary": "Get all responses for a form",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"formId\": \"form-id\"}" }
+        ],
+        "responses": {
+          "200": { "description": "List of responses" }
+        }
+      }
+    },
+    "/responses.getById": {
+      "get": {
+        "tags": ["Responses"],
+        "summary": "Get single response with answers",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"id\": \"submission-id\"}" }
+        ],
+        "responses": {
+          "200": { "description": "Response with answers" }
+        }
+      }
+    },
+    "/responses.exportCSV": {
+      "get": {
+        "tags": ["Responses"],
+        "summary": "Export responses as CSV",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"formId\": \"form-id\"}" }
+        ],
+        "responses": {
+          "200": { "description": "CSV string" }
+        }
+      }
+    },
+    "/analytics.trackEvent": {
+      "post": {
+        "tags": ["Analytics"],
+        "summary": "Track a form event (public)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "formId": { "type": "string" },
+                  "formVersionId": { "type": "string" },
+                  "sessionId": { "type": "string" },
+                  "event": { "type": "string", "enum": ["form_view", "form_start", "form_submit", "form_dropoff", "field_focus", "field_blur"] },
+                  "metadata": { "type": "object" }
+                },
+                "required": ["formId", "event"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Event tracked" }
+        }
+      }
+    },
+    "/analytics.getSummary": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Get analytics summary for a form",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"formId\": \"form-id\"}" }
+        ],
+        "responses": {
+          "200": { "description": "Analytics summary" }
+        }
+      }
+    },
+    "/analytics.getGlobalStats": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Get global stats across all forms",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Global analytics stats" }
+        }
+      }
+    },
+    "/templates.getAll": {
+      "get": {
+        "tags": ["Templates"],
+        "summary": "Get all templates",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of templates" }
+        }
+      }
+    },
+    "/templates.getAllCategories": {
+      "get": {
+        "tags": ["Templates"],
+        "summary": "Get all template categories",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of categories" }
+        }
+      }
+    },
+    "/templates.createFormFromTemplate": {
+      "post": {
+        "tags": ["Templates"],
+        "summary": "Create a form from a template",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "templateId": { "type": "string" },
+                  "name": { "type": "string" },
+                  "description": { "type": "string" }
+                },
+                "required": ["templateId", "name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Form created from template" }
+        }
+      }
+    },
+    "/share.getShareLink": {
+      "get": {
+        "tags": ["Share"],
+        "summary": "Get share link for a form",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"formId\": \"form-id\"}" }
+        ],
+        "responses": {
+          "200": { "description": "Share link and slug" }
+        }
+      }
+    },
+    "/share.getQRCode": {
+      "get": {
+        "tags": ["Share"],
+        "summary": "Generate QR code for a form",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"formId\": \"form-id\"}" }
+        ],
+        "responses": {
+          "200": { "description": "QR code as base64 data URL" }
+        }
+      }
+    },
+    "/formVersions.create": {
+      "post": {
+        "tags": ["Form Versions"],
+        "summary": "Create a new form version",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "formId": { "type": "string" },
+                  "schema": { "type": "object" }
+                },
+                "required": ["formId", "schema"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "New version created" }
+        }
+      }
+    },
+    "/formVersions.getAll": {
+      "get": {
+        "tags": ["Form Versions"],
+        "summary": "Get all versions of a form",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "input", "in": "query", "schema": { "type": "string" }, "description": "JSON: {\"formId\": \"form-id\"}" }
+        ],
+        "responses": {
+          "200": { "description": "List of versions" }
+        }
+      }
+    },
+    "/formVersions.rollback": {
+      "post": {
+        "tags": ["Form Versions"],
+        "summary": "Rollback to a previous version",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "formId": { "type": "string" },
+                  "versionId": { "type": "string" }
+                },
+                "required": ["formId", "versionId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Rolled back successfully" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Clerk JWT Token"
+      }
+    }
+  }
+}

@@ -12,7 +12,9 @@ export const formVersionsRouter = createTRPCRouter({
      * @input formId: string, schema:Object
      * @returns formVersion
      */
-    create: protectedProcedure.input(z.object({ formId: z.string(), schema: z.record(z.string(), z.any()) })).mutation(async ({ ctx, input }) => {
+    create: protectedProcedure
+    
+    .input(z.object({ formId: z.string(), schema: z.record(z.string(), z.any()) })).mutation(async ({ ctx, input }) => {
         try {
             //verify form belongs to user 
             const form = await ctx.db.select().from(forms).where(and(
@@ -132,6 +134,7 @@ export const formVersionsRouter = createTRPCRouter({
    * @returns FormVersion[]
      */
    getAll: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -169,6 +172,7 @@ export const formVersionsRouter = createTRPCRouter({
    * @returns FormVersion
    */
   getById: protectedProcedure
+    
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -196,6 +200,7 @@ export const formVersionsRouter = createTRPCRouter({
    * @returns Form
    */
   rollback: protectedProcedure
+    
     .input(z.object({ formId: z.string(), versionId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {

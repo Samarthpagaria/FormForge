@@ -7,6 +7,9 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/f/(.*)", // public form submission
   "/api/webhooks(.*)", // clerk webhook
+  "/api/openapi(.*)", // Scalar OpenAPI spec
+  "/api/docs(.*)", // Scalar Docs UI
+  "/api/rest/(.*)", // REST endpoints mapped to TRPC
 ]);
 
 const isAuthRoute = createRouteMatcher([

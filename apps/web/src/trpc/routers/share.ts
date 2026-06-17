@@ -14,6 +14,7 @@ export const shareRouter = createTRPCRouter({
    * @returns { url: string, slug: string }
    */
   getShareLink: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
@@ -53,6 +54,7 @@ export const shareRouter = createTRPCRouter({
    * @returns { qrCode: string, url: string }
    */
   getQRCode: protectedProcedure
+    
     .input(z.object({ formId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {

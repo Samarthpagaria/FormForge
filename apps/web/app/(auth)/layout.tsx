@@ -14,7 +14,7 @@ export default function AuthLayout({
   const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
-    setImageUrl(getRandomAuthImage(pathname));
+    setImageUrl(getRandomAuthImage(pathname || ""));
   }, [pathname]);
 
   return (
