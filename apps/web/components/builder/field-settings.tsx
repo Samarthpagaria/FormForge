@@ -9,11 +9,11 @@ export function FieldSettings() {
 
   if (!activeField) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-neutral-400">
-        <div className="w-12 h-12 bg-neutral-50 border border-neutral-100 rounded-full flex items-center justify-center mb-3">
-          <Settings2 size={20} className="text-neutral-300" />
+      <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-neutral-400 dark:text-zinc-500">
+        <div className="w-12 h-12 bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-100 dark:border-zinc-800 rounded-full flex items-center justify-center mb-3">
+          <Settings2 size={20} className="text-neutral-300 dark:text-zinc-600" />
         </div>
-        <p className="text-sm font-medium text-neutral-600">No field selected</p>
+        <p className="text-sm font-medium text-neutral-600 dark:text-zinc-400">No field selected</p>
         <p className="text-xs mt-1">Click a field on the canvas to edit it</p>
       </div>
     );
@@ -86,17 +86,17 @@ export function FieldSettings() {
           </div>
 
           {/* Width toggle */}
-          <div className="flex items-center justify-between pt-3 mt-1 border-t border-neutral-100">
+          <div className="flex items-center justify-between pt-3 mt-1 border-t border-neutral-100 dark:border-zinc-800">
             <div>
-              <p className="text-xs font-semibold text-neutral-800">Half Width</p>
-              <p className="text-[11px] text-neutral-400">Shows fields side-by-side</p>
+              <p className="text-xs font-semibold text-neutral-800 dark:text-zinc-100">Half Width</p>
+              <p className="text-[11px] text-neutral-400 dark:text-zinc-500">Shows fields side-by-side</p>
               <p className="text-[9px] text-amber-500 font-medium mt-0.5">*Standard Mode only</p>
             </div>
             <div
               role="switch"
               aria-checked={activeField.width === "half"}
               onClick={() => updateFieldProps(activeField.id, { width: activeField.width === "half" ? "full" : "half" })}
-              className={`w-9 h-5 rounded-full flex items-center p-0.5 cursor-pointer transition-colors ${activeField.width === "half" ? "bg-violet-600" : "bg-neutral-200"}`}
+              className={`w-9 h-5 rounded-full flex items-center p-0.5 cursor-pointer transition-colors ${activeField.width === "half" ? "bg-violet-600 dark:bg-violet-500" : "bg-neutral-200 dark:bg-zinc-700"}`}
             >
               <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${activeField.width === "half" ? "translate-x-4" : "translate-x-0"}`} />
             </div>
@@ -116,10 +116,10 @@ export function FieldSettings() {
         {/* ── Number Field ── */}
         {isNumberField && (
           <section className="flex flex-col gap-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500">Validation</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-zinc-500">Validation</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Min Value</label>
+                <label className="block text-xs font-semibold text-neutral-800 dark:text-zinc-100 mb-1.5">Min Value</label>
                 <input
                   type="number"
                   value={activeField.minValue ?? ""}
@@ -129,7 +129,7 @@ export function FieldSettings() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Max Value</label>
+                <label className="block text-xs font-semibold text-neutral-800 dark:text-zinc-100 mb-1.5">Max Value</label>
                 <input
                   type="number"
                   value={activeField.maxValue ?? ""}
@@ -145,11 +145,11 @@ export function FieldSettings() {
         {/* ── Rating Field ── */}
         {isRatingField && (
           <section className="flex flex-col gap-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-zinc-500 flex items-center gap-1.5">
               <Star size={13} /> Rating Scale
             </h3>
             <div>
-              <label className="block text-xs font-semibold text-neutral-800 mb-2">Max Stars</label>
+              <label className="block text-xs font-semibold text-neutral-800 dark:text-zinc-100 mb-2">Max Stars</label>
               <div className="flex gap-2">
                 {[3, 5, 7, 10].map((n) => (
                   <button
@@ -157,8 +157,8 @@ export function FieldSettings() {
                     onClick={() => updateFieldProps(activeField.id, { ratingMax: n })}
                     className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
                       (activeField.ratingMax ?? 5) === n
-                        ? "bg-violet-600 text-white border-violet-600"
-                        : "bg-white text-neutral-600 border-neutral-200 hover:border-violet-300"
+                        ? "bg-violet-600 text-white border-violet-600 dark:bg-violet-500 dark:border-violet-500"
+                        : "bg-white dark:bg-zinc-800 text-neutral-600 dark:text-zinc-300 border-neutral-200 dark:border-zinc-700 hover:border-violet-300 dark:hover:border-violet-400"
                     }`}
                   >
                     {n}
@@ -168,7 +168,7 @@ export function FieldSettings() {
               {/* Preview */}
               <div className="flex items-center gap-1 mt-3">
                 {Array.from({ length: activeField.ratingMax ?? 5 }).map((_, i) => (
-                  <svg key={i} width="18" height="18" viewBox="0 0 24 24" fill={i === 0 ? "#f59e0b" : "currentColor"} className={i === 0 ? "text-amber-400" : "text-neutral-200"}>
+                  <svg key={i} width="18" height="18" viewBox="0 0 24 24" fill={i === 0 ? "#f59e0b" : "currentColor"} className={i === 0 ? "text-amber-400" : "text-neutral-200 dark:text-zinc-700"}>
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
                 ))}
@@ -180,14 +180,14 @@ export function FieldSettings() {
         {/* ── File Field ── */}
         {isFileField && (
           <section className="flex flex-col gap-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500">File Settings</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-zinc-500">File Settings</h3>
             <SettingsInput
               label="Accepted File Types"
               value={activeField.acceptedFiles || ""}
               placeholder=".pdf, .png, .jpg"
               onChange={(v) => updateFieldProps(activeField.id, { acceptedFiles: v })}
             />
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-[11px] text-neutral-400 dark:text-zinc-500">
               ⚠️ File upload storage is not yet configured on the backend. Files will not be saved until a storage provider (S3, Cloudflare R2, etc.) is integrated.
             </p>
           </section>
@@ -197,19 +197,19 @@ export function FieldSettings() {
 
         {/* ── Appearance ── */}
         <section className="flex flex-col gap-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-zinc-500 flex items-center gap-1.5">
             <Columns size={13} /> Width
           </h3>
-          <div className="flex items-center gap-2 p-1 bg-neutral-100 rounded-lg">
+          <div className="flex items-center gap-2 p-1 bg-neutral-100 dark:bg-zinc-800 rounded-lg">
             <button
               onClick={() => updateFieldProps(activeField.id, { width: "full" })}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${activeField.width === "full" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"}`}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${activeField.width === "full" ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-zinc-100 shadow-sm" : "text-neutral-500 dark:text-zinc-400 hover:text-neutral-700 dark:hover:text-zinc-200"}`}
             >
               Full Width
             </button>
             <button
               onClick={() => updateFieldProps(activeField.id, { width: "half" })}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${activeField.width === "half" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"}`}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${activeField.width === "half" ? "bg-white dark:bg-zinc-700 text-neutral-900 dark:text-zinc-100 shadow-sm" : "text-neutral-500 dark:text-zinc-400 hover:text-neutral-700 dark:hover:text-zinc-200"}`}
             >
               Half Width
             </button>
@@ -256,7 +256,7 @@ function SettingsInput({
 }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-neutral-800 mb-1.5">{label}</label>
+      <label className="block text-xs font-semibold text-neutral-800 dark:text-zinc-100 mb-1.5">{label}</label>
       <input
         type="text"
         value={value}
@@ -301,7 +301,7 @@ function OptionsEditor({
 
   return (
     <section className="flex flex-col gap-3">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-zinc-500 flex items-center gap-1.5">
         <List size={13} /> Options
       </h3>
       <div className="flex flex-col gap-1.5">
@@ -310,11 +310,11 @@ function OptionsEditor({
             <input
               value={opt}
               onChange={(e) => updateOption(i, e.target.value)}
-              className="flex-1 text-sm text-neutral-800 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-100 transition-all"
+              className="flex-1 text-sm text-neutral-800 dark:text-zinc-100 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-lg px-3 py-1.5 outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-100 dark:focus:ring-violet-900/30 transition-all shadow-sm"
             />
             <button
               onClick={() => removeOption(i)}
-              className="p-1 text-neutral-300 hover:text-red-500 transition-colors rounded"
+              className="p-1 text-neutral-300 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded"
             >
               <X size={14} />
             </button>
@@ -327,11 +327,11 @@ function OptionsEditor({
           onChange={(e) => setNewOption(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addOption(); } }}
           placeholder="New option..."
-          className="flex-1 text-sm text-neutral-800 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 outline-none focus:border-violet-400 transition-all placeholder:text-neutral-300"
+          className="flex-1 text-sm text-neutral-800 dark:text-zinc-100 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-lg px-3 py-1.5 outline-none focus:border-violet-400 transition-all placeholder:text-neutral-300 dark:placeholder:text-zinc-500 shadow-sm"
         />
         <button
           onClick={addOption}
-          className="p-1.5 bg-violet-50 text-violet-600 hover:bg-violet-100 rounded-lg transition-colors"
+          className="p-1.5 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-lg transition-colors"
         >
           <Plus size={16} />
         </button>

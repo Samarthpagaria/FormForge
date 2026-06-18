@@ -2,67 +2,55 @@
 
 import React from "react";
 import type { FC, HTMLAttributes } from "react";
-import { CheckCircle2 } from "lucide-react";
-import { LordiconIcon } from "@/components/ui/lordicon-icon";
-import { LORDICONS } from "@/lib/lordicons";
+import { motion } from "framer-motion";
+import {
+  Share2,
+  LayoutTemplate,
+  GitBranch,
+  CalendarClock,
+  ShieldCheck,
+  BellRing,
+  CheckCircle2,
+  type LucideIcon,
+} from "lucide-react";
 import { cx } from "@/lib/utils/cx";
 
+const iconColors: Record<string, string> = {
+  emerald: "text-emerald-600 dark:text-emerald-400",
+  cyan: "text-cyan-600 dark:text-cyan-400",
+  violet: "text-violet-600 dark:text-violet-400",
+  blue: "text-blue-600 dark:text-blue-400",
+  amber: "text-amber-600 dark:text-amber-400",
+  rose: "text-rose-600 dark:text-rose-400",
+  indigo: "text-indigo-600 dark:text-indigo-400",
+};
+
 interface FeaturedIconProps {
-  iconSrc: string;
+  icon: LucideIcon;
   color: string;
 }
 
-const FeaturedIcon: FC<FeaturedIconProps> = ({ iconSrc, color }) => {
-  const colorClasses: Record<string, string> = {
-    emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/20",
-    cyan: "bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/20",
-    violet: "bg-violet-100 text-violet-650 dark:bg-violet-950/40 dark:text-violet-400 border-violet-200/50 dark:border-violet-900/20",
-    blue: "bg-blue-50 text-blue-650 dark:bg-blue-950/40 dark:text-blue-400 border-blue-100 dark:border-blue-900/20",
-    amber: "bg-amber-50 text-amber-650 dark:bg-amber-950/40 dark:text-amber-400 border-amber-100 dark:border-amber-900/20",
-    rose: "bg-rose-50 text-rose-650 dark:bg-rose-950/40 dark:text-rose-400 border-rose-100 dark:border-rose-900/20",
-    indigo: "bg-indigo-50 text-indigo-650 dark:bg-indigo-950/40 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/20"
-  };
+const FeaturedIcon: FC<FeaturedIconProps> = ({ icon: Icon, color }) => (
+  <Icon className={cx("mb-5 size-8 stroke-[1.75]", iconColors[color] || iconColors.violet)} />
+);
 
-  return (
-    <div className={cx("flex items-center justify-center size-12 rounded-xl border mb-5 shadow-xs", colorClasses[color] || colorClasses.violet)}>
-      <LordiconIcon src={iconSrc} size={28} trigger="loop" />
-    </div>
-  );
-};
-
-// Custom CheckItemText component supporting color-themed checkmarks
 interface CheckItemTextProps {
   boldText: string;
   text: string;
   color: string;
 }
 
-const CheckItemText: FC<CheckItemTextProps> = ({ boldText, text, color }) => {
-  const dotClasses: Record<string, string> = {
-    emerald: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-900/20",
-    cyan: "bg-cyan-100 text-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-400 border-cyan-200/50 dark:border-cyan-900/20",
-    violet: "bg-violet-100 text-violet-650 dark:bg-violet-950/50 dark:text-violet-400 border-violet-200/50 dark:border-violet-900/20",
-    blue: "bg-blue-100 text-blue-650 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/20",
-    amber: "bg-amber-100 text-amber-650 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/20",
-    rose: "bg-rose-100 text-rose-650 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200/50 dark:border-rose-900/20",
-    indigo: "bg-indigo-100 text-indigo-650 dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-200/50 dark:border-indigo-900/20"
-  };
+const CheckItemText: FC<CheckItemTextProps> = ({ boldText, text, color }) => (
+  <li className="flex items-start gap-3 text-neutral-600 dark:text-zinc-450 text-sm leading-relaxed">
+    <CheckCircle2 className={cx("mt-0.5 size-4 shrink-0 stroke-[2]", iconColors[color] || iconColors.violet)} />
+    <div>
+      <strong className="font-semibold text-neutral-800 dark:text-zinc-200">{boldText}</strong>
+      <span className="mx-1.5 opacity-40">•</span>
+      <span>{text}</span>
+    </div>
+  </li>
+);
 
-  return (
-    <li className="flex items-start gap-3 text-neutral-600 dark:text-zinc-450 text-sm leading-relaxed">
-      <div className={cx("flex-shrink-0 flex items-center justify-center size-5 rounded-md mt-0.5 border", dotClasses[color] || dotClasses.violet)}>
-        <CheckCircle2 className="size-3 stroke-[2.5]" />
-      </div>
-      <div>
-        <strong className="font-semibold text-neutral-800 dark:text-zinc-200">{boldText}</strong>
-        <span className="mx-1.5 opacity-40">•</span>
-        <span>{text}</span>
-      </div>
-    </li>
-  );
-};
-
-// AlternateImageMockup component exactly matching requested specs
 const AlternateImageMockup: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
   return (
     <div
@@ -80,9 +68,8 @@ const AlternateImageMockup: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
   );
 };
 
-// Structured features configuration
 interface FeatureItem {
-  iconSrc: string;
+  icon: LucideIcon;
   label: string;
   color: string;
   titlePart1: string;
@@ -95,7 +82,7 @@ interface FeatureItem {
 
 const FEATURES: FeatureItem[] = [
   {
-    iconSrc: LORDICONS.share,
+    icon: Share2,
     label: "SHARING",
     color: "emerald",
     titlePart1: "Share anywhere, ",
@@ -106,11 +93,11 @@ const FEATURES: FeatureItem[] = [
     bullets: [
       { bold: "Print-ready", text: "Generate high-resolution printable QR codes instantly." },
       { bold: "Short links", text: "Share clean, branded URLs with custom slugs." },
-      { bold: "Embeddable", text: "Drop responsive forms on any website in seconds." }
-    ]
+      { bold: "Embeddable", text: "Drop responsive forms on any website in seconds." },
+    ],
   },
   {
-    iconSrc: LORDICONS.template,
+    icon: LayoutTemplate,
     label: "TEMPLATES",
     color: "cyan",
     titlePart1: "Skip the ",
@@ -121,11 +108,11 @@ const FEATURES: FeatureItem[] = [
     bullets: [
       { bold: "10+ layouts", text: "Access templates for surveys, registration, and leads." },
       { bold: "Team sharing", text: "Save any form draft as a reusable library item." },
-      { bold: "One-click build", text: "Launch themes, colors, and field layouts in a tap." }
-    ]
+      { bold: "One-click build", text: "Launch themes, colors, and field layouts in a tap." },
+    ],
   },
   {
-    iconSrc: LORDICONS.version,
+    icon: GitBranch,
     label: "VERSION CONTROL",
     color: "blue",
     titlePart1: "Every edit, ",
@@ -136,11 +123,11 @@ const FEATURES: FeatureItem[] = [
     bullets: [
       { bold: "Autosave drafts", text: "Secure, incremental history snapshots of your schemas." },
       { bold: "Live previews", text: "Compare diffs side-by-side between past versions." },
-      { bold: "Safe rollback", text: "Roll back instantly with database schema protection." }
-    ]
+      { bold: "Safe rollback", text: "Roll back instantly with database schema protection." },
+    ],
   },
   {
-    iconSrc: LORDICONS.calendar,
+    icon: CalendarClock,
     label: "AUTOMATION",
     color: "amber",
     titlePart1: "Forms that ",
@@ -151,11 +138,11 @@ const FEATURES: FeatureItem[] = [
     bullets: [
       { bold: "Timer locks", text: "Configure precise publishing and closing schedules." },
       { bold: "Custom notices", text: "Customize messages for visitors who arrive late." },
-      { bold: "Timezone sync", text: "Run automated schedules relative to target regions." }
-    ]
+      { bold: "Timezone sync", text: "Run automated schedules relative to target regions." },
+    ],
   },
   {
-    iconSrc: LORDICONS.shield,
+    icon: ShieldCheck,
     label: "INTEGRITY",
     color: "rose",
     titlePart1: "You decide who responds, and ",
@@ -166,11 +153,11 @@ const FEATURES: FeatureItem[] = [
     bullets: [
       { bold: "Spam block", text: "Prevent duplication using IP and cookie tracking." },
       { bold: "White-listing", text: "Confine response access to specific emails or domains." },
-      { bold: "Flexible limits", text: "Toggle response frequency rules per form configuration." }
-    ]
+      { bold: "Flexible limits", text: "Toggle response frequency rules per form configuration." },
+    ],
   },
   {
-    iconSrc: LORDICONS.bell,
+    icon: BellRing,
     label: "NOTIFICATIONS",
     color: "indigo",
     titlePart1: "Know the ",
@@ -181,16 +168,14 @@ const FEATURES: FeatureItem[] = [
     bullets: [
       { bold: "Instant alerts", text: "Real-time notifications sent directly to your inbox." },
       { bold: "Mobile layouts", text: "Perfect email formats readable on any device screen." },
-      { bold: "Data attached", text: "Review responses and file upload attachments inline." }
-    ]
-  }
+      { bold: "Data attached", text: "Review responses and file upload attachments inline." },
+    ],
+  },
 ];
 
 export const FeaturesAlternatingLayout01 = () => {
   return (
     <section id="features" className="flex flex-col gap-12 overflow-hidden bg-[#f5f5f3] dark:bg-[#09090b] py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24">
-      
-      {/* Top Header Section */}
       <div className="mx-auto w-full max-w-7xl px-6 md:px-12 lg:px-24">
         <div className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-400 dark:text-zinc-500">
@@ -206,35 +191,24 @@ export const FeaturesAlternatingLayout01 = () => {
         </div>
       </div>
 
-      {/* Feature Blocks Container (Alternating layout, image orders swap on lg screens) */}
       <div className="mx-auto flex w-full max-w-[88rem] flex-col gap-16 px-6 sm:gap-20 md:gap-24 md:px-12 lg:gap-28">
         {FEATURES.map((feat, idx) => {
           const isEven = idx % 2 === 0;
-          const labelColors: Record<string, string> = {
-            emerald: "text-emerald-600 dark:text-emerald-400",
-            cyan: "text-cyan-600 dark:text-cyan-400",
-            violet: "text-violet-600 dark:text-violet-400",
-            blue: "text-blue-600 dark:text-blue-400",
-            amber: "text-amber-600 dark:text-amber-400",
-            rose: "text-rose-600 dark:text-rose-400",
-            indigo: "text-indigo-600 dark:text-indigo-400"
-          };
 
           return (
-            <div key={idx} className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
-              
-              {/* TEXT COLUMN */}
-              <div className={cx(
-                "max-w-xl flex-1 self-center",
-                !isEven && "lg:order-last"
-              )}>
-                <FeaturedIcon iconSrc={feat.iconSrc} color={feat.color} />
-                
-                {/* Colored Category Tag */}
-                <div className={cx("text-[11px] font-bold tracking-widest uppercase mb-2.5", labelColors[feat.color] || labelColors.violet)}>
+            <motion.div 
+              key={idx} 
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center"
+            >
+              <div className={cx("max-w-xl flex-1 self-center", !isEven && "lg:order-last")}>
+                <FeaturedIcon icon={feat.icon} color={feat.color} />
+                <div className={cx("text-[11px] font-bold tracking-widest uppercase mb-2.5", iconColors[feat.color])}>
                   {feat.label}
                 </div>
-
                 <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-zinc-50 tracking-tight leading-tight">
                   {feat.titlePart1}
                   <span className={cx("bg-clip-text text-transparent bg-gradient-to-r", feat.gradientClass)}>
@@ -242,33 +216,23 @@ export const FeaturesAlternatingLayout01 = () => {
                   </span>
                   {feat.titlePart2}
                 </h2>
-                
                 <p className="mt-3 text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
                   {feat.description}
                 </p>
-
                 <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
                   {feat.bullets.map((bullet, bIdx) => (
-                    <CheckItemText 
-                      key={bIdx} 
-                      boldText={bullet.bold}
-                      text={bullet.text} 
-                      color={feat.color}
-                    />
+                    <CheckItemText key={bIdx} boldText={bullet.bold} text={bullet.text} color={feat.color} />
                   ))}
                 </ul>
               </div>
 
-              {/* IMAGE/MOCKUP COLUMN (Image div code kept exactly as is, no changes to this block) */}
               <div className="relative w-full flex-1 lg:h-128 flex justify-center items-center">
                 <AlternateImageMockup className={cx(isEven ? "lg:left-0" : "lg:right-0")}>
-                  {/* Light mode image */}
                   <img
                     alt="Dashboard mockup showing application interface"
                     src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-light-01.webp"
                     className="size-full object-contain lg:w-auto lg:max-w-none dark:hidden"
                   />
-                  {/* Dark mode image */}
                   <img
                     alt="Dashboard mockup showing application interface"
                     src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
@@ -276,12 +240,10 @@ export const FeaturesAlternatingLayout01 = () => {
                   />
                 </AlternateImageMockup>
               </div>
-
-            </div>
+            </motion.div>
           );
         })}
       </div>
-
     </section>
   );
 };

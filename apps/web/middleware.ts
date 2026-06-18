@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/openapi(.*)", // Scalar OpenAPI spec
   "/api/docs(.*)", // Scalar Docs UI
   "/api/rest/(.*)", // REST endpoints mapped to TRPC
+  "/docs(.*)", // Public Docs page
 ]);
 
 const isAuthRoute = createRouteMatcher([

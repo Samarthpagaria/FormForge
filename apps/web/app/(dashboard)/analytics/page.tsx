@@ -9,8 +9,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar
 } from "recharts";
 import { trpc } from "@/src/trpc/client";
-import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
-import { scaleLinear } from "d3-scale";
+import { GlobalSubmissionMap } from "@/components/dashboard/global-submission-map";
 
 // Reusable Framer Motion Variants
 const containerVariants = {
@@ -35,7 +34,6 @@ const getHeatmapColor = (level: number) => {
   }
 };
 
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<"7" | "30" | "90" | "all">("30");
@@ -492,40 +490,14 @@ export default function AnalyticsPage() {
                 <button onClick={() => mapRefetch()} className="text-xs text-violet-600 mt-2 underline">Retry</button>
               </div>
             ) : (
-              <div className="w-full h-[300px] flex items-center justify-center">
-                <ComposableMap projectionConfig={{ scale: 140 }} width={800} height={400} style={{ width: "100%", height: "100%" }}>
-                  <Geographies geography={geoUrl}>
-                    {({ geographies }) => {
-                      const regions = mapRaw?.regions || [];
-                      const maxValue = Math.max(...regions.map(d => Number(d.value)), 1);
-                      const colorScale = scaleLinear<string>().domain([0, maxValue]).range(["#ede9fe", "#8b5cf6"]);
-                      
-                      return geographies.map((geo) => {
-                        const d = regions.find((s) => s.id === geo.id || s.id === geo.properties?.ISO_A2 || s.id === geo.properties?.ISO_A3);
-                        return (
-                          <Geography
-                            key={geo.rsmKey}
-                            geography={geo}
-                            fill={d ? colorScale(Number(d.value)) : "#f5f5f5"}
-                            stroke="#ffffff"
-                            strokeWidth={0.5}
-                            style={{
-                              default: { outline: "none", transition: "all 250ms" },
-                              hover: { fill: "#7c3aed", outline: "none", transition: "all 250ms" },
-                              pressed: { fill: "#6d28d9", outline: "none" },
-                            }}
-                          />
-                        );
-                      });
-                    }}
-                  </Geographies>
-                  {mapRaw?.points?.map((pt, i) => (
-                    <Marker key={i} coordinates={[pt.lng, pt.lat]}>
-                      <circle r={Math.min(Math.max(pt.value * 2, 4), 12)} fill="#ef4444" fillOpacity={0.7} stroke="#ffffff" strokeWidth={1.5} />
-                    </Marker>
-                  ))}
-                </ComposableMap>
-              </div>
+              <GlobalSubmissionMap
+                regions={mapRaw?.regions}
+                points={mapRaw?.points}
+                pins={mapRaw?.pins}
+                height={300}
+                heatFrom="#ede9fe"
+                heatTo="#8b5cf6"
+              />
             )}
           </motion.div>
 

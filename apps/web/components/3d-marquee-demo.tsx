@@ -96,7 +96,7 @@ function FormPreview({ form }: { form: typeof FORMS[0] }) {
 
 export function ThreeDMarqueeDemo() {
   const items = Array.from({ length: 24 }).map((_, i) => (
-    <FormPreview key={i} form={FORMS[i % FORMS.length]} />
+    <FormPreview key={i} form={FORMS[i % FORMS.length]!} />
   ));
 
   return (

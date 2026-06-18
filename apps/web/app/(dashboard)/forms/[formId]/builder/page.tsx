@@ -50,7 +50,43 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // ─── Droppable Empty Slot ─────────────────────────────────────────
+"use client";
+
+// ─── Droppable Empty Slot ─────────────────────────────────────────
 function DroppableEmptySlot({ afterFieldId }: { afterFieldId: string }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `empty-slot-${afterFieldId}`,
+    data: { type: "empty-slot", afterFieldId },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`col-span-6 min-h-[100px] rounded-xl border-2 border-dashed transition-all duration-200 flex flex-col items-center justify-center gap-2 select-none ${
+        isOver
+          ? "border-violet-400 bg-violet-50/20"
+          : "border-neutral-200 dark:border-zinc-800 bg-neutral-50/60 dark:bg-zinc-900/60"
+      }`}
+    >
+      <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+        isOver ? "bg-violet-100" : "bg-neutral-100 dark:bg-zinc-800"
+      }`}
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={isOver ? "#7c3aed" : "#a3a3a3"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </div>
+      <p className={`text-[11px] font-semibold tracking-wide uppercase transition-colors ${
+        isOver ? "text-violet-600" : "text-neutral-400 dark:text-zinc-500"
+      }`}
+      >
+        {isOver ? "Drop here!" : "Half-width slot"}
+      </p>
+    </div>
+  );
+}
+
   const { setNodeRef, isOver } = useDroppable({
     id: `empty-slot-${afterFieldId}`,
     data: { type: "empty-slot", afterFieldId },
@@ -169,7 +205,7 @@ function CanvasDropZone({ previewFields }: { previewFields?: any[] }) {
           </SortableContext>
 
           <div className="mt-8 flex items-center justify-center">
-            <button className="px-5 py-2 text-xs font-semibold text-neutral-400 bg-transparent hover:bg-neutral-100 rounded-xl transition-colors border border-dashed border-neutral-300 hover:border-neutral-400 hover:text-neutral-600">
+            <button className="px-5 py-2 text-xs font-semibold text-neutral-400 dark:text-zinc-400 bg-transparent hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-xl transition-colors border border-dashed border-neutral-300 dark:border-zinc-800 hover:border-neutral-400 dark:hover:border-zinc-600 hover:text-neutral-600 dark:hover:text-zinc-600">
               + Add Section
             </button>
           </div>
@@ -413,7 +449,7 @@ function BuilderUI({ formId }: { formId: string }) {
           
           <div className="flex-1 flex flex-col gap-4 relative pt-2">
             <div className="absolute top-0 right-4 z-10 pointer-events-none">
-              <span className="bg-white/90 backdrop-blur-sm shadow-sm text-neutral-500 text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full border border-neutral-200">
+              <span className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm shadow-sm text-neutral-500 dark:text-zinc-400 text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full border border-neutral-200 dark:border-zinc-800">
                 {previewingVersion ? `Preview v${previewingVersion.version}` : (versions && versions.length > 0 && versions[0]) ? `Draft (v${Number(versions[0].version) + 1})` : 'Draft'}
               </span>
             </div>
@@ -472,43 +508,43 @@ function BuilderUI({ formId }: { formId: string }) {
               
               {/* Draft Menu Item (Nested) */}
               <div className="relative group/draft">
-                <div className="px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 flex items-center justify-between cursor-default transition-colors rounded-t-xl">
+                <div className="px-4 py-3 text-sm font-medium text-neutral-700 dark:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800/50 border-b border-neutral-100 dark:border-zinc-800 flex items-center justify-between cursor-default transition-colors rounded-t-xl">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-amber-500" /> Draft Preview
                   </div>
-                  <ChevronRight size={14} className="text-neutral-400" />
+                  <ChevronRight size={14} className="text-neutral-400 dark:text-zinc-500" />
                 </div>
                 
                 {/* Nested Draft Layouts */}
-                <div className="absolute bottom-0 right-full mr-2 opacity-0 invisible group-hover/draft:opacity-100 group-hover/draft:visible transition-all duration-200 flex flex-col bg-white border border-neutral-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-xl overflow-hidden w-48 z-50">
-                  <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400 bg-neutral-50/80 border-b border-neutral-100">
+                <div className="absolute bottom-0 right-full mr-2 opacity-0 invisible group-hover/draft:opacity-100 group-hover/draft:visible transition-all duration-200 flex flex-col bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-xl overflow-hidden w-48 z-50">
+                  <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-zinc-500 bg-neutral-50/80 dark:bg-zinc-800/80 border-b border-neutral-100 dark:border-zinc-800">
                     Layout Modes
                   </div>
-                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=normal` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=normal` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 flex items-center gap-2.5 transition-colors">
                     <IconLayoutList size={16} className="text-violet-500" /> Standard
                   </a>
-                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=story` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=story` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 flex items-center gap-2.5 transition-colors">
                     <IconBook size={16} className="text-blue-500" /> Story Mode
                   </a>
-                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=swipe` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=swipe` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 flex items-center gap-2.5 transition-colors">
                     <IconCards size={16} className="text-amber-500" /> Card Mode
                   </a>
-                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=one-by-one` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=one-by-one` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 flex items-center gap-2.5 transition-colors">
                     <IconForms size={16} className="text-orange-500" /> One-by-One
                   </a>
-                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=slide` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=slide` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 flex items-center gap-2.5 transition-colors">
                     <IconSlideshow size={16} className="text-indigo-500" /> Slide Mode
                   </a>
-                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=terminal` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=terminal` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 flex items-center gap-2.5 transition-colors">
                     <IconTerminal2 size={16} className="text-emerald-500" /> Terminal
                   </a>
-                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=chat` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors">
+                  <a href={form?.slug ? `/f/${form.slug}?draft=true&mode=chat` : "#"} target="_blank" className="px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 flex items-center gap-2.5 transition-colors">
                     <IconMessageCircle size={16} className="text-pink-500" /> Chat Mode
                   </a>
                 </div>
               </div>
 
-              <a href={form?.slug ? `/f/${form.slug}` : "#"} target="_blank" className="px-4 py-3 text-sm font-bold text-neutral-900 hover:bg-neutral-50 flex items-center gap-2 transition-colors rounded-b-xl">
+              <a href={form?.slug ? `/f/${form.slug}` : "#"} target="_blank" className="px-4 py-3 text-sm font-bold text-neutral-900 dark:text-zinc-100 hover:bg-neutral-50 dark:hover:bg-zinc-800 flex items-center gap-2 transition-colors rounded-b-xl">
                 <div className="w-2 h-2 rounded-full bg-emerald-500" /> Live Published
               </a>
             </div>

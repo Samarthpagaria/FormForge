@@ -246,7 +246,7 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
 
 // Internal Specialized Field Renderer for One-by-One Mode
 function FieldRenderer({ field, value, onChange }: { field: FormField, value: any, onChange: (v: any) => void }) {
-  if (field.type === "text" || field.type === "short_text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "date" || field.type === "file") {
+  if (field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "date" || field.type === "file") {
     return (
       <input
         type={field.type === "email" ? "email" : field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "file" ? "file" : "text"}
@@ -259,7 +259,7 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
     );
   }
 
-  if (field.type === "textarea" || field.type === "long_text") {
+  if (field.type === "textarea") {
     return (
       <textarea
         placeholder={field.placeholder || "Type your answer here..."}
@@ -271,7 +271,7 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
     );
   }
 
-  if (field.type === "radio" || field.type === "checkbox" || field.type === "dropdown") {
+  if (field.type === "radio" || field.type === "checkbox" || field.type === "select") {
     const isMulti = field.type === "checkbox";
     const selectedArray = (value as string[]) || [];
 

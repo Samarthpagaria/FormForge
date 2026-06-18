@@ -5,6 +5,7 @@ import { ArrowUpRight, Loader2, Trash2, Plus, X } from "lucide-react";
 import { trpc } from "@/src/trpc/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { TemplateDetailsModal } from "@/components/template-details-modal";
 
 // Sample template images from public/templates
 const TEMPLATES_IMAGES = [
@@ -62,24 +63,18 @@ export default function TemplatesPage() {
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTemplateId, setModalTemplateId] = useState<string | null>(null);
+  const [modalName, setModalName] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
 
   const utils = trpc.useUtils();
 
   const { data: categories, isLoading: loadingCategories } = trpc.templates.getAllCategories.useQuery();
   const { data: templates, isLoading: loadingTemplates } = trpc.templates.getAll.useQuery();
   
-  const { mutate: createForm } = trpc.templates.createFormFromTemplate.useMutation({
-    onSuccess: (data) => {
-      toast.success("Form created from template!");
-      router.push(`/forms/${data.id}/builder`);
-    },
-    onError: (err) => {
-      toast.error(err.message || "Failed to create form from template");
-    },
-    onSettled: () => {
-      setCreatingId(null);
-    }
-  });
+  // Removed createFormFromTemplate mutation from here since it's in the modal
 
   const { mutate: createCategory, isPending: isCreatingCat } = trpc.templates.createCategory.useMutation({
     onSuccess: () => {
@@ -107,8 +102,10 @@ export default function TemplatesPage() {
   };
 
   const handleUseTemplate = (templateId: string, name: string, description?: string | null) => {
-    setCreatingId(templateId);
-    createForm({ templateId, name, description: description || undefined });
+    setModalTemplateId(templateId);
+    setModalName(name);
+    setModalDesc(description || "");
+    setModalOpen(true);
   };
 
   const filteredTemplates = templates?.filter(t => 
@@ -116,16 +113,16 @@ export default function TemplatesPage() {
   ) || [];
 
   return (
-    <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 shadow-sm overflow-hidden">
+    <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] dark:bg-zinc-950 flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 dark:border-zinc-800 shadow-sm overflow-hidden">
       
       {/* ── Background Decorative Blobs ── */}
-      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] rounded-full blur-[100px] -z-10 pointer-events-none opacity-60" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] rounded-full blur-[120px] -z-10 pointer-events-none opacity-60" />
-      <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-[#f0ecd6] rounded-full blur-[90px] -z-10 pointer-events-none opacity-50" />
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] dark:bg-emerald-900/10 rounded-full blur-[100px] -z-10 pointer-events-none opacity-60" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] dark:bg-emerald-900/5 rounded-full blur-[120px] -z-10 pointer-events-none opacity-60" />
+      <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-[#f0ecd6] dark:bg-yellow-900/5 rounded-full blur-[90px] -z-10 pointer-events-none opacity-50" />
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-dashed border-neutral-300 gap-4">
-        <h1 className="text-3xl font-bold text-neutral-800 tracking-tight">Templates</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-dashed border-neutral-300 dark:border-zinc-800 gap-4">
+        <h1 className="text-3xl font-bold text-neutral-800 dark:text-zinc-100 tracking-tight">Templates</h1>
         
         {/* Category Badges */}
         <div className="flex flex-wrap items-center gap-3">
@@ -137,8 +134,8 @@ export default function TemplatesPage() {
                 onClick={() => setSelectedCategory("All")}
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                   selectedCategory === "All" 
-                    ? "bg-[#2d351e] text-white shadow-md shadow-[#2d351e]/20" 
-                    : "bg-transparent text-neutral-600 hover:bg-neutral-200 border border-neutral-300 border-dashed"
+                    ? "bg-[#2d351e] dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md shadow-[#2d351e]/20" 
+                    : "bg-transparent text-neutral-600 dark:text-zinc-400 hover:bg-neutral-200 dark:hover:bg-zinc-800 border border-neutral-300 dark:border-zinc-700 border-dashed"
                 }`}
               >
                 All
@@ -149,8 +146,8 @@ export default function TemplatesPage() {
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     selectedCategory === cat.id 
-                      ? "bg-[#2d351e] text-white shadow-md shadow-[#2d351e]/20" 
-                      : "bg-transparent text-neutral-600 hover:bg-neutral-200 border border-neutral-300 border-dashed"
+                      ? "bg-[#2d351e] dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md shadow-[#2d351e]/20" 
+                      : "bg-transparent text-neutral-600 dark:text-zinc-400 hover:bg-neutral-200 dark:hover:bg-zinc-800 border border-neutral-300 dark:border-zinc-700 border-dashed"
                   }`}
                 >
                   {cat.name}
@@ -159,7 +156,7 @@ export default function TemplatesPage() {
 
               {/* New Category Input/Button */}
               {showNewCategory ? (
-                <div className="flex items-center bg-white rounded-full border border-neutral-300 pl-3 pr-1 py-1 shadow-sm h-8">
+                <div className="flex items-center bg-white dark:bg-zinc-900 rounded-full border border-neutral-300 dark:border-zinc-700 pl-3 pr-1 py-1 shadow-sm h-8">
                   <input
                     autoFocus
                     type="text"
@@ -167,19 +164,19 @@ export default function TemplatesPage() {
                     value={newCategoryName}
                     onChange={e => setNewCategoryName(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && handleCreateCategory()}
-                    className="bg-transparent text-xs text-neutral-700 outline-none w-24"
+                    className="bg-transparent text-xs text-neutral-700 dark:text-zinc-300 outline-none w-24"
                   />
-                  <button onClick={handleCreateCategory} disabled={isCreatingCat} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-full ml-1">
+                  <button onClick={handleCreateCategory} disabled={isCreatingCat} className="p-1 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-full ml-1">
                     {isCreatingCat ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
                   </button>
-                  <button onClick={() => setShowNewCategory(false)} className="p-1 text-neutral-400 hover:bg-neutral-100 rounded-full">
+                  <button onClick={() => setShowNewCategory(false)} className="p-1 text-neutral-400 dark:text-zinc-500 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-full">
                     <X size={12} />
                   </button>
                 </div>
               ) : (
                 <button 
                   onClick={() => setShowNewCategory(true)}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-neutral-300 text-neutral-500 hover:text-neutral-800 hover:border-neutral-400 shadow-sm transition-colors flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-zinc-900 border border-neutral-300 dark:border-zinc-700 text-neutral-500 dark:text-zinc-400 hover:text-neutral-800 dark:hover:text-zinc-200 hover:border-neutral-400 dark:hover:border-zinc-600 shadow-sm transition-colors flex items-center gap-1"
                 >
                   <Plus size={12} /> New
                 </button>
@@ -191,30 +188,30 @@ export default function TemplatesPage() {
 
       {/* Grid Container */}
       {loadingTemplates ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 border border-dashed border-neutral-300 rounded-[3rem] overflow-hidden bg-white/30 backdrop-blur-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 border border-dashed border-neutral-300 dark:border-zinc-800 rounded-[3rem] overflow-hidden bg-white/30 dark:bg-zinc-900/30 backdrop-blur-sm">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="p-6 border-b border-r border-dashed border-neutral-300 flex justify-center items-center">
-              <div className="w-full h-[240px] bg-neutral-200/50 animate-pulse rounded-[2rem]" />
+            <div key={i} className="p-6 border-b border-r border-dashed border-neutral-300 dark:border-zinc-800 flex justify-center items-center">
+              <div className="w-full h-[240px] bg-neutral-200/50 dark:bg-zinc-800/50 animate-pulse rounded-[2rem]" />
             </div>
           ))}
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center flex-1 min-h-[400px] border border-dashed border-neutral-300 rounded-[3rem] bg-white/30 backdrop-blur-sm">
-          <h3 className="text-xl font-semibold text-neutral-700 mb-2">No templates in this category</h3>
-          <p className="text-sm text-neutral-500">Check back later or browse another category.</p>
+        <div className="flex flex-col items-center justify-center flex-1 min-h-[400px] border border-dashed border-neutral-300 dark:border-zinc-800 rounded-[3rem] bg-white/30 dark:bg-zinc-900/30 backdrop-blur-sm">
+          <h3 className="text-xl font-semibold text-neutral-700 dark:text-zinc-300 mb-2">No templates in this category</h3>
+          <p className="text-sm text-neutral-500 dark:text-zinc-500">Check back later or browse another category.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 border border-dashed border-neutral-300 rounded-[3rem] overflow-hidden bg-white/30 backdrop-blur-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 border border-dashed border-neutral-300 dark:border-zinc-800 rounded-[3rem] overflow-hidden bg-white/30 dark:bg-zinc-900/30 backdrop-blur-sm">
           {filteredTemplates.map((template, idx) => (
             <div 
               key={template.id} 
-              className="p-6 border-b border-r border-dashed border-neutral-300 flex justify-center items-center hover:bg-white/50 transition-colors"
+              className="p-6 border-b border-r border-dashed border-neutral-300 dark:border-zinc-800 flex justify-center items-center hover:bg-white/50 dark:hover:bg-zinc-800/50 transition-colors"
             >
               {/* Custom Template Card */}
-              <div className="relative w-full max-w-[240px] bg-[#2d351e] rounded-[2rem] p-1.5 flex flex-col font-sans shadow-[0_25px_50px_-12px_rgba(45,53,30,0.25)] transition-all duration-300 hover:translate-y-[-4px]">
+              <div className="relative w-full max-w-[240px] bg-[#2d351e] dark:bg-zinc-800 rounded-[2rem] p-1.5 flex flex-col font-sans shadow-[0_25px_50px_-12px_rgba(45,53,30,0.25)] dark:shadow-none transition-all duration-300 hover:translate-y-[-4px]">
                 
                 {/* Top Image Section */}
-                <div className="relative w-full h-[200px] bg-[#a8ba8d] rounded-[1.5rem] overflow-hidden z-20 group">
+                <div className="relative w-full h-[200px] bg-[#a8ba8d] dark:bg-zinc-700 rounded-[1.5rem] overflow-hidden z-20 group">
                   <img 
                     src={getRandomImage(idx)} 
                     alt={template.name}
@@ -256,13 +253,9 @@ export default function TemplatesPage() {
                     className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-md py-1 pl-2.5 pr-2 rounded-full cursor-pointer group shrink-0 disabled:opacity-50 disabled:cursor-wait"
                   >
                     <span className="text-white font-medium text-[10px] tracking-tight">
-                      {creatingId === template.id ? "Using..." : "Use"}
+                      Use
                     </span>
-                    {creatingId === template.id ? (
-                      <Loader2 size={12} className="text-white animate-spin" />
-                    ) : (
-                      <ArrowUpRight size={12} className="text-white/80 group-hover:text-white transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    )}
+                    <ArrowUpRight size={12} className="text-white/80 group-hover:text-white transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </button>
 
                 </div>
@@ -272,6 +265,13 @@ export default function TemplatesPage() {
         </div>
       )}
 
+      <TemplateDetailsModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        templateId={modalTemplateId}
+        initialName={modalName}
+        initialDesc={modalDesc}
+      />
     </div>
   );
 }

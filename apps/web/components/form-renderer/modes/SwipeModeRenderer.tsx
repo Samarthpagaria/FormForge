@@ -223,7 +223,7 @@ function SwipeCard({
         {field.description && <p className="text-sm text-neutral-500 mb-6">{field.description}</p>}
 
         <div className="flex-1 flex flex-col justify-center" onPointerDownCapture={(e) => e.stopPropagation()}>
-          {field.type === "text" || field.type === "short_text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "date" || field.type === "file" ? (
+          {field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "date" || field.type === "file" ? (
             <input
               type={field.type === "email" ? "email" : field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "file" ? "file" : "text"}
               placeholder="Type here..."
@@ -231,14 +231,14 @@ function SwipeCard({
               onChange={e => onChange(e.target.value)}
               className="w-full text-lg border-b-2 border-neutral-200 py-2 outline-none focus:border-violet-500 bg-transparent text-center"
             />
-          ) : field.type === "textarea" || field.type === "long_text" ? (
+          ) : field.type === "textarea" ? (
             <textarea
               placeholder="Type here..."
               value={value || ""}
               onChange={e => onChange(e.target.value)}
               className="w-full text-base border-2 border-neutral-200 rounded-xl p-3 outline-none focus:border-violet-500 bg-transparent resize-none min-h-[120px]"
             />
-          ) : field.type === "radio" || field.type === "checkbox" || field.type === "dropdown" ? (
+          ) : field.type === "radio" || field.type === "checkbox" || field.type === "select" ? (
             <div className="flex flex-col gap-2">
               {field.options?.map(opt => {
                 const isSelected = field.type === "checkbox" ? ((value as string[]) || []).includes(opt) : value === opt;

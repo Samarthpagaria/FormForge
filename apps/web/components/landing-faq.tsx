@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cx } from "@/lib/utils/cx";
 
 interface FaqItem {
@@ -74,7 +75,13 @@ function FaqAccordionItem({
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-neutral-200/90 bg-white p-[3px] dark:border-zinc-800 dark:bg-zinc-900">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.4 }}
+      className="rounded-2xl border border-dashed border-neutral-200/90 bg-white p-[3px] dark:border-zinc-800 dark:bg-zinc-900"
+    >
       <div className="rounded-[13px] border border-dashed border-neutral-100 bg-transparent p-[3px] dark:border-zinc-800/80">
         <div className="overflow-hidden rounded-[10px] border border-dashed border-neutral-200/70 bg-white dark:border-zinc-800/60 dark:bg-zinc-900">
           <button
@@ -92,21 +99,24 @@ function FaqAccordionItem({
               )}
             />
           </button>
-          <div
-            className={cx(
-              "grid transition-all duration-200 ease-in-out",
-              isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          <AnimatePresence initial={false}>
+            {isOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <p className="px-5 pb-4 text-sm leading-relaxed text-neutral-600 dark:text-zinc-400">
+                  {item.answer}
+                </p>
+              </motion.div>
             )}
-          >
-            <div className="overflow-hidden">
-              <p className="px-5 pb-4 text-sm leading-relaxed text-neutral-600 dark:text-zinc-400">
-                {item.answer}
-              </p>
-            </div>
-          </div>
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -116,7 +126,13 @@ export function LandingFaq() {
   return (
     <section id="faq" className="bg-[#f5f5f3] dark:bg-[#09090b] py-16 md:py-20">
       <div className="mx-auto w-full max-w-3xl px-6 md:px-12">
-        <div className="mb-10 text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-10 text-center"
+        >
           <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
             FAQ
           </span>
@@ -126,7 +142,7 @@ export function LandingFaq() {
           <p className="mt-4 text-base text-neutral-600 dark:text-zinc-400">
             Everything you need to know before shipping your first form.
           </p>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col gap-3">
           {FAQS.map((item, i) => (

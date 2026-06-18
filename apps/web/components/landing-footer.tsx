@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { IconBrandGithub, IconBrandLinkedin, IconBrandX } from "@tabler/icons-react";
 import { Logo } from "@/components/logo";
 
@@ -26,7 +29,13 @@ export function LandingFooter() {
 
   return (
     <footer className="border-t border-dashed border-neutral-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mx-auto flex max-w-[88rem] flex-col items-center justify-between gap-5 px-6 py-8 sm:flex-row md:px-12">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="mx-auto flex max-w-[88rem] flex-col items-center justify-between gap-5 px-6 py-8 sm:flex-row md:px-12"
+      >
         <Logo isLanding href="/" />
 
         <div className="flex items-center gap-1">
@@ -47,7 +56,7 @@ export function LandingFooter() {
         <p className="text-xs text-neutral-400 dark:text-zinc-600">
           © {year} FormForge · Samarth Pagaria
         </p>
-      </div>
+      </motion.div>
     </footer>
   );
 }

@@ -76,22 +76,22 @@ export function SaveTemplateModal({ isOpen, onClose, defaultName, onSave, isSavi
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-md bg-white rounded-3xl shadow-xl border border-neutral-200/60 overflow-hidden flex flex-col"
+          className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-neutral-200/60 dark:border-zinc-800 overflow-hidden flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-neutral-100 bg-neutral-50/50">
+          <div className="flex items-center justify-between p-5 border-b border-neutral-100 dark:border-zinc-800 bg-neutral-50/50 dark:bg-zinc-800/50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-violet-100 text-violet-600 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-xl flex items-center justify-center">
                 <Save size={20} />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-neutral-800">Save as Template</h2>
-                <p className="text-xs text-neutral-500">Create a reusable template from this form</p>
+                <h2 className="text-lg font-bold text-neutral-800 dark:text-zinc-100">Save as Template</h2>
+                <p className="text-xs text-neutral-500 dark:text-zinc-400">Create a reusable template from this form</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors"
+              className="p-2 text-neutral-400 dark:text-zinc-500 hover:text-neutral-600 dark:hover:text-zinc-300 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
             >
               <X size={20} />
             </button>
@@ -100,20 +100,20 @@ export function SaveTemplateModal({ isOpen, onClose, defaultName, onSave, isSavi
           {/* Body */}
           <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-neutral-700">Template Name</label>
+              <label className="text-sm font-semibold text-neutral-700 dark:text-zinc-200">Template Name</label>
               <input
                 type="text"
                 autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Employee Feedback Survey"
-                className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+                className="w-full px-4 py-2.5 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 text-neutral-900 dark:text-zinc-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all placeholder:text-neutral-400 dark:placeholder:text-zinc-500"
                 required
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-neutral-700">Category (Optional)</label>
+              <label className="text-sm font-semibold text-neutral-700 dark:text-zinc-200">Category (Optional)</label>
               
               {isCreatingCategory ? (
                 <div className="flex items-center gap-2">
@@ -128,13 +128,13 @@ export function SaveTemplateModal({ isOpen, onClose, defaultName, onSave, isSavi
                       }
                     }}
                     placeholder="New category name..."
-                    className="flex-1 px-4 py-2 bg-white border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    className="flex-1 px-4 py-2 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 text-neutral-900 dark:text-zinc-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-neutral-400 dark:placeholder:text-zinc-500"
                   />
                   <button
                     type="button"
                     onClick={handleCreateCategory}
                     disabled={isCreatingCat || !newCategoryName.trim()}
-                    className="p-2 bg-neutral-900 text-white rounded-xl hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                    className="p-2 bg-neutral-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl hover:bg-neutral-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50"
                   >
                     {isCreatingCat ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
                   </button>
@@ -144,7 +144,7 @@ export function SaveTemplateModal({ isOpen, onClose, defaultName, onSave, isSavi
                       setIsCreatingCategory(false);
                       setNewCategoryName("");
                     }}
-                    className="p-2 text-neutral-500 hover:bg-neutral-100 rounded-xl transition-colors"
+                    className="p-2 text-neutral-500 dark:text-zinc-400 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
                   >
                     <X size={18} />
                   </button>
@@ -152,11 +152,11 @@ export function SaveTemplateModal({ isOpen, onClose, defaultName, onSave, isSavi
               ) : (
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <Folder size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    <Folder size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-zinc-500" />
                     <select
                       value={categoryId}
                       onChange={(e) => setCategoryId(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2.5 bg-white border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all appearance-none"
+                      className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 text-neutral-900 dark:text-zinc-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all appearance-none"
                     >
                       <option value="">No Category</option>
                       {categories?.map((cat) => (
@@ -169,7 +169,7 @@ export function SaveTemplateModal({ isOpen, onClose, defaultName, onSave, isSavi
                   <button
                     type="button"
                     onClick={() => setIsCreatingCategory(true)}
-                    className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-sm font-medium transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-xl text-sm font-medium transition-colors whitespace-nowrap"
                   >
                     <Plus size={16} /> New
                   </button>
@@ -182,7 +182,7 @@ export function SaveTemplateModal({ isOpen, onClose, defaultName, onSave, isSavi
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 text-sm font-semibold text-neutral-600 hover:bg-neutral-100 rounded-xl transition-colors"
+                className="px-5 py-2.5 text-sm font-semibold text-neutral-600 dark:text-zinc-300 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
               >
                 Cancel
               </button>

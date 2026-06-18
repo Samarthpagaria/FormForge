@@ -78,7 +78,7 @@ export default function PublicFormPage({
       .then(res => res.json())
       .then(data => {
         setUserIp(data.ip);
-        setUserCountry(data.country_code || data.country || "Unknown");
+        setUserCountry(data.country_code ? data.country_code.toUpperCase() : "Unknown");
         setUserLat(data.latitude ? parseFloat(data.latitude) : undefined);
         setUserLng(data.longitude ? parseFloat(data.longitude) : undefined);
       })

@@ -140,7 +140,7 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage || lastMessage.sender !== "bot" || lastMessage.fieldId !== currentField.id) return null;
 
-    if ((currentField.type === "radio" || currentField.type === "dropdown") && currentField.options) {
+    if ((currentField.type === "radio" || currentField.type === "select") && currentField.options) {
       return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap gap-2 mt-2 max-w-[85%]">
           {currentField.options.map(opt => (
@@ -211,7 +211,7 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
     return null;
   };
 
-  const isTextInput = currentField?.type === "text" || currentField?.type === "short_text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" || currentField?.type === "textarea" || currentField?.type === "long_text" || currentField?.type === "date" || currentField?.type === "file";
+  const isTextInput = currentField?.type === "text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" || currentField?.type === "textarea" || currentField?.type === "date" || currentField?.type === "file";
 
   return (
     <div className="flex flex-col w-full h-[600px] max-h-[80vh] max-w-[500px] mx-auto bg-white rounded-3xl shadow-xl border border-neutral-200/60 overflow-hidden relative">

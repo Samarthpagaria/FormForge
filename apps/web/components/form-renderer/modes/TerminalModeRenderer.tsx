@@ -69,7 +69,7 @@ export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeR
           newLines.push({ id: `desc-${field.id}`, type: "system", text: `       ${field.description}` });
         }
 
-        if (field.options && (field.type === "radio" || field.type === "checkbox" || field.type === "dropdown")) {
+        if (field.options && (field.type === "radio" || field.type === "checkbox" || field.type === "select")) {
           newLines.push({ 
             id: `opt-${field.id}`, 
             type: "options", 

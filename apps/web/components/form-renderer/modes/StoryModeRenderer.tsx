@@ -60,7 +60,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
 
     // Specific logic for radio/checkbox where value is already in engine.values
     let finalVal = val;
-    if (field.type === "radio" || field.type === "checkbox" || field.type === "rating" || field.type === "dropdown") {
+    if (field.type === "radio" || field.type === "checkbox" || field.type === "rating" || field.type === "select") {
       finalVal = values[field.id]; // They selected it via inline UI
       if (field.type === "checkbox" && Array.isArray(finalVal)) {
         if (finalVal.length === 0) finalVal = "";
@@ -73,7 +73,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
       return;
     }
 
-    if (field.type === "text" || field.type === "short_text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "textarea" || field.type === "long_text" || field.type === "date" || field.type === "file") {
+    if (field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "textarea" || field.type === "date" || field.type === "file") {
       handleChange(field.id, finalVal);
     }
 
@@ -122,9 +122,9 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                   </span>
                 ) : (
                   <span className="inline-block align-middle ml-2 relative top-[-2px]">
-                    {field.type === "text" || field.type === "short_text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "textarea" || field.type === "long_text" || field.type === "date" || field.type === "file" ? (
+                    {field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "textarea" || field.type === "date" || field.type === "file" ? (
                       <form onSubmit={handleInputSubmit} className="inline-flex items-end">
-                        {field.type === "textarea" || field.type === "long_text" ? (
+                        {field.type === "textarea" ? (
                           <textarea
                             autoFocus
                             value={inputValue}
@@ -142,7 +142,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                         ) : (
                           <input
                             autoFocus
-                            type={field.type === "short_text" ? "text" : field.type === "date" ? "date" : field.type === "file" ? "file" : field.type}
+                            type={field.type === "text" ? "text" : field.type === "date" ? "date" : field.type === "file" ? "file" : field.type}
                             value={inputValue}
                             onChange={(e) => { setInputValue(e.target.value); setFieldError(null); }}
                             placeholder="Type here..."
@@ -153,7 +153,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                           <Send size={24} />
                         </button>
                       </form>
-                    ) : field.type === "radio" || field.type === "checkbox" || field.type === "dropdown" ? (
+                    ) : field.type === "radio" || field.type === "checkbox" || field.type === "select" ? (
                       <div className="block mt-4 text-sans text-base font-sans font-medium">
                         <div className="flex flex-wrap gap-2">
                           {field.options?.map(opt => {

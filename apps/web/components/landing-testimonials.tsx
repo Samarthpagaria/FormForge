@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Quote } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Testimonial {
   name: string;
@@ -113,7 +114,13 @@ export function LandingTestimonials() {
       className="overflow-hidden bg-[#f5f5f3] dark:bg-[#09090b] py-16 md:py-20"
     >
       <div className="mx-auto mb-10 w-full max-w-7xl px-6 md:px-12 lg:px-24">
-        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto flex max-w-3xl flex-col items-center text-center"
+        >
           <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
             Testimonials
           </span>
@@ -123,7 +130,7 @@ export function LandingTestimonials() {
           <p className="mt-4 text-base text-neutral-600 dark:text-zinc-400 max-w-2xl">
             From indie developers to growth teams, FormForge ships the workflow they actually want.
           </p>
-        </div>
+        </motion.div>
       </div>
 
       <div className="flex flex-col gap-4">

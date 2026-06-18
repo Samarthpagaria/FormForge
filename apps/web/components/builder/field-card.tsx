@@ -138,9 +138,9 @@ export function FieldCard({
         {type === "radio" && (
           <div className="flex flex-col gap-1.5">
             {displayOptions.map((opt, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-neutral-600">
-                <div className="w-4 h-4 rounded-full border-2 border-neutral-300 flex items-center justify-center">
-                  {i === 0 && <div className="w-2 h-2 rounded-full bg-violet-600" />}
+              <div key={i} className="flex items-center gap-2 text-sm text-neutral-600 dark:text-zinc-400">
+                <div className="w-4 h-4 rounded-full border-2 border-neutral-300 dark:border-zinc-600 flex items-center justify-center">
+                  {i === 0 && <div className="w-2 h-2 rounded-full bg-violet-600 dark:bg-violet-500" />}
                 </div>
                 {opt}
               </div>
@@ -151,8 +151,8 @@ export function FieldCard({
         {type === "checkbox" && (
           <div className="flex flex-col gap-1.5">
             {displayOptions.map((opt, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-neutral-600">
-                <div className={cn("w-4 h-4 rounded border flex items-center justify-center", i === 0 ? "bg-violet-600 border-violet-600 text-white" : "border-neutral-300")}>
+              <div key={i} className="flex items-center gap-2 text-sm text-neutral-600 dark:text-zinc-400">
+                <div className={cn("w-4 h-4 rounded border flex items-center justify-center", i === 0 ? "bg-violet-600 border-violet-600 dark:bg-violet-500 dark:border-violet-500 text-white" : "border-neutral-300 dark:border-zinc-600")}>
                   {i === 0 && (
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
@@ -182,7 +182,7 @@ export function FieldCard({
         {type === "rating" && (
           <div className="flex items-center gap-1">
             {Array.from({ length: ratingMax }).map((_, i) => (
-              <svg key={i} width="22" height="22" viewBox="0 0 24 24" fill={i === 0 ? "#f59e0b" : "currentColor"} className={i === 0 ? "text-amber-400" : "text-neutral-200"}>
+              <svg key={i} width="22" height="22" viewBox="0 0 24 24" fill={i === 0 ? "#f59e0b" : "currentColor"} className={i === 0 ? "text-amber-400" : "text-neutral-200 dark:text-zinc-700"}>
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             ))}
@@ -192,7 +192,7 @@ export function FieldCard({
 
       {/* Help text */}
       {helpText && (
-        <div className="text-[11px] text-neutral-400 mt-1">{helpText}</div>
+        <div className="text-[11px] text-neutral-400 dark:text-zinc-500 mt-1">{helpText}</div>
       )}
     </div>
   );

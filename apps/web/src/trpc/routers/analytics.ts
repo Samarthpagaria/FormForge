@@ -592,44 +592,74 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       try {
         const userForms = await ctx.db.select({ id: forms.id }).from(forms).where(eq(forms.userId, ctx.auth.userId));
-        if (userForms.length === 0) return { regions: [], points: [] };
+        if (userForms.length === 0) return { regions: [], points: [], pins: [] };
 
         let formIds = userForms.map((f) => f.id);
         if (input?.formIds && input.formIds.length > 0) {
           formIds = formIds.filter(id => input.formIds!.includes(id));
         }
 
-        if (formIds.length === 0) return { regions: [], points: [] };
+        if (formIds.length === 0) return { regions: [], points: [], pins: [] };
 
         const regionData = await ctx.db
           .select({
-            country: sql<string>`meta->>'country'`,
+            country: sql<string>`UPPER(TRIM(meta->>'country'))`,
             count: count(),
           })
           .from(submissions)
           .where(and(
             inArray(submissions.formId, formIds), 
             sql`meta->>'country' IS NOT NULL`,
-            sql`meta->>'country' != 'Unknown'`
+            sql`meta->>'country' != 'Unknown'`,
+            sql`meta->>'country' != ''`
           ))
-          .groupBy(sql`meta->>'country'`);
+          .groupBy(sql`UPPER(TRIM(meta->>'country'))`);
 
         const pointData = await ctx.db
           .select({
-            lat: sql<number>`(meta->>'lat')::numeric`,
-            lng: sql<number>`(meta->>'lng')::numeric`,
+            lat: sql<number>`(meta->>'lat')::float`,
+            lng: sql<number>`(meta->>'lng')::float`,
             count: count(),
           })
           .from(submissions)
           .where(and(
             inArray(submissions.formId, formIds),
-            sql`meta->>'lat' IS NOT NULL`
+            sql`meta->>'lat' IS NOT NULL`,
+            sql`meta->>'lng' IS NOT NULL`,
+            sql`(meta->>'lat')::float BETWEEN -90 AND 90`,
+            sql`(meta->>'lng')::float BETWEEN -180 AND 180`
           ))
-          .groupBy(sql`(meta->>'lat')::numeric`, sql`(meta->>'lng')::numeric`);
+          .groupBy(sql`(meta->>'lat')::float`, sql`(meta->>'lng')::float`);
+
+        const pinRows = await ctx.db
+          .select({
+            lat: sql<number>`(meta->>'lat')::float`,
+            lng: sql<number>`(meta->>'lng')::float`,
+          })
+          .from(submissions)
+          .where(and(
+            inArray(submissions.formId, formIds),
+            sql`meta->>'lat' IS NOT NULL`,
+            sql`meta->>'lng' IS NOT NULL`
+          ))
+          .orderBy(desc(submissions.submittedAt))
+          .limit(150);
 
         return {
-          regions: regionData.map((d) => ({ id: d.country, value: d.count })),
-          points: pointData.map((d) => ({ lat: Number(d.lat), lng: Number(d.lng), value: d.count }))
+          regions: regionData.map((d) => ({
+            iso2: d.country,
+            id: d.country,
+            value: Number(d.count),
+          })),
+          points: pointData.map((d) => ({
+            lat: Number(d.lat),
+            lng: Number(d.lng),
+            value: Number(d.count),
+          })),
+          pins: pinRows.map((d) => ({
+            lat: Number(d.lat),
+            lng: Number(d.lng),
+          })),
         };
       } catch (err) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch map data" });

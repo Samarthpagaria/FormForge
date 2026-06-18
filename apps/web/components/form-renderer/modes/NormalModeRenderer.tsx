@@ -38,7 +38,7 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
 
     switch (field.type) {
       case "text":
-      case "short_text":
+      case "text":
       case "email":
       case "phone":
       case "number":
@@ -46,10 +46,10 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
       case "file":
         return <FieldText {...commonProps} />;
       case "textarea":
-      case "long_text":
+      case "textarea":
         return <FieldTextarea {...commonProps} />;
       case "radio":
-      case "dropdown":
+      case "select":
         return <FieldRadioGroup {...commonProps} />;
       case "checkbox":
         return <FieldCheckboxGroup {...commonProps} />;

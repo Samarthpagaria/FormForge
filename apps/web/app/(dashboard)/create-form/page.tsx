@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Sparkles, Loader2, LayoutTemplate, ArrowUpRight } from "lucide-react";
 import { trpc } from "@/src/trpc/client";
 import { toast } from "sonner";
+import { TemplateDetailsModal } from "@/components/template-details-modal";
 
 // Sample template images from public/templates
 const TEMPLATES_IMAGES = [
@@ -61,7 +62,7 @@ function SlantedDivider() {
   return (
     <div className="relative w-[30px] shrink-0 overflow-hidden self-stretch bg-white">
       <div
-        className="absolute inset-0 border border-gray-400 border-t-0 border-b-0"
+        className="absolute inset-0 border border-gray-400 dark:border-zinc-700 border-t-0 border-b-0"
         style={{
           backgroundImage:
             "repeating-linear-gradient(135deg, #d4d4d8 0px, #d4d4d8 2px, transparent 2px, transparent 5px)",
@@ -104,6 +105,11 @@ export default function CreateFormPage() {
   const [desc, setDesc] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTemplateId, setModalTemplateId] = useState<string | null>(null);
+  const [modalName, setModalName] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
+
   const { mutate: createForm, isPending: isCreatingBlank, error: blankError } = trpc.forms.create.useMutation({
     onSuccess: (data) => {
       toast.success("Form created! Redirecting to builder...");
@@ -115,33 +121,21 @@ export default function CreateFormPage() {
   });
 
   const { data: templates, isLoading: loadingTemplates } = trpc.templates.getAll.useQuery();
-  const { mutate: createFromTemplate, isPending: isCreatingFromTemplate, error: templateError } = trpc.templates.createFormFromTemplate.useMutation({
-    onSuccess: (data) => {
-      toast.success("Form created from template!");
-      router.push(`/forms/${data.id}/builder`);
-    },
-    onError: (err) => {
-      toast.error(err.message || "Failed to create form from template");
-    },
-  });
+  // Removed createFormFromTemplate mutation from here since it's handled by TemplateDetailsModal
 
   const handleSubmit = () => {
     if (!name.trim()) {
       toast.warning("Please enter a form name.");
       return;
     }
-    if (selectedTemplateId && !selectedTemplateId.startsWith('dummy')) {
-      createFromTemplate({ templateId: selectedTemplateId, name: name.trim(), description: desc.trim() });
-    } else {
-      createForm({ name: name.trim(), description: desc.trim() });
-    }
+    createForm({ name: name.trim(), description: desc.trim() });
   };
 
   const handleTemplateClick = (templateId: string, templateName: string, templateDesc?: string) => {
-    setName(templateName);
-    if (templateDesc) setDesc(templateDesc);
-    setSelectedTemplateId(templateId);
-    toast.success(`Selected "${templateName}". Edit details and click Start building.`);
+    setModalTemplateId(templateId);
+    setModalName(templateName);
+    setModalDesc(templateDesc || "");
+    setModalOpen(true);
   };
 
   return (
@@ -153,13 +147,13 @@ export default function CreateFormPage() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-1/2 bg-white flex flex-col items-center justify-center px-12 pt-24 pb-16 relative overflow-y-auto"
+        className="w-1/2 bg-white dark:bg-zinc-950 flex flex-col items-center justify-center px-12 pt-24 pb-16 relative overflow-y-auto"
       >
         {/* Back link — top-left absolute but below navbar */}
         <div className="absolute top-24 left-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-400 hover:text-neutral-800 transition-colors duration-200"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-400 dark:text-zinc-500 hover:text-neutral-800 dark:hover:text-zinc-200 transition-colors duration-200"
           >
             <ArrowLeft size={13} />
             Back
@@ -182,16 +176,16 @@ export default function CreateFormPage() {
             }}
           />
 
-          <div className="relative z-10 bg-white/95 backdrop-blur-xl rounded-[1.5rem] p-8 sm:p-10 shadow-sm border border-white">
+          <div className="relative z-10 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl rounded-[1.5rem] p-8 sm:p-10 shadow-sm border border-white dark:border-zinc-800">
             {/* Heading */}
             <div className="mb-8">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400 mb-1.5">
-                {selectedTemplateId ? "From Template" : "Start from scratch"}
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-zinc-500 mb-1.5">
+                Start from scratch
               </p>
-              <h1 className="text-2xl font-bold text-neutral-900 tracking-tight leading-snug">
-                {selectedTemplateId ? "Customize form details" : "Create a blank form"}
+              <h1 className="text-2xl font-bold text-neutral-900 dark:text-zinc-100 tracking-tight leading-snug">
+                Create a blank form
               </h1>
-              <p className="text-sm text-neutral-400 mt-2 leading-relaxed">
+              <p className="text-sm text-neutral-400 dark:text-zinc-500 mt-2 leading-relaxed">
                 Give your form a name and description to get started.
               </p>
             </div>
@@ -200,31 +194,31 @@ export default function CreateFormPage() {
             <div className="flex flex-col gap-5">
               {/* Form name */}
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                <label className="block text-xs font-semibold text-neutral-700 dark:text-zinc-300 mb-1.5">
                   Form name{" "}
-                  <span className="text-neutral-400 font-normal">(required)</span>
+                  <span className="text-neutral-400 dark:text-zinc-500 font-normal">(required)</span>
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. Customer Feedback"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full text-sm text-neutral-900 placeholder-neutral-300 bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 outline-none focus:bg-white focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100 transition-all duration-200"
+                  className="w-full text-sm text-neutral-900 dark:text-zinc-100 placeholder-neutral-300 dark:placeholder-zinc-600 bg-neutral-50 dark:bg-zinc-900/50 border border-neutral-200 dark:border-zinc-800 rounded-2xl px-4 py-3 outline-none focus:bg-white dark:focus:bg-zinc-900 focus:border-neutral-400 dark:focus:border-zinc-600 focus:ring-4 focus:ring-neutral-100 dark:focus:ring-zinc-800/50 transition-all duration-200"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                <label className="block text-xs font-semibold text-neutral-700 dark:text-zinc-300 mb-1.5">
                   Description{" "}
-                  <span className="text-neutral-400 font-normal">(optional)</span>
+                  <span className="text-neutral-400 dark:text-zinc-500 font-normal">(optional)</span>
                 </label>
                 <textarea
                   rows={4}
                   placeholder="What is this form for?"
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  className="w-full text-sm text-neutral-900 placeholder-neutral-300 bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 outline-none focus:bg-white focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100 transition-all duration-200 resize-none"
+                  className="w-full text-sm text-neutral-900 dark:text-zinc-100 placeholder-neutral-300 dark:placeholder-zinc-600 bg-neutral-50 dark:bg-zinc-900/50 border border-neutral-200 dark:border-zinc-800 rounded-2xl px-4 py-3 outline-none focus:bg-white dark:focus:bg-zinc-900 focus:border-neutral-400 dark:focus:border-zinc-600 focus:ring-4 focus:ring-neutral-100 dark:focus:ring-zinc-800/50 transition-all duration-200 resize-none"
                 />
               </div>
 
@@ -234,17 +228,11 @@ export default function CreateFormPage() {
                   {blankError.message}
                 </p>
               )}
-              {templateError && (
-                <p className="text-xs font-semibold text-red-500">
-                  {templateError.message}
-                </p>
-              )}
-
               {/* CTA button */}
               <motion.button
                 whileHover={{ scale: 1.015 }}
                 whileTap={{ scale: 0.97 }}
-                disabled={!name.trim() || isCreatingBlank || isCreatingFromTemplate}
+                disabled={!name.trim() || isCreatingBlank}
                 onClick={handleSubmit}
                 className="mt-1 w-full inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
                 style={{
@@ -254,12 +242,12 @@ export default function CreateFormPage() {
                   animation: "btnGrad 4s ease infinite",
                 }}
               >
-                {isCreatingBlank || isCreatingFromTemplate ? (
+                {isCreatingBlank ? (
                   <Loader2 size={15} className="animate-spin" />
                 ) : (
                   <Sparkles size={15} className="stroke-[1.75]" />
                 )}
-                {isCreatingBlank || isCreatingFromTemplate ? "Creating..." : "Start building"}
+                {isCreatingBlank ? "Creating..." : "Start building"}
                 <style jsx>{`
                   @keyframes btnGrad {
                     0%   { background-position: 0% 50%; }
@@ -269,7 +257,7 @@ export default function CreateFormPage() {
                 `}</style>
               </motion.button>
 
-              <p className="text-[10px] text-neutral-400 text-center">
+              <p className="text-[10px] text-neutral-400 dark:text-zinc-500 text-center">
                 You can always edit these details later
               </p>
             </div>
@@ -285,7 +273,7 @@ export default function CreateFormPage() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: 0.05 }}
-        className="w-1/2 relative flex flex-col items-center bg-white overflow-hidden"
+        className="w-1/2 relative flex flex-col items-center bg-white dark:bg-zinc-950 overflow-hidden"
       >
         {/* Crosshair grid background */}
         <SpotlightBackground />
@@ -293,20 +281,16 @@ export default function CreateFormPage() {
         {/* Center content */}
         <div className="absolute inset-0 z-10 flex flex-col pt-28 pb-0 px-4 sm:px-8 w-full">
             
-            <h2 className="text-2xl font-bold text-center text-neutral-900 tracking-tight mb-8 shrink-0 w-full">
+            <h2 className="text-2xl font-bold text-center text-neutral-900 dark:text-zinc-100 tracking-tight mb-8 shrink-0 w-full">
               Start from a Template
             </h2>
 
-            {templateError && (
-              <p className="text-xs font-semibold text-center text-red-500 mb-4 w-full">
-                {templateError.message}
-              </p>
-            )}
+            {/* Removed templateError from here as well */}
 
             {loadingTemplates ? (
               <div className="flex flex-col items-center justify-center flex-1 gap-2 w-full">
-                <Loader2 size={24} className="animate-spin text-neutral-400" />
-                <p className="text-xs text-neutral-400 font-medium">Loading templates...</p>
+                <Loader2 size={24} className="animate-spin text-neutral-400 dark:text-zinc-600" />
+                <p className="text-xs text-neutral-400 dark:text-zinc-500 font-medium">Loading templates...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full flex-1 overflow-y-auto pb-0 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -341,7 +325,6 @@ export default function CreateFormPage() {
                         </div>
 
                         <button 
-                          disabled={isCreatingFromTemplate}
                           onClick={() => handleTemplateClick(template.id, template.name, "template.description")}
                           className={`flex items-center gap-1.5 transition-colors backdrop-blur-md py-1 pl-2.5 pr-2 rounded-full cursor-pointer group shrink-0 disabled:opacity-50 disabled:cursor-wait ${
                             selectedTemplateId === template.id 
@@ -350,13 +333,9 @@ export default function CreateFormPage() {
                           }`}
                         >
                           <span className="text-white font-medium text-[10px] tracking-tight">
-                            {selectedTemplateId === template.id ? "Selected" : "Use"}
+                            Use
                           </span>
-                          {isCreatingFromTemplate && !template.id.startsWith('dummy') && selectedTemplateId === template.id ? (
-                            <Loader2 size={12} className="text-white animate-spin" />
-                          ) : (
-                            <ArrowUpRight size={12} className="text-white/80 group-hover:text-white transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                          )}
+                          <ArrowUpRight size={12} className="text-white/80 group-hover:text-white transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </button>
                       </div>
                     </div>
@@ -366,6 +345,13 @@ export default function CreateFormPage() {
             )}
           </div>
         </motion.section>
+      <TemplateDetailsModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        templateId={modalTemplateId}
+        initialName={modalName}
+        initialDesc={modalDesc}
+      />
     </div>
   );
 }

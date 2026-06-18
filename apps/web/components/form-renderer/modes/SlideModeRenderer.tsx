@@ -114,7 +114,7 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
               )}
 
               <div className="w-full">
-                {currentField?.type === "text" || currentField?.type === "short_text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" || currentField?.type === "date" || currentField?.type === "file" ? (
+                {currentField?.type === "text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" || currentField?.type === "date" || currentField?.type === "file" ? (
                   <input
                     autoFocus
                     type={currentField.type === "email" ? "email" : currentField.type === "number" ? "number" : currentField.type === "date" ? "date" : currentField.type === "file" ? "file" : "text"}
@@ -123,7 +123,7 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
                     placeholder="Type your answer..."
                     className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-6 py-4 text-2xl text-white focus:border-blue-500 outline-none transition-colors shadow-inner"
                   />
-                ) : currentField?.type === "textarea" || currentField?.type === "long_text" ? (
+                ) : currentField?.type === "textarea" ? (
                   <textarea
                     autoFocus
                     value={values[currentField.id] || ""}
@@ -131,7 +131,7 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
                     placeholder="Type your answer..."
                     className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-6 py-4 text-xl text-white focus:border-blue-500 outline-none transition-colors shadow-inner min-h-[160px] resize-none"
                   />
-                ) : currentField?.type === "radio" || currentField?.type === "checkbox" || currentField?.type === "dropdown" ? (
+                ) : currentField?.type === "radio" || currentField?.type === "checkbox" || currentField?.type === "select" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {currentField.options?.map(opt => {
                       const isMulti = currentField.type === "checkbox";

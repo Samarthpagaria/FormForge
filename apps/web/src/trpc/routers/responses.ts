@@ -5,6 +5,7 @@ import { eq, and, desc, sql, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { sendSubmissionEmail } from "../../services/email";
+import { enrichSubmissionMeta } from "../../services/geo-enrichment";
 
 export const responsesRouter = createTRPCRouter({
   /**
@@ -146,13 +147,15 @@ export const responsesRouter = createTRPCRouter({
         }
 
         // create submission
+        const enrichedMeta = await enrichSubmissionMeta(input.meta);
+
         const newSubmission = await ctx.db
           .insert(submissions)
           .values({
             formId: input.formId,
             formVersionId: input.formVersionId,
             sessionId: input.sessionId,
-            meta: input.meta,
+            meta: enrichedMeta,
           })
           .returning();
 
