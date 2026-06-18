@@ -20,6 +20,9 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
   const [inputValue, setInputValue] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
 
+  // Simple input types that can be rendered with a generic <input> element
+  const simpleInputTypes = new Set<string>(["text", "email", "number", "phone", "textarea", "date", "file", "password", "time", "datetime", "color", "range", "url", "hidden"]);
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Initialize chunks based on schema
@@ -122,7 +125,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                   </span>
                 ) : (
                   <span className="inline-block align-middle ml-2 relative top-[-2px]">
-                    {field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "textarea" || field.type === "date" || field.type === "file" ? (
+                    {simpleInputTypes.has(field.type) ? (
                       <form onSubmit={handleInputSubmit} className="inline-flex items-end">
                         {field.type === "textarea" ? (
                           <textarea
@@ -142,14 +145,39 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                         ) : (
                           <input
                             autoFocus
-                            type={field.type === "text" ? "text" : field.type === "date" ? "date" : field.type === "file" ? "file" : field.type}
-                            value={inputValue}
-                            onChange={(e) => { setInputValue(e.target.value); setFieldError(null); }}
+                            type={(() => {
+                              const typeMap: Record<string, string> = {
+                                text: "text",
+                                email: "email",
+                                number: "number",
+                                phone: "tel",
+                                password: "password",
+                                date: "date",
+                                time: "time",
+                                datetime: "datetime-local",
+                                color: "color",
+                                range: "range",
+                                url: "url",
+                                hidden: "hidden",
+                                file: "file",
+                              };
+                              return typeMap[field.type] || "text";
+                            })()}
+                            value={field.type === "file" ? undefined : inputValue}
+                            onChange={(e) => {
+                              if (field.type === "file") {
+                                const file = (e.target as HTMLInputElement).files?.[0];
+                                if (file) handleChange(field.id, file);
+                              } else {
+                                setInputValue(e.target.value);
+                              }
+                              setFieldError(null);
+                            }}
                             placeholder="Type here..."
                             className="w-48 md:w-64 bg-transparent border-b-2 border-[#c97064] outline-none text-[#c97064] font-bold text-xl md:text-2xl py-1 px-2 placeholder:font-normal placeholder:text-[#c97064]/40"
                           />
                         )}
-                        <button type="submit" disabled={!inputValue.trim()} className="ml-2 text-[#c97064] hover:text-[#a05247] disabled:opacity-30 disabled:hover:text-[#c97064]">
+                        <button type="submit" disabled={!inputValue.trim() && field.type !== "file"} className="ml-2 text-[#c97064] hover:text-[#a05247] disabled:opacity-30 disabled:hover:text-[#c97064]">
                           <Send size={24} />
                         </button>
                       </form>

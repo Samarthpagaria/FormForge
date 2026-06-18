@@ -216,9 +216,9 @@ function IconContainer({
                     <a
                       key={i}
                       href={sub.href}
-                      className="flex items-center gap-2.5 px-2 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+                      className="flex items-center gap-2.5 px-2 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer dark:text-zinc-300"
                     >
-                      {sub.icon && <span className="w-4 h-4 flex items-center justify-center text-neutral-500">{sub.icon}</span>}
+                      {sub.icon && <span className="w-4 h-4 flex items-center justify-center text-neutral-500 dark:text-zinc-300">{sub.icon}</span>}
                       {sub.title}
                     </a>
                   ))}

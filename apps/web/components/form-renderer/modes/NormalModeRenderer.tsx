@@ -1,6 +1,6 @@
 import React from "react";
 import { FormSchema, FormField } from "../schema";
-import { FieldText, FieldTextarea, FieldRadioGroup, FieldCheckboxGroup, FieldRating, FieldFallback } from "../fields";
+import { FieldText, FieldTextarea, FieldRadioGroup, FieldCheckboxGroup, FieldRating, FieldSelect, FieldFallback } from "../fields";
 import { motion } from "framer-motion";
 
 export interface ModeRendererProps {
@@ -37,7 +37,7 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
     };
 
     switch (field.type) {
-      case "text":
+      case "short_text":
       case "text":
       case "email":
       case "phone":
@@ -46,13 +46,14 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
       case "file":
         return <FieldText {...commonProps} />;
       case "textarea":
-      case "textarea":
         return <FieldTextarea {...commonProps} />;
       case "radio":
-      case "select":
         return <FieldRadioGroup {...commonProps} />;
       case "checkbox":
         return <FieldCheckboxGroup {...commonProps} />;
+      case "select":
+      case "dropdown":
+        return <FieldSelect {...commonProps} />;
       case "rating":
         return <FieldRating {...commonProps} />;
       default:

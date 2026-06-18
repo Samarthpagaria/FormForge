@@ -124,7 +124,7 @@ export function FieldPalette() {
         {filteredSections.map((section, idx) => (
           <React.Fragment key={section.title}>
             <div className="py-2.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2 px-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-zinc-400 mb-2 px-2">
                 {section.title}
               </h3>
               <div className="flex flex-col space-y-0.5">

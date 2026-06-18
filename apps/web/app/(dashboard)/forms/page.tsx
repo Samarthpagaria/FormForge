@@ -269,7 +269,12 @@ export default function FormsPage() {
                       </Link>
                     </div>
                     <button
-                      onClick={(e) => { e.preventDefault(); handleDelete(form.id, form.name); }}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleDelete(form.id, form.name);
+                      }}
                       disabled={deletingId === form.id}
                       className="flex items-center gap-1 bg-white/10 hover:bg-red-500/80 transition-colors backdrop-blur-md py-1 pl-1.5 pr-2 rounded-full cursor-pointer text-white/80 hover:text-white shrink-0 disabled:opacity-50"
                     >

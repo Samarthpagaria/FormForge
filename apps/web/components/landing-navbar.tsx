@@ -29,22 +29,15 @@ const pillShell =
 const iconBtn =
   "flex size-9 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100";
 
-"use client";
-
 function NavUpvote() {
   const [count, setCount] = useState(0);
   const [mounted, setMounted] = useState(false);
   const { data, refetch } = trpc.site.getUpvoteCount.useQuery(undefined, { staleTime: 30_000 });
   const increment = trpc.site.incrementUpvote.useMutation({ onSuccess: () => refetch() });
 
+  useEffect(() => setMounted(true), []);
   useEffect(() => {
-    setMounted(true)
-  }, []);
-
-  useEffect(() => {
-    if (data?.count !== undefined) {
-      setCount(data.count);
-    }
+    if (data?.count !== undefined) setCount(data.count);
   }, [data?.count]);
 
   const handleUpvote = () => {
@@ -61,58 +54,7 @@ function NavUpvote() {
     <button
       type="button"
       onClick={handleUpvote}
-      className={cx(
-        iconBtn,
-        "gap-1 px-2 w-auto",
-        !mounted && "opacity-0 pointer-events-none"
-      )}
-    >
-      <ChevronUp className="size-4 stroke-[2.5]" />
-      <span className="text-[11px] font-semibold text-neutral-500 dark:text-zinc-500">Upvote</span>
-      <span className="min-w-[1ch] text-xs font-bold tabular-nums text-neutral-900 dark:text-zinc-100">
-        {mounted ? count.toLocaleString() : "0"}
-      </span>
-    </button>
-  );
-}
-  const [count, setCount] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const { data, refetch } = trpc.site.getUpvoteCount.useQuery(undefined, { staleTime: 30_000 });
-  const increment = trpc.site.incrementUpvote.useMutation({ onSuccess: () => refetch() });
-
-  useEffect(() => {
-    setMounted(true)
-  }, []);
-
-  useEffect(() => {
-    if (data?.count !== undefined) {
-      setCount(data.count);
-    }
-  }, [data?.count]);
-
-  const handleUpvote = () => { 
-    setCount((prev) => prev + 1);
-    localStorage.setItem(VOTED_KEY, "true");
-
-    increment.mutate(undefined, {
-      onError: () => {
-        setCount((prev) => prev - 1);
-
-        localStorage.removeItem(VOTED_KEY);
-        toast.error("Failed to upvote. Please try again.");
-      },
-    });
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleUpvote}
-      className={cx(
-        iconBtn,
-        "gap-1 px-2 w-auto",
-        !mounted && "opacity-0 pointer-events-none"
-      )}
+      className={cx(iconBtn, "gap-1 px-2 w-auto", !mounted && "opacity-0 pointer-events-none")}
     >
       <ChevronUp className="size-4 stroke-[2.5]" />
       <span className="text-[11px] font-semibold text-neutral-500 dark:text-zinc-500">Upvote</span>
@@ -125,7 +67,7 @@ function NavUpvote() {
 
 export function LandingNavbar() {
   const router = useRouter();
-  const { isLoaded, isSignedIn } = useUser();
+  const { isSignedIn } = useUser();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -140,21 +82,17 @@ export function LandingNavbar() {
           </div>
         </div>
 
-        <nav className={cx(pillShell, "absolute left-1/2 hidden -translate-x-1/2 px-1 md:flex")}>
+        <nav className={cx(pillShell, "absolute left-1/2 hidden -translate-x-1/2 px-1 md:flex")}
+        >
           {NAV_LINKS.map(({ label, href }) => {
             const isRoute = href.startsWith("/");
             const className =
               "flex h-8 items-center rounded-full px-3.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100/80 hover:text-neutral-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100";
-
-            if (isRoute) {
-              return (
-                <Link key={href} href={href} className={className}>
-                  {label}
-                </Link>
-              );
-            }
-
-            return (
+            return isRoute ? (
+              <Link key={href} href={href} className={className}>
+                {label}
+              </Link>
+            ) : (
               <a key={href} href={href} className={className}>
                 {label}
               </a>
@@ -200,7 +138,6 @@ export function LandingNavbar() {
           </button>
         </div>
       </div>
-
       <style jsx global>{`
         @keyframes gradientShift {
           0%   { background-position: 0% 50%;   }

@@ -82,7 +82,7 @@ export function FieldCard({
             {...attributes}
             {...listeners}
             onClick={(e) => e.stopPropagation()}
-            className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:text-neutral-500"
+            className="text-neutral-300 dark:text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:text-neutral-500"
           >
             <GripVertical size={16} />
           </div>

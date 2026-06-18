@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FormField } from "../schema";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { validateField } from "@formforge/form-engine";
+import { renderField } from "./fieldHelpers";
 
 export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
   const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
@@ -114,70 +115,7 @@ export function SlideModeRenderer({ schema, disabled = false, engine }: ModeRend
               )}
 
               <div className="w-full">
-                {currentField?.type === "text" || currentField?.type === "email" || currentField?.type === "number" || currentField?.type === "phone" || currentField?.type === "date" || currentField?.type === "file" ? (
-                  <input
-                    autoFocus
-                    type={currentField.type === "email" ? "email" : currentField.type === "number" ? "number" : currentField.type === "date" ? "date" : currentField.type === "file" ? "file" : "text"}
-                    value={values[currentField.id] || ""}
-                    onChange={e => { handleChange(currentField.id, e.target.value); setFieldError(null); }}
-                    placeholder="Type your answer..."
-                    className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-6 py-4 text-2xl text-white focus:border-blue-500 outline-none transition-colors shadow-inner"
-                  />
-                ) : currentField?.type === "textarea" ? (
-                  <textarea
-                    autoFocus
-                    value={values[currentField.id] || ""}
-                    onChange={e => { handleChange(currentField.id, e.target.value); setFieldError(null); }}
-                    placeholder="Type your answer..."
-                    className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-6 py-4 text-xl text-white focus:border-blue-500 outline-none transition-colors shadow-inner min-h-[160px] resize-none"
-                  />
-                ) : currentField?.type === "radio" || currentField?.type === "checkbox" || currentField?.type === "select" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {currentField.options?.map(opt => {
-                      const isMulti = currentField.type === "checkbox";
-                      const valArray = (values[currentField.id] as string[]) || [];
-                      const isSelected = isMulti ? valArray.includes(opt) : values[currentField.id] === opt;
-                      
-                      return (
-                        <button
-                          key={opt}
-                          onClick={() => {
-                            if (isMulti) {
-                              handleChange(currentField.id, isSelected ? valArray.filter(v => v !== opt) : [...valArray, opt]);
-                            } else {
-                              handleChange(currentField.id, opt);
-                            }
-                            setFieldError(null);
-                          }}
-                          className={`flex items-center gap-4 px-6 py-5 rounded-xl border-2 transition-all text-left ${
-                            isSelected ? "bg-blue-600/20 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "bg-slate-800 border-slate-700 hover:border-slate-500"
-                          }`}
-                        >
-                          <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
-                            isSelected ? "bg-blue-500 border-blue-500" : "border-slate-500"
-                          }`}>
-                            {isSelected && <Check size={16} className="text-white" />}
-                          </div>
-                          <span className={`text-xl ${isSelected ? "text-white font-medium" : "text-slate-300"}`}>{opt}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : currentField?.type === "rating" ? (
-                  <div className="flex gap-4">
-                    {[1, 2, 3, 4, 5].map(r => (
-                      <button
-                        key={r}
-                        onClick={() => { handleChange(currentField.id, r); setFieldError(null); }}
-                        className={`w-20 h-20 rounded-2xl border-2 flex items-center justify-center text-4xl transition-all ${
-                          values[currentField.id] === r ? "bg-amber-500/20 border-amber-500 text-amber-400 scale-110 shadow-[0_0_30px_rgba(245,158,11,0.3)]" : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500"
-                        }`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
+                {renderField(currentField, values, handleChange, setFieldError)}
                 
                 {fieldError && (
                   <div className="mt-6 text-red-400 font-medium flex items-center gap-2 bg-red-950/50 p-4 rounded-xl border border-red-900/50">

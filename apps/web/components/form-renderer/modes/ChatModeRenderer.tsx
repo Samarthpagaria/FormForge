@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Send, CheckCircle2 } from "lucide-react";
 import { FormField } from "../schema";
 import { validateField } from "@formforge/form-engine";
+import { renderField } from "./fieldHelpers";
 
 type ChatMessage = {
   id: string;
@@ -307,26 +308,18 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
         </AnimatePresence>
 
         {currentFieldIndex < schema.fields.length ? (
-          <form 
-            onSubmit={(e) => { e.preventDefault(); handleUserSubmit(); }}
-            className={`flex items-end gap-2 bg-neutral-50 border rounded-2xl p-1 transition-colors ${fieldError ? 'border-red-300' : 'border-neutral-200 focus-within:border-blue-300 focus-within:bg-white'}`}
-          >
-            <input
-              type={currentField?.type === "email" ? "email" : currentField?.type === "number" ? "number" : currentField?.type === "date" ? "date" : currentField?.type === "file" ? "file" : "text"}
-              placeholder={isTextInput ? currentField?.placeholder || "Type your answer..." : "Please select an option above..."}
-              value={inputValue}
-              onChange={(e) => { setInputValue(e.target.value); if(fieldError) setFieldError(null); }}
-              disabled={!isTextInput || isTyping}
-              className="flex-1 bg-transparent border-none outline-none px-4 py-3 text-[15px] text-neutral-900 placeholder:text-neutral-400 disabled:opacity-50"
-            />
+          <div className={`flex items-end gap-2 bg-neutral-50 border rounded-2xl p-1 transition-colors ${fieldError ? 'border-red-300' : 'border-neutral-200 focus-within:border-blue-300 focus-within:bg-white'}`}>
+          
+            {renderField(currentField, values, handleChange, setFieldError)}
             <button
-              type="submit"
-              disabled={!isTextInput || !inputValue.trim() || isTyping}
+              type="button"
+              onClick={() => handleUserSubmit(values[currentField?.id])}
+              disabled={isTyping}
               className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-blue-600 text-white rounded-xl mb-0.5 mr-0.5 hover:bg-blue-700 disabled:opacity-50 disabled:bg-neutral-300 transition-colors shadow-sm"
             >
               <Send size={18} className="ml-0.5" />
             </button>
-          </form>
+          </div>
         ) : (
           <div className="flex justify-center pt-2 pb-2">
             {!messages.some(m => m.id === "success" || m.id === "error") ? (

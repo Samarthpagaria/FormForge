@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence } from "framer-motion";
 import { validateField } from "@formforge/form-engine";
+import { renderField } from "./fieldHelpers";
 
 type TerminalLine = {
   id: string;
@@ -16,6 +17,7 @@ export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeR
   const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
 
   const [lines, setLines] = useState<TerminalLine[]>([]);
+  const [fieldError, setFieldError] = useState<string | null>(null);
   const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [isTypingQuestion, setIsTypingQuestion] = useState(true);
@@ -259,22 +261,47 @@ export function TerminalModeRenderer({ schema, disabled = false, engine }: ModeR
             );
           })}
 
-          {/* Active Input Line */}
-          {!isTypingQuestion && !isSubmitting && !lines.some(l => l.id === "sys-success") && (
-            <form onSubmit={handleInputSubmit} className="flex mt-1 w-full relative">
-              <span className="text-[#7c3aed] mr-2 shrink-0">{">"}</span>
-              <input
-                id="terminal-input"
-                type="text"
-                value={inputValue}
-                onChange={e => setInputValue(e.target.value)}
-                autoFocus
-                autoComplete="off"
-                spellCheck="false"
-                className="flex-1 bg-transparent border-none outline-none text-[#e2e8f0] caret-[#e2e8f0] focus:ring-0 p-0 m-0 w-full min-w-0"
-              />
-            </form>
-          )}
+           {/* Active Input Line */}
+           {!isTypingQuestion && !isSubmitting && !lines.some(l => l.id === "sys-success") && (
+             currentFieldIndex < schema.fields.length ? (
+               <div className="flex mt-1 w-full items-center gap-2">
+                 {renderField(schema.fields[currentFieldIndex], values, handleChange, setFieldError)}
+                 <button
+                   type="button"
+                   onClick={() => {
+                     const field = schema.fields[currentFieldIndex];
+                     const val = values[field.id];
+                     const error = validateField(field, val);
+                     if (error) {
+                       setLines(prev => [...prev, { id: `err-${field.id}-${Date.now()}`, type: "error", text: `x ${error}` }]);
+                       return;
+                     }
+                     // Advance to next field
+                     setIsTypingQuestion(true);
+                     setTimeout(() => {
+                       setCurrentFieldIndex(prev => prev + 1);
+                       setIsTypingQuestion(false);
+                     }, 400);
+                   }}
+                   className="px-4 py-2 bg-blue-600 text-white rounded"
+                 >Next</button>
+               </div>
+             ) : (
+               <form onSubmit={handleInputSubmit} className="flex mt-1 w-full relative">
+                 <span className="text-[#7c3aed] mr-2 shrink-0">{">"}</span>
+                 <input
+                   id="terminal-input"
+                   type="text"
+                   value={inputValue}
+                   onChange={e => setInputValue(e.target.value)}
+                   autoFocus
+                   autoComplete="off"
+                   spellCheck="false"
+                   className="flex-1 bg-transparent border-none outline-none text-[#e2e8f0] caret-[#e2e8f0] focus:ring-0 p-0 m-0 w-full min-w-0"
+                 />
+               </form>
+             )
+           )}
 
           {isSubmitting && (
             <div className="mt-1 flex gap-2 text-neutral-400">

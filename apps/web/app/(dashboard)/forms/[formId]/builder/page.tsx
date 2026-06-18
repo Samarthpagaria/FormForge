@@ -50,7 +50,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // ─── Droppable Empty Slot ─────────────────────────────────────────
-"use client";
+
 
 // ─── Droppable Empty Slot ─────────────────────────────────────────
 function DroppableEmptySlot({ afterFieldId }: { afterFieldId: string }) {
@@ -87,36 +87,8 @@ function DroppableEmptySlot({ afterFieldId }: { afterFieldId: string }) {
   );
 }
 
-  const { setNodeRef, isOver } = useDroppable({
-    id: `empty-slot-${afterFieldId}`,
-    data: { type: "empty-slot", afterFieldId },
-  });
 
-  return (
-    <div
-      ref={setNodeRef}
-      className={`col-span-6 min-h-[100px] rounded-xl border-2 border-dashed transition-all duration-200 flex flex-col items-center justify-center gap-2 select-none ${
-        isOver
-          ? "border-violet-400 bg-violet-50/20"
-          : "border-neutral-200 bg-neutral-50/60"
-      }`}
-    >
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-        isOver ? "bg-violet-100" : "bg-neutral-100"
-      }`}>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={isOver ? "#7c3aed" : "#a3a3a3"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </div>
-      <p className={`text-[11px] font-semibold tracking-wide uppercase transition-colors ${
-        isOver ? "text-violet-600" : "text-neutral-400"
-      }`}>
-        {isOver ? "Drop here!" : "Half-width slot"}
-      </p>
-    </div>
-  );
-}
+
 
 // ─── Canvas Drop Zone ────────────────────────────────────────────
 function CanvasDropZone({ previewFields }: { previewFields?: any[] }) {
