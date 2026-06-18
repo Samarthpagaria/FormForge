@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDown, ArrowUp, Check } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { FormField } from "../schema";
 import { validateField } from "@formforge/form-engine";
 
@@ -246,10 +246,10 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
 
 // Internal Specialized Field Renderer for One-by-One Mode
 function FieldRenderer({ field, value, onChange }: { field: FormField, value: any, onChange: (v: any) => void }) {
-  if (field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "date" || field.type === "file") {
+  if (field.type === "text" || field.type === "short_text" || field.type === "name" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "file") {
     return (
       <input
-        type={field.type === "email" ? "email" : field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "file" ? "file" : "text"}
+        type={field.type === "email" ? "email" : field.type === "number" ? "number" : field.type === "file" ? "file" : "text"}
         placeholder={field.placeholder || "Type your answer here..."}
         value={value || ""}
         onChange={e => onChange(e.target.value)}
@@ -259,7 +259,7 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
     );
   }
 
-  if (field.type === "textarea") {
+  if (field.type === "textarea" || field.type === "long_text") {
     return (
       <textarea
         placeholder={field.placeholder || "Type your answer here..."}
@@ -271,7 +271,11 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
     );
   }
 
-  if (field.type === "radio" || field.type === "checkbox" || field.type === "select") {
+  if (field.type === "date") {
+    return <OboDatePicker value={value} onChange={onChange} />;
+  }
+
+  if (field.type === "radio" || field.type === "checkbox" || field.type === "select" || field.type === "dropdown") {
     const isMulti = field.type === "checkbox";
     const selectedArray = (value as string[]) || [];
 
@@ -321,7 +325,7 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
             key={rating}
             onClick={() => onChange(rating)}
             className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl transition-all ${
-              value === rating 
+              rating <= (value || 0)
                 ? "bg-yellow-100 border-2 border-yellow-400 text-yellow-500 scale-110 shadow-md" 
                 : "bg-white border-2 border-neutral-200 hover:border-yellow-300 text-neutral-300 hover:text-yellow-400"
             }`}
@@ -333,5 +337,71 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
     );
   }
 
-  return <div>Unsupported field type in this mode.</div>;
+  return <div className="text-neutral-400 text-sm italic">Field type &ldquo;{field.type}&rdquo; is not supported in this mode.</div>;
+}
+
+// ─── Inline Date Picker for One-by-One Mode ───────────────────────────────────
+const OBO_MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const OBO_DAYS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+
+function OboDatePicker({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  const parse = (v?: string) => { if (!v) return null; const d = new Date(v + "T00:00:00"); return isNaN(d.getTime()) ? null : d; };
+  const today    = new Date();
+  const selected = parse(value);
+  const [vy, setVy] = React.useState(selected?.getFullYear() ?? today.getFullYear());
+  const [vm, setVm] = React.useState(selected?.getMonth()    ?? today.getMonth());
+
+  const dim      = new Date(vy, vm + 1, 0).getDate();
+  const firstDay = new Date(vy, vm, 1).getDay();
+
+  const pick = (day: number) => {
+    const d  = new Date(vy, vm, day);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    onChange(`${d.getFullYear()}-${mm}-${dd}`);
+  };
+  const prev = () => { if (vm === 0) { setVm(11); setVy(y => y - 1); } else setVm(m => m - 1); };
+  const next = () => { if (vm === 11) { setVm(0); setVy(y => y + 1); } else setVm(m => m + 1); };
+
+  return (
+    <div className="w-full max-w-sm select-none bg-white border border-neutral-200 rounded-2xl p-4 shadow-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <button type="button" onClick={prev} className="p-2 hover:bg-violet-50 rounded-lg text-violet-600 transition-colors">
+          <ChevronLeft size={18} />
+        </button>
+        <span className="font-bold text-neutral-800">{OBO_MONTHS[vm]} {vy}</span>
+        <button type="button" onClick={next} className="p-2 hover:bg-violet-50 rounded-lg text-violet-600 transition-colors">
+          <ChevronRight size={18} />
+        </button>
+      </div>
+      {/* Day headers */}
+      <div className="grid grid-cols-7 mb-2">
+        {OBO_DAYS.map(d => <div key={d} className="text-center text-xs font-bold text-neutral-400 py-1">{d}</div>)}
+      </div>
+      {/* Cells */}
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} />)}
+        {Array.from({ length: dim }, (_, i) => i + 1).map(day => {
+          const isSel   = selected && selected.getFullYear() === vy && selected.getMonth() === vm && selected.getDate() === day;
+          const isToday = today.getFullYear() === vy && today.getMonth() === vm && today.getDate() === day;
+          return (
+            <button key={day} type="button" onClick={() => pick(day)}
+              className={`w-full aspect-square rounded-lg text-sm font-medium transition-all ${
+                isSel   ? "bg-violet-600 text-white shadow-md scale-105" :
+                isToday ? "bg-violet-100 text-violet-700 font-bold" :
+                          "hover:bg-neutral-100 text-neutral-700"
+              }`}>
+              {day}
+            </button>
+          );
+        })}
+      </div>
+      {selected && (
+        <p className="text-center text-sm text-violet-600 font-semibold mt-3">
+          {selected.toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "long", day: "numeric" })}
+        </p>
+      )}
+    </div>
+  );
 }

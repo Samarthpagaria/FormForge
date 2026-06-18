@@ -4,7 +4,10 @@ import { auth } from "@clerk/nextjs/server";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const authObject = await auth();
-  return { auth: authObject, db };
+  const forwardedFor = opts.headers.get("x-forwarded-for");
+  const realIp = opts.headers.get("x-real-ip");
+  const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : (realIp || "unknown");
+  return { auth: authObject, db, ip, headers: opts.headers };
 };
 
 const t = initTRPC

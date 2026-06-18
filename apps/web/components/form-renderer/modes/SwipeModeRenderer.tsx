@@ -3,6 +3,7 @@ import { ModeRendererProps } from "./NormalModeRenderer";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { FormField } from "../schema";
 import { validateField } from "@formforge/form-engine";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
 export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRendererProps) {
   const { values, errors, isSubmitting, handleChange, handleSubmit } = engine;
@@ -150,14 +151,14 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
           <button 
             onClick={() => goBack()}
             disabled={currentIndex === 0}
-            className="w-14 h-14 bg-white rounded-full shadow-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:scale-110 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
+            className="w-14 h-14 bg-white rounded-full shadow-lg border border-neutral-200 flex items-center justify-center text-violet-600 hover:text-violet-800 hover:scale-110 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
             title="Go Back"
           >
             <span className="text-xl">←</span>
           </button>
           <button 
             onClick={() => handleSwipe("right")}
-            className="w-14 h-14 bg-white rounded-full shadow-lg border border-neutral-200 flex items-center justify-center text-violet-600 hover:scale-110 active:scale-95 transition-all"
+            className="w-14 h-14 bg-violet-600 rounded-full shadow-lg border border-violet-700 flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
             title="Next Question"
           >
             <span className="text-xl">→</span>
@@ -223,22 +224,24 @@ function SwipeCard({
         {field.description && <p className="text-sm text-neutral-500 mb-6">{field.description}</p>}
 
         <div className="flex-1 flex flex-col justify-center" onPointerDownCapture={(e) => e.stopPropagation()}>
-          {field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "date" || field.type === "file" ? (
+          {(field.type === "text" || field.type === "short_text" || field.type === "name" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "file") ? (
             <input
-              type={field.type === "email" ? "email" : field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "file" ? "file" : "text"}
+              type={field.type === "email" ? "email" : field.type === "number" ? "number" : field.type === "file" ? "file" : "text"}
               placeholder="Type here..."
               value={value || ""}
               onChange={e => onChange(e.target.value)}
               className="w-full text-lg border-b-2 border-neutral-200 py-2 outline-none focus:border-violet-500 bg-transparent text-center"
             />
-          ) : field.type === "textarea" ? (
+          ) : (field.type === "textarea" || field.type === "long_text") ? (
             <textarea
               placeholder="Type here..."
               value={value || ""}
               onChange={e => onChange(e.target.value)}
               className="w-full text-base border-2 border-neutral-200 rounded-xl p-3 outline-none focus:border-violet-500 bg-transparent resize-none min-h-[120px]"
             />
-          ) : field.type === "radio" || field.type === "checkbox" || field.type === "select" ? (
+          ) : field.type === "date" ? (
+            <CardDatePicker value={value} onChange={onChange} />
+          ) : (field.type === "radio" || field.type === "checkbox" || field.type === "select" || field.type === "dropdown") ? (
             <div className="flex flex-col gap-2">
               {field.options?.map(opt => {
                 const isSelected = field.type === "checkbox" ? ((value as string[]) || []).includes(opt) : value === opt;
@@ -268,7 +271,7 @@ function SwipeCard({
                 <button
                   key={r}
                   onClick={() => onChange(r)}
-                  className={`text-3xl ${value === r ? "text-yellow-400 scale-125" : "text-neutral-200 hover:text-yellow-200"} transition-all`}
+                  className={`text-3xl transition-all ${r <= (value || 0) ? "text-yellow-400 scale-110" : "text-neutral-200 hover:text-yellow-200"}`}
                 >
                   ★
                 </button>
@@ -288,5 +291,72 @@ function SwipeCard({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+// ─── Inline Date Picker for Card Mode ─────────────────────────────────────────
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const WEEK_DAYS = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+
+function CardDatePicker({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  const parseDate = (v?: string): Date | null => {
+    if (!v) return null;
+    const d = new Date(v + "T00:00:00");
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const today = new Date();
+  const selected = parseDate(value);
+  const [viewYear, setViewYear] = React.useState(selected?.getFullYear() ?? today.getFullYear());
+  const [viewMonth, setViewMonth] = React.useState(selected?.getMonth() ?? today.getMonth());
+
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+
+  const pick = (day: number) => {
+    const d = new Date(viewYear, viewMonth, day);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    onChange(`${yyyy}-${mm}-${dd}`);
+  };
+
+  const prev = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
+  const next = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
+
+  return (
+    <div className="w-full select-none">
+      <div className="flex items-center justify-between mb-2">
+        <button type="button" onClick={prev} className="p-1 hover:bg-neutral-100 rounded-lg text-violet-600 transition-colors">
+          <ChevronLeft size={16} />
+        </button>
+        <span className="font-semibold text-sm text-neutral-800">{MONTHS_SHORT[viewMonth]} {viewYear}</span>
+        <button type="button" onClick={next} className="p-1 hover:bg-neutral-100 rounded-lg text-violet-600 transition-colors">
+          <ChevronRight size={16} />
+        </button>
+      </div>
+      <div className="grid grid-cols-7 mb-1">
+        {WEEK_DAYS.map(d => <div key={d} className="text-center text-[10px] font-bold text-neutral-400 py-0.5">{d}</div>)}
+      </div>
+      <div className="grid grid-cols-7 gap-y-0.5">
+        {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} />)}
+        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+          const isSel = selected && selected.getFullYear() === viewYear && selected.getMonth() === viewMonth && selected.getDate() === day;
+          const isToday = today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === day;
+          return (
+            <button key={day} type="button" onClick={() => pick(day)}
+              className={`w-full aspect-square rounded-md text-xs font-medium transition-colors ${
+                isSel ? "bg-violet-600 text-white" : isToday ? "bg-violet-100 text-violet-700 font-bold" : "hover:bg-neutral-100 text-neutral-700"
+              }`}>
+              {day}
+            </button>
+          );
+        })}
+      </div>
+      {selected && (
+        <p className="text-center text-xs text-violet-600 font-semibold mt-2">
+          Selected: {selected.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+        </p>
+      )}
+    </div>
   );
 }

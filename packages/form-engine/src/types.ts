@@ -1,4 +1,4 @@
-export type FieldType = "text" | "email" | "phone" | "number" | "textarea" | "select" | "radio" | "checkbox" | "date" | "file" | "rating";
+export type FieldType = "text" | "short_text" | "long_text" | "name" | "email" | "phone" | "number" | "textarea" | "select" | "dropdown" | "radio" | "checkbox" | "date" | "file" | "rating" | "password" | "time" | "datetime" | "color" | "range" | "url" | "hidden" | "tel";
 
 export interface FieldValidation {
   min?: number;

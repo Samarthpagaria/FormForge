@@ -21,7 +21,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
   const [fieldError, setFieldError] = useState<string | null>(null);
 
   // Simple input types that can be rendered with a generic <input> element
-  const simpleInputTypes = new Set<string>(["text", "email", "number", "phone", "textarea", "date", "file", "password", "time", "datetime", "color", "range", "url", "hidden"]);
+  const simpleInputTypes = new Set<string>(["text", "short_text", "long_text", "name", "email", "number", "phone", "textarea", "date", "file", "password", "time", "datetime", "color", "range", "url", "hidden"]);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +76,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
       return;
     }
 
-    if (field.type === "text" || field.type === "email" || field.type === "number" || field.type === "phone" || field.type === "textarea" || field.type === "date" || field.type === "file") {
+    if (["text","short_text","long_text","name","email","number","phone","textarea","date","file"].includes(field.type)) {
       handleChange(field.id, finalVal);
     }
 
@@ -127,7 +127,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                   <span className="inline-block align-middle ml-2 relative top-[-2px]">
                     {simpleInputTypes.has(field.type) ? (
                       <form onSubmit={handleInputSubmit} className="inline-flex items-end">
-                        {field.type === "textarea" ? (
+                        {(field.type === "textarea" || field.type === "long_text") ? (
                           <textarea
                             autoFocus
                             value={inputValue}
@@ -147,19 +147,11 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                             autoFocus
                             type={(() => {
                               const typeMap: Record<string, string> = {
-                                text: "text",
-                                email: "email",
-                                number: "number",
-                                phone: "tel",
-                                password: "password",
-                                date: "date",
-                                time: "time",
-                                datetime: "datetime-local",
-                                color: "color",
-                                range: "range",
-                                url: "url",
-                                hidden: "hidden",
-                                file: "file",
+                                text: "text", short_text: "text", name: "text",
+                                email: "email", number: "number", phone: "tel",
+                                password: "password", date: "date", time: "time",
+                                datetime: "datetime-local", color: "color",
+                                range: "range", url: "url", hidden: "hidden", file: "file",
                               };
                               return typeMap[field.type] || "text";
                             })()}
@@ -172,6 +164,9 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                                 setInputValue(e.target.value);
                               }
                               setFieldError(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') { e.preventDefault(); handleInputSubmit(e as any); }
                             }}
                             placeholder="Type here..."
                             className="w-48 md:w-64 bg-transparent border-b-2 border-[#c97064] outline-none text-[#c97064] font-bold text-xl md:text-2xl py-1 px-2 placeholder:font-normal placeholder:text-[#c97064]/40"
@@ -216,7 +211,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                     ) : field.type === "rating" ? (
                        <div className="inline-flex items-center gap-2 mt-2">
                          {[1, 2, 3, 4, 5].map(r => (
-                           <button key={r} onClick={() => { handleChange(field.id, r); setFieldError(null); }} className={`text-3xl ${value === r ? "text-yellow-500 scale-125" : "text-neutral-300 hover:text-yellow-300"}`}>
+                           <button key={r} onClick={() => { handleChange(field.id, r); setFieldError(null); }} className={`text-3xl transition-all ${r <= (value || 0) ? "text-yellow-500 scale-110" : "text-neutral-300 hover:text-yellow-300"}`}>
                              ★
                            </button>
                          ))}

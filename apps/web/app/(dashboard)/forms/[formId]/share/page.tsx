@@ -149,11 +149,11 @@ export default function SharePage({ params }: { params: Promise<{ formId: string
   }, [versions, form]);
 
   return (
-    <div className="fixed inset-0 bg-[#f5f5f3] flex flex-col overflow-clip z-10 rounded-[2rem] border border-neutral-200/70 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] m-3 lg:m-4" style={{ top: 64 }}>
+    <div className="fixed inset-0 bg-[#f5f5f3] dark:bg-neutral-950 flex flex-col overflow-clip z-10 rounded-[2rem] border border-neutral-200/70 dark:border-neutral-800 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] m-3 lg:m-4" style={{ top: 64 }}>
       
       {/* Background Decorative */}
-      <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] bg-[#d9e5c9] rounded-full blur-[100px] -z-10 pointer-events-none opacity-40" />
-      <div className="absolute bottom-[-10%] right-[10%] w-[500px] h-[500px] bg-[#e3ecd6] rounded-full blur-[100px] -z-10 pointer-events-none opacity-40" />
+      <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] bg-[#d9e5c9] dark:bg-emerald-900/10 rounded-full blur-[100px] -z-10 pointer-events-none opacity-40" />
+      <div className="absolute bottom-[-10%] right-[10%] w-[500px] h-[500px] bg-[#e3ecd6] dark:bg-emerald-800/10 rounded-full blur-[100px] -z-10 pointer-events-none opacity-40" />
 
       {/* MAIN CONTENT SPACING */}
       <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0 px-6 pt-5 pb-6 w-full max-w-[1800px] mx-auto z-10 relative">

@@ -43,6 +43,16 @@ const generateSessionId = () => {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
 };
 
+const getOrCreateSessionId = () => {
+  if (typeof window === "undefined") return generateSessionId();
+  let sid = localStorage.getItem("ff_session_id");
+  if (!sid) {
+    sid = generateSessionId();
+    localStorage.setItem("ff_session_id", sid);
+  }
+  return sid;
+};
+
 export default function PublicFormPage({ 
   params,
   searchParams,
@@ -58,7 +68,10 @@ export default function PublicFormPage({
   const [formState, setFormState] = useState<FormState>("LOADING");
   
   // Analytics State
-  const sessionId = useRef(generateSessionId());
+  const sessionId = useRef("");
+  if (typeof window !== "undefined" && !sessionId.current) {
+    sessionId.current = getOrCreateSessionId();
+  }
   const trackedView = useRef(false);
   const trackedStart = useRef(false);
   const startTime = useRef(Date.now());
@@ -89,7 +102,7 @@ export default function PublicFormPage({
   }, []);
 
   const checkDuplicateQuery = trpc.responses.checkDuplicate.useQuery(
-    { formId: data?.form?.id || "", ip: userIp || "unknown", sessionId: sessionId.current },
+    { formId: data?.form?.id || "", ip: userIp || "unknown", sessionId: sessionId.current || "pending" },
     { enabled: !!data?.form?.id && !!userIp && ((data?.form?.settings as any)?.allowMultipleSubmissions === false) }
   );
   
@@ -239,7 +252,6 @@ export default function PublicFormPage({
   };
 
   const handleReset = () => {
-    sessionId.current = generateSessionId();
     trackedView.current = false;
     trackedStart.current = false;
     startTime.current = Date.now();
@@ -316,6 +328,7 @@ export default function PublicFormPage({
   }
 
   if (formState === "SUCCESS") {
+    const allowMultiple = (form?.settings as Record<string, any>)?.allowMultipleSubmissions !== false;
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full bg-white rounded-2xl shadow-xl shadow-black/5 border border-neutral-200/50 p-10 flex flex-col items-center justify-center text-center max-w-[600px] mx-auto my-12">
         <div className="w-16 h-16 bg-emerald-50 rounded-full border border-emerald-100 flex items-center justify-center mb-6">
@@ -323,12 +336,14 @@ export default function PublicFormPage({
         </div>
         <h2 className="text-2xl font-bold text-neutral-900 tracking-tight mb-2">Thank you!</h2>
         <p className="text-neutral-500 max-w-sm mb-8">{schema.settings?.successMessage || "Your response has been recorded successfully."}</p>
-        <button 
-          onClick={handleReset}
-          className="py-2.5 px-6 bg-white border border-neutral-200 text-neutral-700 font-semibold text-sm rounded-xl hover:bg-neutral-50 transition-colors shadow-sm"
-        >
-          Submit another response
-        </button>
+        {allowMultiple && (
+          <button 
+            onClick={handleReset}
+            className="py-2.5 px-6 bg-white border border-neutral-200 text-neutral-700 font-semibold text-sm rounded-xl hover:bg-neutral-50 transition-colors shadow-sm"
+          >
+            Submit another response
+          </button>
+        )}
       </motion.div>
     );
   }
