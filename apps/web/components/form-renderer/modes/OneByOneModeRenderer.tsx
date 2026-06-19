@@ -99,7 +99,7 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
   };
 
   return (
-    <div className="w-full h-full min-h-[600px] flex flex-col bg-white overflow-hidden relative font-sans text-neutral-900">
+    <div className="w-full h-full min-h-[600px] flex flex-col bg-white dark:bg-zinc-950 overflow-hidden relative font-sans text-neutral-900 dark:text-zinc-50">
       
       {/* Progress Bar Top */}
       <div className="absolute top-0 left-0 right-0 h-1.5 bg-neutral-100 z-50">
@@ -125,9 +125,9 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="w-full text-center flex flex-col items-center justify-center"
             >
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-neutral-900">{schema.title || "Welcome"}</h1>
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-neutral-900 dark:text-zinc-50">{schema.title || "Welcome"}</h1>
               {schema.description && (
-                <p className="text-lg md:text-xl text-neutral-500 mb-10 max-w-xl mx-auto">{schema.description}</p>
+                <p className="text-lg md:text-xl text-neutral-500 dark:text-zinc-400 mb-10 max-w-xl mx-auto">{schema.description}</p>
               )}
               <button 
                 onClick={goNext}
@@ -153,11 +153,11 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
               
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
                 {currentField?.label}
-                {currentField?.required && <span className="text-red-500 ml-1">*</span>}
+                {currentField?.required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
               </h2>
               
               {currentField?.description && (
-                <p className="text-neutral-500 mb-8 text-lg">{currentField.description}</p>
+                <p className="text-neutral-500 dark:text-zinc-400 mb-8 text-lg">{currentField.description}</p>
               )}
 
               <div className="mt-8 mb-4">
@@ -178,7 +178,7 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
               )}
 
               {/* Navigation Footer */}
-              <div className="mt-10 flex items-center gap-4 border-t border-neutral-100 pt-6">
+              <div className="mt-10 flex items-center gap-4 border-t border-neutral-100 dark:border-zinc-800 pt-6">
                 <button 
                   onClick={goNext}
                   className="px-6 py-3 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 transition-colors shadow-md flex items-center gap-2"
@@ -187,11 +187,11 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
                 </button>
                 <button 
                   onClick={goPrev}
-                  className="px-6 py-3 bg-neutral-100 text-neutral-700 rounded-xl font-bold hover:bg-neutral-200 transition-colors flex items-center gap-2"
+                  className="px-6 py-3 bg-neutral-100 dark:bg-zinc-900 text-neutral-700 dark:text-zinc-300 rounded-xl font-bold hover:bg-neutral-200 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
                 >
                   <ArrowUp size={18} /> Back
                 </button>
-                <div className="ml-auto text-xs font-semibold text-neutral-400">
+                <div className="ml-auto text-xs font-semibold text-neutral-400 dark:text-zinc-500">
                   Press Enter ↵
                 </div>
               </div>
@@ -207,7 +207,7 @@ export function OneByOneModeRenderer({ schema, disabled = false, engine }: ModeR
               className="text-center flex flex-col items-center"
             >
               <h2 className="text-3xl font-black mb-4">All done!</h2>
-              <p className="text-neutral-500 mb-8 text-lg max-w-sm">Please review your answers or submit.</p>
+              <p className="text-neutral-500 dark:text-zinc-400 mb-8 text-lg max-w-sm">Please review your answers or submit.</p>
               <button
                 onClick={handleFinalSubmit}
                 disabled={isSubmitting}
@@ -253,7 +253,7 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
         placeholder={field.placeholder || "Type your answer here..."}
         value={value || ""}
         onChange={e => onChange(e.target.value)}
-        className="w-full text-2xl md:text-3xl font-medium text-violet-900 border-b-2 border-violet-200 bg-transparent py-2 outline-none focus:border-violet-600 transition-colors placeholder:text-neutral-300"
+        className="w-full text-2xl md:text-3xl font-medium text-violet-900 dark:text-violet-300 border-b-2 border-violet-200 dark:border-violet-800 bg-transparent py-2 outline-none focus:border-violet-600 dark:focus:border-violet-500 transition-colors placeholder:text-neutral-300 dark:placeholder:text-zinc-600"
         autoFocus
       />
     );
@@ -265,7 +265,7 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
         placeholder={field.placeholder || "Type your answer here..."}
         value={value || ""}
         onChange={e => onChange(e.target.value)}
-        className="w-full text-xl md:text-2xl font-medium text-violet-900 border-b-2 border-violet-200 bg-transparent py-2 outline-none focus:border-violet-600 transition-colors placeholder:text-neutral-300 min-h-[120px] resize-none"
+        className="w-full text-xl md:text-2xl font-medium text-violet-900 dark:text-violet-300 border-b-2 border-violet-200 dark:border-violet-800 bg-transparent py-2 outline-none focus:border-violet-600 dark:focus:border-violet-500 transition-colors placeholder:text-neutral-300 dark:placeholder:text-zinc-600 min-h-[120px] resize-none"
         autoFocus
       />
     );
@@ -298,12 +298,12 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
               }}
               className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${
                 isSelected 
-                  ? "border-violet-600 bg-violet-50 text-violet-900 shadow-sm" 
-                  : "border-neutral-200 bg-white hover:bg-neutral-50 hover:border-violet-300 text-neutral-700"
+                  ? "border-violet-600 bg-violet-50 dark:bg-violet-900/20 text-violet-900 dark:text-violet-100 shadow-sm" 
+                  : "border-neutral-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-neutral-50 dark:hover:bg-zinc-800 hover:border-violet-300 dark:hover:border-violet-700 text-neutral-700 dark:text-zinc-300"
               }`}
             >
               <div className={`w-8 h-8 rounded-md flex items-center justify-center font-bold text-sm ${
-                isSelected ? "bg-violet-600 text-white" : "bg-neutral-100 text-neutral-500 border border-neutral-200"
+                isSelected ? "bg-violet-600 text-white" : "bg-neutral-100 dark:bg-zinc-800 text-neutral-500 dark:text-zinc-400 border border-neutral-200 dark:border-zinc-700"
               }`}>
                 {char}
               </div>
@@ -326,8 +326,8 @@ function FieldRenderer({ field, value, onChange }: { field: FormField, value: an
             onClick={() => onChange(rating)}
             className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl transition-all ${
               rating <= (value || 0)
-                ? "bg-yellow-100 border-2 border-yellow-400 text-yellow-500 scale-110 shadow-md" 
-                : "bg-white border-2 border-neutral-200 hover:border-yellow-300 text-neutral-300 hover:text-yellow-400"
+                ? "bg-yellow-100 dark:bg-yellow-900/30 border-2 border-yellow-400 text-yellow-500 dark:text-yellow-400 scale-110 shadow-md" 
+                : "bg-white dark:bg-zinc-900 border-2 border-neutral-200 dark:border-zinc-800 hover:border-yellow-300 dark:hover:border-yellow-700 text-neutral-300 dark:text-zinc-600 hover:text-yellow-400 dark:hover:text-yellow-500"
             }`}
           >
             ★

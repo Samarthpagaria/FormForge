@@ -65,21 +65,21 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
   };
 
   return (
-    <form onSubmit={handleFormSubmit} className={`flex flex-col gap-8 w-full max-w-[640px] mx-auto bg-white p-8 rounded-3xl shadow-sm border border-neutral-200/60 ${className}`}>
+    <form onSubmit={handleFormSubmit} className={`flex flex-col gap-8 w-full max-w-[640px] mx-auto bg-white dark:bg-zinc-950 p-8 rounded-3xl shadow-sm border border-neutral-200/60 dark:border-zinc-800/80 ${className}`}>
       {/* Form Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-black text-neutral-900 tracking-tight">{schema.title}</h1>
+        <h1 className="text-3xl font-black text-neutral-900 dark:text-zinc-50 tracking-tight">{schema.title}</h1>
         {schema.description && (
-          <p className="text-neutral-500 text-sm leading-relaxed">{schema.description}</p>
+          <p className="text-neutral-500 dark:text-zinc-400 text-sm leading-relaxed">{schema.description}</p>
         )}
       </div>
 
-      <div className="h-px w-full bg-neutral-200/60" />
+      <div className="h-px w-full bg-neutral-200/60 dark:bg-zinc-800/80" />
 
       {/* Fields */}
       {schema.fields.length === 0 ? (
         <div className="py-12 flex flex-col items-center justify-center text-center">
-          <p className="text-neutral-400 text-sm font-medium">No fields added yet</p>
+          <p className="text-neutral-400 dark:text-zinc-500 text-sm font-medium">No fields added yet</p>
         </div>
       ) : (
         <div className={`grid grid-cols-1 ${forceMobile ? '' : 'sm:grid-cols-2'} gap-x-4 gap-y-6`}>
@@ -91,12 +91,12 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
               transition={{ duration: 0.3 }}
               className={`flex flex-col gap-2 group ${field.width === 'half' && !forceMobile ? 'col-span-1' : `col-span-1 ${forceMobile ? '' : 'sm:col-span-2'}`}`}
             >
-              <label className="text-sm font-semibold text-neutral-800 tracking-tight flex items-center gap-1">
+              <label className="text-sm font-semibold text-neutral-800 dark:text-zinc-200 tracking-tight flex items-center gap-1">
                 {field.label}
-                {field.required && <span className="text-red-500 font-bold">*</span>}
+                {field.required && <span className="text-red-500 dark:text-red-400 font-bold">*</span>}
               </label>
               {field.description && (
-                <p className="text-xs text-neutral-500 mb-1">{field.description}</p>
+                <p className="text-xs text-neutral-500 dark:text-zinc-400 mb-1">{field.description}</p>
               )}
               {renderField(field)}
             </motion.div>
@@ -110,7 +110,7 @@ export function NormalModeRenderer({ schema, disabled = false, submitLabel = "Su
           <button
             type="submit"
             disabled={disabled || isSubmitting}
-            className="w-full py-3.5 px-4 bg-[#5b21b6] text-white rounded-xl font-bold text-sm shadow-sm transition-all hover:bg-[#4c1d95] hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm"
+            className="w-full py-3.5 px-4 bg-[#5b21b6] dark:bg-violet-600 text-white rounded-xl font-bold text-sm shadow-sm transition-all hover:bg-[#4c1d95] dark:hover:bg-violet-700 hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm"
           >
             {isSubmitting ? "Submitting..." : submitLabel}
           </button>

@@ -96,7 +96,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
   return (
     <div className="w-full h-full min-h-[600px] flex items-center justify-center p-4">
       <div 
-        className="w-full max-w-2xl h-[70vh] bg-[#fdfcfb] rounded-[2rem] shadow-2xl overflow-y-auto p-8 md:p-12 font-serif text-xl md:text-2xl leading-relaxed text-neutral-800 border border-[#f0ebe1]"
+        className="w-full max-w-2xl h-[70vh] bg-[#fdfcfb] dark:bg-zinc-900 rounded-[2rem] shadow-2xl overflow-y-auto p-8 md:p-12 font-serif text-xl md:text-2xl leading-relaxed text-neutral-800 dark:text-zinc-200 border border-[#f0ebe1] dark:border-zinc-800"
         ref={containerRef}
       >
         <AnimatePresence>
@@ -196,7 +196,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                                   setFieldError(null);
                                 }}
                                 className={`px-4 py-2 rounded-full border transition-all ${
-                                  isSelected ? "bg-[#c97064] text-white border-[#c97064] shadow-md" : "bg-white text-neutral-600 border-neutral-300 hover:border-[#c97064]"
+                                  isSelected ? "bg-[#c97064] text-white border-[#c97064] shadow-md" : "bg-white dark:bg-zinc-800 text-neutral-600 dark:text-zinc-300 border-neutral-300 dark:border-zinc-700 hover:border-[#c97064] dark:hover:border-[#c97064]"
                                 }`}
                               >
                                 {opt}
@@ -204,14 +204,14 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                             );
                           })}
                         </div>
-                        <button onClick={() => handleInputSubmit()} className="mt-4 px-6 py-2 bg-neutral-900 text-white rounded-full text-sm flex items-center gap-2 hover:bg-neutral-800">
+                        <button onClick={() => handleInputSubmit()} className="mt-4 px-6 py-2 bg-neutral-900 dark:bg-zinc-700 text-white rounded-full text-sm flex items-center gap-2 hover:bg-neutral-800 dark:hover:bg-zinc-600">
                           Confirm <Send size={14} />
                         </button>
                       </div>
                     ) : field.type === "rating" ? (
                        <div className="inline-flex items-center gap-2 mt-2">
                          {[1, 2, 3, 4, 5].map(r => (
-                           <button key={r} onClick={() => { handleChange(field.id, r); setFieldError(null); }} className={`text-3xl transition-all ${r <= (value || 0) ? "text-yellow-500 scale-110" : "text-neutral-300 hover:text-yellow-300"}`}>
+                           <button key={r} onClick={() => { handleChange(field.id, r); setFieldError(null); }} className={`text-3xl transition-all ${r <= (value || 0) ? "text-yellow-500 scale-110" : "text-neutral-300 dark:text-zinc-600 hover:text-yellow-300 dark:hover:text-yellow-400"}`}>
                              ★
                            </button>
                          ))}
@@ -220,7 +220,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
                          </button>
                        </div>
                     ) : (
-                      <span className="text-sm text-neutral-400 border border-neutral-200 px-2 py-1 rounded">Unsupported field</span>
+                      <span className="text-sm text-neutral-400 dark:text-zinc-500 border border-neutral-200 dark:border-zinc-700 px-2 py-1 rounded">Unsupported field</span>
                     )}
                     
                     {fieldError && (
@@ -236,7 +236,7 @@ export function StoryModeRenderer({ schema, disabled = false, engine }: ModeRend
           
           {currentIndex >= chunks.length && chunks.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-12 text-center pb-12">
-              <p className="text-xl italic text-neutral-500 mb-8">"And that's the end of our story."</p>
+              <p className="text-xl italic text-neutral-500 dark:text-zinc-400 mb-8">"And that's the end of our story."</p>
               <button onClick={handleFinalSubmit} disabled={isSubmitting} className="px-8 py-3 bg-[#c97064] text-white rounded-full font-sans font-bold shadow-lg hover:bg-[#a05247] hover:shadow-xl transition-all disabled:opacity-50">
                 {isSubmitting ? "Submitting..." : "Submit Answers"}
               </button>

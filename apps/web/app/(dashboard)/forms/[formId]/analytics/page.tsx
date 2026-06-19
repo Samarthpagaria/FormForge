@@ -71,11 +71,11 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
 
   if (errSummary) {
     return (
-      <div className="relative z-0 min-h-[calc(100vh-64px-1rem)] bg-[#f5f5f3] flex flex-col items-center justify-center p-4 md:px-6 m-2 rounded-2xl border border-neutral-200/60 shadow-sm">
+      <div className="relative z-0 min-h-[calc(100vh-64px-1rem)] bg-[#f5f5f3] dark:bg-zinc-950 flex flex-col items-center justify-center p-4 md:px-6 m-2 rounded-2xl border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm">
         <AlertCircle size={48} className="text-red-400 mb-4" />
-        <h2 className="text-2xl font-bold text-neutral-800 tracking-tight">Failed to load analytics</h2>
-        <p className="text-neutral-500 mb-6">There was an error fetching your analytics data.</p>
-        <button onClick={handleRefresh} className="px-6 py-2.5 bg-neutral-200 hover:bg-neutral-300 rounded-xl font-medium shadow-sm transition-colors">
+        <h2 className="text-2xl font-bold text-neutral-800 dark:text-zinc-100 tracking-tight">Failed to load analytics</h2>
+        <p className="text-neutral-500 dark:text-zinc-400 mb-6">There was an error fetching your analytics data.</p>
+        <button onClick={handleRefresh} className="px-6 py-2.5 bg-neutral-200 dark:bg-zinc-800 hover:bg-neutral-300 dark:hover:bg-zinc-700 rounded-xl font-medium shadow-sm transition-colors text-neutral-800 dark:text-zinc-100">
           Retry
         </button>
       </div>
@@ -83,12 +83,12 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
   }
 
   return (
-    <div className="relative z-0 min-h-[calc(100vh-64px-1rem)] bg-[#f5f5f3] flex flex-col p-4 md:px-6 m-2 rounded-2xl border border-neutral-200/60 shadow-sm overflow-x-hidden overflow-y-auto custom-scrollbar">
+    <div className="relative z-0 min-h-[calc(100vh-64px-1rem)] bg-[#f5f5f3] dark:bg-zinc-950 flex flex-col p-4 md:px-6 m-2 rounded-2xl border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm overflow-x-hidden overflow-y-auto custom-scrollbar">
       
       {/* Background Decorative Blobs */}
-      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] rounded-full blur-[100px] -z-10 pointer-events-none opacity-60" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] rounded-full blur-[120px] -z-10 pointer-events-none opacity-60" />
-      <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-[#f0ecd6] rounded-full blur-[90px] -z-10 pointer-events-none opacity-50" />
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] dark:bg-[#d9e5c9]/10 rounded-full blur-[100px] -z-10 pointer-events-none opacity-60 dark:opacity-20" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] dark:bg-[#e3ecd6]/10 rounded-full blur-[120px] -z-10 pointer-events-none opacity-60 dark:opacity-20" />
+      <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-[#f0ecd6] dark:bg-[#f0ecd6]/10 rounded-full blur-[90px] -z-10 pointer-events-none opacity-50 dark:opacity-20" />
 
       <div className="flex-1 w-[90%] mx-auto relative z-10 flex flex-col pb-12">
         
@@ -96,26 +96,26 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
         <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-6 mb-8 mt-4">
           <div className="flex items-start gap-4">
             <Link href="/forms">
-              <button className="p-2 bg-white/80 backdrop-blur-md rounded-full border border-neutral-200 text-neutral-500 hover:text-neutral-800 hover:bg-white transition-colors shadow-sm">
+              <button className="p-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-full border border-neutral-200 dark:border-zinc-800 text-neutral-500 dark:text-zinc-400 hover:text-neutral-800 dark:hover:text-zinc-200 hover:bg-white dark:hover:bg-zinc-800 transition-colors shadow-sm">
                 <ArrowLeft size={18} />
               </button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-neutral-800 tracking-tight">Form Analytics</h1>
-              <p className="text-neutral-500 text-sm mt-0.5">{form?.name || "Loading..."}</p>
+              <h1 className="text-2xl font-bold text-neutral-800 dark:text-zinc-100 tracking-tight">Form Analytics</h1>
+              <p className="text-neutral-500 dark:text-zinc-400 text-sm mt-0.5">{form?.name || "Loading..."}</p>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            <button onClick={handleRefresh} className="p-2.5 bg-white/80 backdrop-blur-md rounded-xl border border-neutral-200 text-neutral-500 hover:text-neutral-800 hover:bg-white transition-colors shadow-sm" title="Refresh">
+            <button onClick={handleRefresh} className="p-2.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl border border-neutral-200 dark:border-zinc-800 text-neutral-500 dark:text-zinc-400 hover:text-neutral-800 dark:hover:text-zinc-200 hover:bg-white dark:hover:bg-zinc-800 transition-colors shadow-sm" title="Refresh">
               <RefreshCw size={16} />
             </button>
           </div>
         </div>
 
         {/* ── Date Range Filter ── */}
-        <div className="flex items-center gap-4 mb-6 bg-white/80 backdrop-blur-md p-3 rounded-xl border border-neutral-200/60 shadow-sm self-start">
-          <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider pl-2">Timeframe:</span>
+        <div className="flex items-center gap-4 mb-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md p-3 rounded-xl border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm self-start">
+          <span className="text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider pl-2">Timeframe:</span>
           <div className="flex gap-2">
             {["7", "30", "90", "all"].map((range) => (
               <button
@@ -124,7 +124,7 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                   dateRange === range 
                     ? "bg-violet-600 text-white shadow-sm" 
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                    : "bg-neutral-100 dark:bg-zinc-800 text-neutral-600 dark:text-zinc-400 hover:bg-neutral-200 dark:hover:bg-zinc-700"
                 }`}
               >
                 {range === "all" ? "All time" : `Last ${range} Days`}
@@ -144,13 +144,13 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
               { label: "Completion Rate", value: summary?.completionRate ?? 0, format: (v: number) => `${v}%` },
               { label: "Avg Time", value: summary?.avgTimeSpent ?? 0, format: (v: number) => `${v}s` },
             ].map((stat, i) => (
-              <div key={i} className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 shadow-sm flex flex-col transition-all hover:shadow-md">
-                <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-1">{stat.label}</p>
+              <div key={i} className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col transition-all hover:shadow-md">
+                <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 dark:text-zinc-500 mb-1">{stat.label}</p>
                 <div className="flex items-end justify-between mt-auto pt-2">
                   {loadingSummary ? (
-                    <div className="h-8 bg-neutral-200/60 animate-pulse rounded w-16" />
+                    <div className="h-8 bg-neutral-200/60 dark:bg-zinc-800/60 animate-pulse rounded w-16" />
                   ) : (
-                    <h3 className={`text-3xl font-black tracking-tight ${stat.value === 0 ? "text-neutral-300" : "text-neutral-800"}`}>
+                    <h3 className={`text-3xl font-black tracking-tight ${stat.value === 0 ? "text-neutral-300 dark:text-zinc-700" : "text-neutral-800 dark:text-zinc-100"}`}>
                       {stat.format(stat.value)}
                     </h3>
                   )}
@@ -163,10 +163,10 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
           <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
             {/* Area Chart: Submissions Over Time */}
-            <div className="lg:col-span-2 bg-white/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 shadow-sm flex flex-col h-[300px]">
-              <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-6">Submissions Over Time</p>
+            <div className="lg:col-span-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col h-[300px]">
+              <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 dark:text-zinc-500 mb-6">Submissions Over Time</p>
               {loadingSot ? (
-                <div className="animate-pulse bg-neutral-200/50 rounded-xl h-[200px] w-full" />
+                <div className="animate-pulse bg-neutral-200/50 dark:bg-zinc-800/50 rounded-xl h-[200px] w-full" />
               ) : errSot ? (
                 <div className="flex flex-col items-center justify-center h-[200px] text-center">
                   <AlertCircle className="w-8 h-8 text-red-300 mb-2" />
@@ -200,8 +200,8 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
             </div>
 
             {/* Donut Chart: Device Breakdown */}
-            <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 shadow-sm flex flex-col h-[300px]">
-              <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-2">Device Breakdown</p>
+            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col h-[300px]">
+              <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 dark:text-zinc-500 mb-2">Device Breakdown</p>
               <div className="flex-1 min-h-0 w-full relative flex flex-col items-center justify-center">
                 {loadingDevices ? (
                    <div className="w-full h-full flex flex-col items-center justify-center gap-4">
@@ -239,9 +239,9 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
                           <div key={i} className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-                              <span className="font-medium text-neutral-600 capitalize">{d.name}</span>
+                              <span className="font-medium text-neutral-600 dark:text-zinc-300 capitalize">{d.name}</span>
                             </div>
-                            <span className="font-bold text-neutral-800">{pct}%</span>
+                            <span className="font-bold text-neutral-800 dark:text-zinc-100">{pct}%</span>
                           </div>
                         )
                       })}
@@ -255,15 +255,15 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* SECTION 3: Field Drop-off Analysis */}
-            <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 shadow-sm flex flex-col min-h-[300px]">
-              <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-6">Field Drop-offs</p>
+            <motion.div variants={itemVariants} className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col min-h-[300px]">
+              <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 dark:text-zinc-500 mb-6">Field Drop-offs</p>
               <div className="flex flex-col gap-4">
                 {loadingDropoff ? (
                   [...Array(3)].map((_, i) => (
                     <div key={i} className="flex items-center gap-4 animate-pulse">
-                      <div className="w-32 h-4 bg-neutral-200 rounded" />
-                      <div className="flex-1 h-8 bg-neutral-100 rounded-lg" />
-                      <div className="w-8 h-4 bg-neutral-200 rounded" />
+                      <div className="w-32 h-4 bg-neutral-200 dark:bg-zinc-700 rounded" />
+                      <div className="flex-1 h-8 bg-neutral-100 dark:bg-zinc-800 rounded-lg" />
+                      <div className="w-8 h-4 bg-neutral-200 dark:bg-zinc-700 rounded" />
                     </div>
                   ))
                 ) : errDropoff ? (
@@ -282,10 +282,10 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
                     const percentage = maxDropoff > 0 ? (item.count / maxDropoff) * 100 : 0;
                     return (
                       <div key={i} className="flex items-center gap-4">
-                        <div className="w-32 text-sm font-semibold text-neutral-600 shrink-0 truncate" title={item.fieldKey || "Unknown"}>
+                        <div className="w-32 text-sm font-semibold text-neutral-600 dark:text-zinc-300 shrink-0 truncate" title={item.fieldKey || "Unknown"}>
                           {item.fieldKey || "Unknown"}
                         </div>
-                        <div className="flex-1 h-8 bg-white rounded-lg overflow-hidden relative border border-neutral-200/50">
+                        <div className="flex-1 h-8 bg-white dark:bg-zinc-800 rounded-lg overflow-hidden relative border border-neutral-200/50 dark:border-zinc-700/50">
                           <motion.div 
                             initial={{ width: 0 }}
                             animate={{ width: `${percentage}%` }}
@@ -293,7 +293,7 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
                             className="h-full bg-violet-500 rounded-r-lg shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"
                           />
                         </div>
-                        <div className="w-12 text-right text-sm font-bold text-neutral-800 shrink-0">
+                        <div className="w-12 text-right text-sm font-bold text-neutral-800 dark:text-zinc-100 shrink-0">
                           {item.count}
                         </div>
                       </div>
@@ -304,12 +304,12 @@ export default function FormAnalyticsPage({ params }: { params: Promise<{ formId
             </motion.div>
 
             {/* Radial Bar Chart */}
-            <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 shadow-sm flex flex-col h-[300px]">
-              <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-2">Total Submissions</p>
+            <motion.div variants={itemVariants} className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md p-4 rounded-xl border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col h-[300px]">
+              <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 dark:text-zinc-500 mb-2">Total Submissions</p>
               <div className="flex-1 min-h-0 w-full relative">
                 {loadingSummary ? (
                    <div className="w-full h-full flex items-center justify-center">
-                     <div className="w-48 h-48 rounded-full border-[24px] border-neutral-100 animate-pulse" />
+                     <div className="w-48 h-48 rounded-full border-[24px] border-neutral-100 dark:border-zinc-800 animate-pulse" />
                    </div>
                 ) : summary?.submissions === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center">

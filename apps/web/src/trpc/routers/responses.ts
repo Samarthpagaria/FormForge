@@ -206,7 +206,13 @@ export const responsesRouter = createTRPCRouter({
               formId: form[0].id,
               formName: form[0].name,
               submissionId: newSubmission[0]!.id,
-              answers: input.answers,
+              answers: input.answers.map(ans => {
+                const fieldDef = (formVersion[0]?.schema as any)?.fields?.find((f: any) => f.id === ans.fieldKey);
+                return {
+                  ...ans,
+                  fieldKey: fieldDef?.label || ans.fieldKey,
+                };
+              }),
               submittedAt: new Date(),
               totalResponses: totalSubmissionsQuery[0]?.count || 1,
             });

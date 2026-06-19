@@ -257,23 +257,23 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
   };
 
   return (
-    <div className="flex flex-col w-full h-[600px] max-h-[80vh] max-w-[500px] mx-auto bg-white rounded-3xl shadow-xl border border-neutral-200/60 overflow-hidden relative">
+    <div className="flex flex-col w-full h-[600px] max-h-[80vh] max-w-[500px] mx-auto bg-white dark:bg-zinc-950 rounded-3xl shadow-xl border border-neutral-200/60 dark:border-zinc-800/80 overflow-hidden relative">
 
       {/* Ambient background */}
-      <div className="absolute inset-0 z-0 opacity-60 mix-blend-multiply pointer-events-none">
+      <div className="absolute inset-0 z-0 opacity-60 dark:opacity-20 mix-blend-multiply dark:mix-blend-lighten pointer-events-none">
         <div className="absolute -top-[20%] -left-[10%] w-[300px] h-[300px] bg-blue-100 rounded-full blur-[80px] animate-[pulse_8s_ease-in-out_infinite]" />
         <div className="absolute top-[40%] -right-[20%] w-[400px] h-[400px] bg-purple-50 rounded-full blur-[100px] animate-[pulse_10s_ease-in-out_infinite_2s]" />
       </div>
 
       {/* Header */}
-      <div className="px-6 py-4 border-b border-neutral-100 bg-white/90 backdrop-blur-md z-10 flex items-center gap-3 shrink-0 shadow-sm">
+      <div className="px-6 py-4 border-b border-neutral-100 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md z-10 flex items-center gap-3 shrink-0 shadow-sm">
         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center shadow-md">
           <span className="text-white text-lg">🤖</span>
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-bold text-neutral-800 truncate">{schema.title || "Untitled Form"}</h2>
+          <h2 className="text-sm font-bold text-neutral-800 dark:text-zinc-100 truncate">{schema.title || "Untitled Form"}</h2>
           {schema.description ? (
-            <p className="text-[11px] text-neutral-500 font-medium truncate">{schema.description}</p>
+            <p className="text-[11px] text-neutral-500 dark:text-zinc-400 font-medium truncate">{schema.description}</p>
           ) : (
             <p className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> Online
@@ -294,7 +294,7 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
               <div className={`px-4 py-2.5 rounded-2xl max-w-[85%] text-[15px] leading-relaxed shadow-sm ${
                 msg.sender === "user"
                   ? "bg-blue-500 text-white rounded-br-sm"
-                  : "bg-white border border-neutral-100 text-neutral-800 rounded-bl-sm"
+                  : "bg-white dark:bg-zinc-900 border border-neutral-100 dark:border-zinc-800 text-neutral-800 dark:text-zinc-100 rounded-bl-sm"
               }`}>
                 {msg.text.split("\n").map((line, i, arr) => (
                   <span key={i}>
@@ -312,10 +312,10 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
 
           {isTyping && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-start">
-              <div className="px-4 py-3 bg-white border border-neutral-100 rounded-2xl rounded-bl-sm shadow-sm flex items-center gap-1.5 w-16 h-10">
+              <div className="px-4 py-3 bg-white dark:bg-zinc-900 border border-neutral-100 dark:border-zinc-800 rounded-2xl rounded-bl-sm shadow-sm flex items-center gap-1.5 w-16 h-10">
                 {[0, 0.2, 0.4].map((delay, i) => (
                   <motion.div key={i} animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay }}
-                    className="w-1.5 h-1.5 bg-neutral-400 rounded-full" />
+                    className="w-1.5 h-1.5 bg-neutral-400 dark:bg-zinc-500 rounded-full" />
                 ))}
               </div>
             </motion.div>
@@ -324,8 +324,7 @@ export function ChatModeRenderer({ schema, disabled = false, engine }: ModeRende
         <div ref={messagesEndRef} className="h-2" />
       </div>
 
-      {/* Bottom input area */}
-      <div className="p-4 bg-white border-t border-neutral-100 shrink-0 z-10 relative">
+      <div className="p-4 bg-white dark:bg-zinc-950 border-t border-neutral-100 dark:border-zinc-800 shrink-0 z-10 relative">
         <AnimatePresence>
           {fieldError && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}

@@ -81,12 +81,12 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
   };
 
   return (
-    <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 shadow-sm overflow-hidden">
+    <div className="relative z-0 min-h-[calc(100vh-64px-2rem)] bg-[#f5f5f3] dark:bg-zinc-950 flex flex-col p-6 md:px-10 m-4 rounded-[2rem] border border-neutral-200/60 dark:border-zinc-800/60 shadow-sm overflow-hidden">
       
       {/* ── Background Decorative Blobs ── */}
-      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] rounded-full blur-[100px] -z-10 pointer-events-none opacity-60" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] rounded-full blur-[120px] -z-10 pointer-events-none opacity-60" />
-      <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-[#f0ecd6] rounded-full blur-[90px] -z-10 pointer-events-none opacity-50" />
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#d9e5c9] dark:bg-[#d9e5c9]/10 rounded-full blur-[100px] -z-10 pointer-events-none opacity-60 dark:opacity-20" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#e3ecd6] dark:bg-[#e3ecd6]/10 rounded-full blur-[120px] -z-10 pointer-events-none opacity-60 dark:opacity-20" />
+      <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-[#f0ecd6] dark:bg-[#f0ecd6]/10 rounded-full blur-[90px] -z-10 pointer-events-none opacity-50 dark:opacity-20" />
 
       <div className="flex-1 w-[90%] mx-auto relative z-10 flex flex-col">
         
@@ -94,15 +94,15 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             <Link href="/forms">
-              <button className="p-2 bg-white rounded-full border border-neutral-200 text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">
+              <button className="p-2 bg-white dark:bg-zinc-900 rounded-full border border-neutral-200 dark:border-zinc-800 text-neutral-500 dark:text-zinc-400 hover:text-neutral-800 dark:hover:text-zinc-200 hover:bg-neutral-50 dark:hover:bg-zinc-800/50 transition-colors shadow-sm">
                 <ArrowLeft size={18} />
               </button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-neutral-800 tracking-tight">
+              <h1 className="text-3xl font-bold text-neutral-800 dark:text-zinc-100 tracking-tight">
                 {form?.name ? `${form.name} Responses` : "Responses"}
               </h1>
-              <p className="text-neutral-500 text-sm mt-0.5">{submissions?.length || 0} total responses</p>
+              <p className="text-neutral-500 dark:text-zinc-400 text-sm mt-0.5">{submissions?.length || 0} total responses</p>
             </div>
           </div>
           
@@ -115,20 +115,20 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
         <div className="flex gap-6 flex-1 min-h-[600px]">
           
           {/* Table Container */}
-          <div className={`bg-white/80 backdrop-blur-md border border-neutral-200/60 rounded-[2rem] shadow-sm overflow-visible flex flex-col transition-all duration-300 ${selectedSub ? 'w-2/3 hidden lg:flex' : 'w-full'}`}>
+          <div className={`bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-neutral-200/60 dark:border-zinc-800/60 rounded-[2rem] shadow-sm overflow-visible flex flex-col transition-all duration-300 ${selectedSub ? 'w-2/3 hidden lg:flex' : 'w-full'}`}>
             
             {/* ── Table Header Toolbar ── */}
-            <div className="p-5 border-b border-neutral-200/60 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/50 rounded-t-[2rem]">
+            <div className="p-5 border-b border-neutral-200/60 dark:border-zinc-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/50 dark:bg-zinc-900/50 rounded-t-[2rem]">
               
               {/* Search Bar on Table Header */}
               <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-zinc-500" size={16} />
                 <input 
                   type="text" 
                   placeholder="Search metadata..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-white border border-neutral-200 text-sm rounded-full pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2d351e]/20 transition-all shadow-sm"
+                  className="w-full bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 text-sm rounded-full pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2d351e]/20 dark:focus:ring-zinc-700 transition-all shadow-sm"
                 />
               </div>
 
@@ -137,7 +137,7 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
             {/* Table Content */}
             <div className="overflow-x-auto flex-1">
               <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-neutral-50/50 border-b border-neutral-200/60 text-neutral-500">
+                <thead className="bg-neutral-50/50 dark:bg-zinc-800/50 border-b border-neutral-200/60 dark:border-zinc-800/60 text-neutral-500 dark:text-zinc-400">
                   <tr>
                     <th className="px-6 py-4 font-semibold w-16">#</th>
                     <th className="px-6 py-4 font-semibold">Submission ID</th>
@@ -147,18 +147,18 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
                     <th className="px-6 py-4 font-semibold text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-neutral-100 dark:divide-zinc-800/50">
                   {isLoading ? (
                     [...Array(5)].map((_, i) => (
                       <tr key={i}>
                         <td colSpan={6} className="px-6 py-4">
-                          <div className="h-6 bg-neutral-200/50 animate-pulse rounded-md" />
+                          <div className="h-6 bg-neutral-200/50 dark:bg-zinc-800/50 animate-pulse rounded-md" />
                         </td>
                       </tr>
                     ))
                   ) : filteredSubmissions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-neutral-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-neutral-500 dark:text-zinc-500">
                         {search ? "No responses found matching your search." : "No submissions yet."}
                       </td>
                     </tr>
@@ -173,33 +173,33 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.05 }}
                           onClick={() => setSelectedSub(selectedSub === sub.id ? null : sub.id)}
-                          className={`cursor-pointer transition-colors ${selectedSub === sub.id ? 'bg-[#d9e5c9]/30' : 'hover:bg-neutral-50/80'}`}
+                          className={`cursor-pointer transition-colors ${selectedSub === sub.id ? 'bg-[#d9e5c9]/30 dark:bg-zinc-800/80' : 'hover:bg-neutral-50/80 dark:hover:bg-zinc-800/50'}`}
                         >
-                          <td className="px-6 py-4 font-medium text-neutral-400">{idx + 1}</td>
+                          <td className="px-6 py-4 font-medium text-neutral-400 dark:text-zinc-500">{idx + 1}</td>
                           <td className="px-6 py-4">
-                            <span className="font-mono text-xs text-neutral-500">
+                            <span className="font-mono text-xs text-neutral-500 dark:text-zinc-400">
                               {sub.id.split("-")[0]}...
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="font-medium text-neutral-800">
+                            <div className="font-medium text-neutral-800 dark:text-zinc-300">
                               {sub.submittedAt ? new Date(sub.submittedAt).toLocaleDateString() : "N/A"}
                             </div>
-                            <div className="text-xs text-neutral-400">
+                            <div className="text-xs text-neutral-400 dark:text-zinc-500">
                               {sub.submittedAt ? new Date(sub.submittedAt).toLocaleTimeString() : ""}
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center gap-1.5 text-neutral-600 capitalize">
+                            <div className="flex items-center gap-1.5 text-neutral-600 dark:text-zinc-400 capitalize">
                               {device === 'desktop' ? <Monitor size={14} /> : <Smartphone size={14} />}
                               {device}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-neutral-600 font-mono text-xs">
+                          <td className="px-6 py-4 text-neutral-600 dark:text-zinc-400 font-mono text-xs">
                             {sub.sessionId ? `${sub.sessionId.slice(0, 8)}...` : "None"}
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase bg-emerald-50 text-emerald-600 border border-emerald-100`}>
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-500 dark:border-emerald-900/50`}>
                               <CheckCircle2 size={12} />
                               Complete
                             </span>
@@ -212,7 +212,7 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
               </table>
             </div>
             
-            <div className="border-t border-neutral-200/60 p-4 bg-white/50 flex items-center justify-between text-sm text-neutral-500 rounded-b-[2rem]">
+            <div className="border-t border-neutral-200/60 dark:border-zinc-800/60 p-4 bg-white/50 dark:bg-zinc-900/50 flex items-center justify-between text-sm text-neutral-500 dark:text-zinc-400 rounded-b-[2rem]">
               <span>Showing {filteredSubmissions.length} responses</span>
             </div>
           </div>
@@ -225,24 +225,24 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 50, scale: 0.95 }}
                 transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-                className="w-full lg:w-1/3 bg-white/80 backdrop-blur-md border border-neutral-200/60 rounded-[2rem] shadow-xl shadow-neutral-200/40 overflow-hidden flex flex-col"
+                className="w-full lg:w-1/3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-neutral-200/60 dark:border-zinc-800/60 rounded-[2rem] shadow-xl shadow-neutral-200/40 dark:shadow-black/40 overflow-hidden flex flex-col"
               >
-                <div className="p-6 border-b border-neutral-100 bg-neutral-50/50 flex items-start justify-between">
+                <div className="p-6 border-b border-neutral-100 dark:border-zinc-800/60 bg-neutral-50/50 dark:bg-zinc-800/30 flex items-start justify-between">
                   <div>
-                    <h2 className="text-lg font-bold text-neutral-800">Submission Details</h2>
-                    <p className="text-xs text-neutral-500 mt-1">ID: <span className="font-mono">{selectedSub.split("-")[0]}...</span></p>
+                    <h2 className="text-lg font-bold text-neutral-800 dark:text-zinc-100">Submission Details</h2>
+                    <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-1">ID: <span className="font-mono">{selectedSub.split("-")[0]}...</span></p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button 
                       onClick={handleExportSingle}
-                      className="p-1.5 text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
+                      className="p-1.5 text-neutral-400 dark:text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-md transition-colors"
                       title="Export this submission"
                     >
                       <Download size={16} />
                     </button>
                     <button 
                       onClick={() => setSelectedSub(null)}
-                      className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                      className="p-1.5 text-neutral-400 dark:text-zinc-500 hover:text-neutral-700 dark:hover:text-zinc-300 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
                       title="Close"
                     >
                       <ChevronRight size={18} />
@@ -255,8 +255,8 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
                     <div className="space-y-4">
                       {[...Array(4)].map((_, i) => (
                         <div key={i}>
-                           <div className="h-3 w-24 bg-neutral-200 animate-pulse rounded mb-2" />
-                           <div className="h-10 w-full bg-neutral-100 animate-pulse rounded-lg" />
+                           <div className="h-3 w-24 bg-neutral-200 dark:bg-zinc-700 animate-pulse rounded mb-2" />
+                           <div className="h-10 w-full bg-neutral-100 dark:bg-zinc-800 animate-pulse rounded-lg" />
                         </div>
                       ))}
                     </div>
@@ -264,29 +264,29 @@ export default function ResponsesPage({ params }: { params: Promise<{ formId: st
                     <div className="space-y-6">
                       
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
-                          <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">Submitted</p>
-                          <p className="text-sm font-semibold text-neutral-700">
+                        <div className="bg-neutral-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-neutral-100 dark:border-zinc-700">
+                          <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 dark:text-zinc-500 mb-1">Submitted</p>
+                          <p className="text-sm font-semibold text-neutral-700 dark:text-zinc-300">
                             {activeSubDetails.submittedAt ? new Date(activeSubDetails.submittedAt).toLocaleString() : "N/A"}
                           </p>
                         </div>
-                        <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
-                          <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">Device</p>
-                          <p className="text-sm font-semibold text-neutral-700 capitalize">
+                        <div className="bg-neutral-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-neutral-100 dark:border-zinc-700">
+                          <p className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 dark:text-zinc-500 mb-1">Device</p>
+                          <p className="text-sm font-semibold text-neutral-700 dark:text-zinc-300 capitalize">
                             {(activeSubDetails.meta as any)?.device || "Unknown"}
                           </p>
                         </div>
                       </div>
 
-                      <div className="w-full h-px bg-neutral-100" />
+                      <div className="w-full h-px bg-neutral-100 dark:bg-zinc-800" />
 
                       {activeSubDetails.answers.length === 0 ? (
-                         <p className="text-sm text-neutral-500 italic">No answers found for this submission.</p>
+                         <p className="text-sm text-neutral-500 dark:text-zinc-400 italic">No answers found for this submission.</p>
                       ) : (
                          activeSubDetails.answers.map((answer, i) => (
                            <div key={i}>
-                             <p className="text-xs font-semibold text-neutral-500 mb-2">{answer.fieldKey}</p>
-                             <div className="text-sm text-neutral-800 bg-white border border-neutral-200 px-3 py-2 rounded-lg break-words">
+                             <p className="text-xs font-semibold text-neutral-500 dark:text-zinc-400 mb-2">{answer.fieldKey}</p>
+                             <div className="text-sm text-neutral-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-700 px-3 py-2 rounded-lg break-words">
                                {String(answer.value)}
                              </div>
                            </div>

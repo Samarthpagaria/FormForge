@@ -73,11 +73,11 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
   const currentField = !isComplete ? schema.fields[currentIndex] : null;
 
   return (
-    <div className="w-full h-[650px] max-h-[85vh] flex flex-col bg-[#f0f0f5] rounded-3xl overflow-hidden relative font-sans text-neutral-900 shadow-2xl items-center justify-center">
+    <div className="w-full h-[650px] max-h-[85vh] flex flex-col bg-[#f0f0f5] dark:bg-zinc-950 rounded-3xl overflow-hidden relative font-sans text-neutral-900 dark:text-zinc-50 shadow-2xl items-center justify-center">
       
       {/* Progress */}
       <div className="absolute top-6 left-0 right-0 flex justify-center z-20">
-        <div className="bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-neutral-500 shadow-sm border border-neutral-200">
+        <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-neutral-500 dark:text-zinc-400 shadow-sm border border-neutral-200 dark:border-zinc-800">
           {currentIndex === -1 ? "Cover" : `${Math.min(currentIndex + 1, totalSteps)} / ${totalSteps}`}
         </div>
       </div>
@@ -89,13 +89,13 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
               key="complete"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="absolute w-full h-full bg-white rounded-3xl shadow-xl flex flex-col items-center justify-center p-8 text-center border border-neutral-200"
+              className="absolute w-full h-full bg-white dark:bg-zinc-900 rounded-3xl shadow-xl flex flex-col items-center justify-center p-8 text-center border border-neutral-200 dark:border-zinc-800"
             >
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-4">
                 <span className="text-3xl">🎉</span>
               </div>
-              <h2 className="text-2xl font-bold mb-2">You're done!</h2>
-              <p className="text-neutral-500 text-sm mb-8">Ready to submit your answers?</p>
+              <h2 className="text-2xl font-bold mb-2 text-neutral-900 dark:text-zinc-50">You're done!</h2>
+              <p className="text-neutral-500 dark:text-zinc-400 text-sm mb-8">Ready to submit your answers?</p>
               <button
                 onClick={() => handleSubmit()}
                 disabled={isSubmitting}
@@ -107,7 +107,7 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
           ) : currentIndex === -1 ? (
             <motion.div
               key="cover"
-              className="absolute w-full h-full bg-white rounded-3xl shadow-xl flex flex-col items-center justify-center p-8 text-center border border-neutral-200 cursor-grab active:cursor-grabbing"
+              className="absolute w-full h-full bg-white dark:bg-zinc-900 rounded-3xl shadow-xl flex flex-col items-center justify-center p-8 text-center border border-neutral-200 dark:border-zinc-800 cursor-grab active:cursor-grabbing"
               initial={{ x: direction === 0 ? 0 : direction > 0 ? 300 : -300, opacity: 0, rotate: direction > 0 ? 15 : -15 }}
               animate={{ x: 0, opacity: 1, rotate: 0 }}
               exit={{ x: direction > 0 ? 300 : -300, opacity: 0, rotate: direction > 0 ? 15 : -15 }}
@@ -116,9 +116,9 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
               dragConstraints={{ left: 0, right: 0 }}
               onDragEnd={(e, info) => { if (info.offset.x > 80) handleSwipe("right"); else if (info.offset.x < -80) handleSwipe("left"); }}
             >
-              <h2 className="text-3xl font-black text-neutral-900 tracking-tight mb-3">{schema.title || "Untitled Form"}</h2>
-              <p className="text-neutral-500 text-sm leading-relaxed mb-8">{schema.description || "Swipe right or press Next to begin."}</p>
-              <div className="flex items-center gap-2 text-violet-600 text-sm font-bold animate-pulse">
+              <h2 className="text-3xl font-black text-neutral-900 dark:text-zinc-50 tracking-tight mb-3">{schema.title || "Untitled Form"}</h2>
+              <p className="text-neutral-500 dark:text-zinc-400 text-sm leading-relaxed mb-8">{schema.description || "Swipe right or press Next to begin."}</p>
+              <div className="flex items-center gap-2 text-violet-600 dark:text-violet-400 text-sm font-bold animate-pulse">
                 Swipe to start <span className="text-xl">→</span>
               </div>
             </motion.div>
@@ -137,10 +137,10 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
 
         {/* Stack visuals for upcoming cards */}
         {!isComplete && currentIndex + 1 < totalSteps && (
-          <div className="absolute w-full h-full bg-white rounded-3xl shadow-md border border-neutral-200 -z-10 scale-[0.95] translate-y-4 opacity-50 pointer-events-none" />
+          <div className="absolute w-full h-full bg-white dark:bg-zinc-900 rounded-3xl shadow-md border border-neutral-200 dark:border-zinc-800 -z-10 scale-[0.95] translate-y-4 opacity-50 pointer-events-none" />
         )}
         {!isComplete && currentIndex + 2 < totalSteps && (
-          <div className="absolute w-full h-full bg-white rounded-3xl shadow-sm border border-neutral-200 -z-20 scale-[0.90] translate-y-8 opacity-20 pointer-events-none" />
+          <div className="absolute w-full h-full bg-white dark:bg-zinc-900 rounded-3xl shadow-sm border border-neutral-200 dark:border-zinc-800 -z-20 scale-[0.90] translate-y-8 opacity-20 pointer-events-none" />
         )}
 
       </div>
@@ -151,14 +151,14 @@ export function SwipeModeRenderer({ schema, disabled = false, engine }: ModeRend
           <button 
             onClick={() => goBack()}
             disabled={currentIndex === 0}
-            className="w-14 h-14 bg-white rounded-full shadow-lg border border-neutral-200 flex items-center justify-center text-violet-600 hover:text-violet-800 hover:scale-110 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
+            className="w-14 h-14 bg-white dark:bg-zinc-900 rounded-full shadow-lg border border-neutral-200 dark:border-zinc-800 flex items-center justify-center text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-300 hover:scale-110 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
             title="Go Back"
           >
             <span className="text-xl">←</span>
           </button>
           <button 
             onClick={() => handleSwipe("right")}
-            className="w-14 h-14 bg-violet-600 rounded-full shadow-lg border border-violet-700 flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
+            className="w-14 h-14 bg-violet-600 dark:bg-violet-700 rounded-full shadow-lg border border-violet-700 dark:border-violet-600 flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
             title="Next Question"
           >
             <span className="text-xl">→</span>
@@ -203,7 +203,7 @@ function SwipeCard({
 
   return (
     <motion.div
-      className="absolute w-full h-full bg-white rounded-3xl shadow-xl border border-neutral-200 flex flex-col p-6 cursor-grab active:cursor-grabbing overflow-hidden"
+      className="absolute w-full h-full bg-white dark:bg-zinc-900 rounded-3xl shadow-xl border border-neutral-200 dark:border-zinc-800 flex flex-col p-6 cursor-grab active:cursor-grabbing overflow-hidden"
       style={{ x, rotate, opacity }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
