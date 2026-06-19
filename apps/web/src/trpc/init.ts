@@ -6,7 +6,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   const authObject = await auth();
   const forwardedFor = opts.headers.get("x-forwarded-for");
   const realIp = opts.headers.get("x-real-ip");
-  const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : (realIp || "unknown");
+  const ip = forwardedFor ? (forwardedFor.split(",")[0]?.trim() ?? (realIp || "unknown")) : (realIp || "unknown");
   return { auth: authObject, db, ip, headers: opts.headers };
 };
 
