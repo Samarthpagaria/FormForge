@@ -29,7 +29,7 @@ const FAQS: FaqItem[] = [
   {
     question: "Is user data synchronized automatically with our database?",
     answer:
-      "Yes. Through our automated Clerk authentication webhooks, user lifecycle actions are immediately synced down to our central Drizzle-powered PostgreSQL database. The moment a user signs up or modifies their profile, your database matches that state instantly.",
+      "Yes. Through our automated Supabase database triggers, user lifecycle actions are immediately synced down to our central Drizzle-powered PostgreSQL database. The moment a user signs up or modifies their profile, your database matches that state instantly.",
   },
   {
     question: "Can I integrate these forms directly into an external application?",
@@ -47,9 +47,9 @@ const FAQS: FaqItem[] = [
       "Yes. Our built-in global heatmap uses secure, backend-level IP localization to map incoming submission traffic onto an interactive geographical layout. You can visually track engagement spikes across specific countries and continents to optimize your marketing distribution channels.",
   },
   {
-    question: "What happens to my data if a user deletes their profile via Clerk?",
+    question: "What happens to my data if a user deletes their profile via Supabase?",
     answer:
-      "Our system handles user lifecycles symmetrically. Through secure automated webhooks, when a user updates or removes their profile through Clerk, a background trigger instantly syncs that exact state down to your Drizzle-managed PostgreSQL database, maintaining clean, compliant, and up-to-date user records automatically.",
+      "Our system handles user lifecycles symmetrically. Through secure automated triggers, when a user updates or removes their profile through Supabase, a background trigger instantly syncs that exact state down to your Drizzle-managed PostgreSQL database, maintaining clean, compliant, and up-to-date user records automatically.",
   },
   {
     question: "Is there a limit to how many versions a single form can have?",

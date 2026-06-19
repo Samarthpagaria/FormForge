@@ -37,7 +37,7 @@ const TESTIMONIALS: Testimonial[] = [
     name: "Liam Kincaid",
     role: "CTO at CorePulse",
     quote:
-      "We needed a form solution that wouldn't lock us into a proprietary ecosystem. Having our user authentication tie flawlessly into our local PostgreSQL database via Clerk webhooks and Drizzle saved us months of engineering time. It's an absolute masterclass in developer-first architecture.",
+      "We needed a form solution that wouldn't lock us into a proprietary ecosystem. Having our user authentication tie flawlessly into our local PostgreSQL database via Supabase triggers and Drizzle saved us months of engineering time. It's an absolute masterclass in developer-first architecture.",
     avatar: "https://i.pravatar.cc/150?img=15",
   },
   {

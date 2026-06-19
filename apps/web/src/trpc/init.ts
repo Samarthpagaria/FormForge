@@ -1,9 +1,12 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { db } from "@formforge/db";
-import { auth } from "@clerk/nextjs/server";
+import { createServerSupabaseClient } from "../../lib/supabase/server";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const authObject = await auth();
+  const supabase = await createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const authObject = { userId: session?.user?.id ?? null };
+
   const forwardedFor = opts.headers.get("x-forwarded-for");
   const realIp = opts.headers.get("x-real-ip");
   const ip = forwardedFor ? (forwardedFor.split(",")[0]?.trim() ?? (realIp || "unknown")) : (realIp || "unknown");

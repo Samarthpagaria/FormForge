@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Play, LayoutGrid, ShieldCheck, History } from "lucide-react";
 import DisplayCards from "@/components/ui/display-cards";
@@ -23,7 +23,9 @@ const DYNAMIC_WORDS: DynamicWordInfo[] = [
 
 export function LandingHero() {
   const router = useRouter();
-  const { isSignedIn, isLoaded } = useUser();
+  const { user, loading } = useAuth();
+  const isSignedIn = !!user;
+  const isLoaded = !loading;
   const [wordIndex, setWordIndex] = useState(0);
 
   useEffect(() => {

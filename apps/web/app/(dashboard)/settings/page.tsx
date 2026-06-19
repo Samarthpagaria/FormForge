@@ -1,20 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
-import { useUser, UserButton } from "@clerk/nextjs";
 import { User, Bell, ShieldAlert, Loader2, Save, Download, Trash2, Folder, Plus, Edit2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { trpc } from "@/src/trpc/client";
+import { useAuth } from "@/lib/auth-context";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
-  const { user, isLoaded } = useUser();
+  const { user, loading } = useAuth();
+  const isLoaded = !loading;
+  const supabase = createClient();
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [firstName, setFirstName] = useState(user?.firstName || "");
-  const [lastName, setLastName] = useState(user?.lastName || "");
+  const [firstName, setFirstName] = useState(user?.user_metadata?.name?.split(' ')[0] || user?.user_metadata?.first_name || "");
+  const [lastName, setLastName] = useState(user?.user_metadata?.name?.split(' ').slice(1).join(' ') || user?.user_metadata?.last_name || "");
   
   const [emailNotifications, setEmailNotifications] = useState(true);
-  const [notificationEmail, setNotificationEmail] = useState(user?.primaryEmailAddress?.emailAddress || "");
+  const [notificationEmail, setNotificationEmail] = useState(user?.email || "");
   const [isSavingNotifications, setIsSavingNotifications] = useState(false);
 
   // Template Categories State
@@ -69,9 +72,9 @@ export default function SettingsPage() {
   // Initialize state when user loads
   React.useEffect(() => {
     if (user && !firstName && !lastName) {
-      setFirstName(user.firstName || "");
-      setLastName(user.lastName || "");
-      setNotificationEmail(user.primaryEmailAddress?.emailAddress || "");
+      setFirstName(user.user_metadata?.name?.split(' ')[0] || user.user_metadata?.first_name || "");
+      setLastName(user.user_metadata?.name?.split(' ').slice(1).join(' ') || user.user_metadata?.last_name || "");
+      setNotificationEmail(user.email || "");
     }
   }, [user]);
 
@@ -79,7 +82,10 @@ export default function SettingsPage() {
     if (!user) return;
     try {
       setIsSavingProfile(true);
-      await user.update({ firstName, lastName });
+      const { error } = await supabase.auth.updateUser({
+        data: { name: `${firstName} ${lastName}`.trim() }
+      });
+      if (error) throw error;
       toast.success("Profile updated successfully");
     } catch (error: any) {
       toast.error(error.message || "Failed to update profile");
@@ -151,7 +157,9 @@ export default function SettingsPage() {
 
           <div className="flex items-center gap-6">
             <div className="shrink-0">
-              <UserButton appearance={{ elements: { avatarBox: "w-20 h-20 shadow-md" } }} />
+              <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-3xl font-bold shadow-md uppercase">
+                {user?.email?.[0] || "U"}
+              </div>
             </div>
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
@@ -176,7 +184,7 @@ export default function SettingsPage() {
                 <label className="text-xs font-semibold text-neutral-600 dark:text-zinc-400">Email Address (Read-only)</label>
                 <input 
                   type="email" 
-                  value={user?.primaryEmailAddress?.emailAddress || ""}
+                  value={user?.email || ""}
                   disabled
                   className="bg-neutral-50 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 text-neutral-500 dark:text-zinc-500 rounded-xl px-4 py-2 text-sm cursor-not-allowed"
                 />

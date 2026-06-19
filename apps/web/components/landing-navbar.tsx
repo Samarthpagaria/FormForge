@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "next-themes";
 import { ArrowRight, ChevronUp } from "lucide-react";
 import { IconBrandGithub as Github } from "@tabler/icons-react";
@@ -67,7 +67,8 @@ function NavUpvote() {
 
 export function LandingNavbar() {
   const router = useRouter();
-  const { isSignedIn } = useUser();
+  const { user } = useAuth();
+  const isSignedIn = !!user;
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 

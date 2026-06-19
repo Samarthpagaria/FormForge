@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UserButton, useUser } from "@clerk/nextjs";
+
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ExpandableTabs, TabItem } from "@/components/ui/expandable-tabs";
 import { useTheme } from "next-themes";
@@ -48,15 +48,25 @@ function NavMiddle() {
 }
 
 /* ── Right: New Form + User ──────────────── */
+import { useAuth } from "@/lib/auth-context";
+import { createClient } from "@/lib/supabase/client";
+
+// ... Inside NavRight
 function NavRight() {
   const router = useRouter();
-  const { user, isLoaded } = useUser();
+  const { user, loading } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const supabase = createClient();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/sign-in");
+  };
 
   return (
     <div className="flex items-center gap-3">
@@ -105,13 +115,13 @@ function NavRight() {
 
         <div className="flex items-center gap-2 pl-2 pr-1">
           <div className="hidden sm:flex flex-col items-end mr-1">
-            {isLoaded && user ? (
+            {!loading && user ? (
               <>
                 <span className="text-sm font-bold text-neutral-800 dark:text-zinc-100 tracking-tight leading-tight">
-                  {user.fullName || user.firstName || "User"}
+                  {user.user_metadata?.name || user.user_metadata?.full_name || "User"}
                 </span>
                 <span className="text-[10px] text-neutral-500 dark:text-zinc-400 font-semibold leading-tight tracking-wide">
-                  {user.primaryEmailAddress?.emailAddress || ""}
+                  {user.email || ""}
                 </span>
               </>
             ) : (
@@ -121,10 +131,10 @@ function NavRight() {
               </div>
             )}
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-200/50 dark:border-zinc-700 p-[1px] bg-white dark:bg-zinc-900">
-            <UserButton
-              appearance={{ elements: { avatarBox: "h-7 w-7 rounded-full" } }}
-            />
+          <div className="flex h-8 w-8 overflow-hidden items-center justify-center rounded-full border border-neutral-200/50 dark:border-zinc-700 bg-white dark:bg-zinc-900 cursor-pointer" onClick={handleSignOut} title="Sign out">
+             <div className="h-7 w-7 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-400">
+               {user?.email?.[0]?.toUpperCase() || "U"}
+             </div>
           </div>
         </div>
 

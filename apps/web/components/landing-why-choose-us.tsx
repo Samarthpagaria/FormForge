@@ -37,11 +37,11 @@ const labelColors: Record<AccentColor, string> = {
 
 const BENTO_CARDS: BentoCard[] = [
   {
-    tag: "Clerk + Drizzle Sync",
+    tag: "Supabase + Drizzle Sync",
     headline: "Instant Sync Engine",
     content: (
       <>
-        Sign up via Clerk and automated{" "}
+        Sign up via Supabase and automated{" "}
         <span className="font-semibold text-cyan-700 dark:text-cyan-300 decoration-cyan-400/50 underline decoration-dashed underline-offset-2">
           webhooks
         </span>{" "}
@@ -61,7 +61,7 @@ const BENTO_CARDS: BentoCard[] = [
     color: "teal",
   },
   {
-    tag: "Clerk Authentication",
+    tag: "Supabase Authentication",
     headline: "Enterprise-Grade Security",
     content:
       "Protect your forms with world-class authentication. Enjoy seamless social logins, multi-factor authentication, and bulletproof session management right out of the box.",

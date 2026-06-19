@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
+import { AuthProvider } from "@/lib/auth-context";
 import { TRPCReactProvider } from "@/src/trpc/provider";
 import { Toaster } from "sonner";
 
@@ -25,16 +25,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_dHJ1c3RlZC1tYWNhcXVlLTI5LmNsZXJrLmFjY291bnRzLmRldiQ"}>
+          <AuthProvider>
             <TRPCReactProvider>
               {children}
             </TRPCReactProvider>
-          </ClerkProvider>
+          </AuthProvider>
           <Toaster position="bottom-right" richColors />
         </ThemeProvider>
       </body>
     </html>
   );
 }
-
-
