@@ -263,7 +263,7 @@ function TerminalFieldWidget({
   );
 
   // ── Short text / text / name / email / number / phone ──
-  if (["text","short_text","name","email","number","phone"].includes(field.type)) {
+  if (["text","short_text","name","email","number","phone","tel"].includes(field.type)) {
     return (
       <form className="flex items-center" onSubmit={e => { e.preventDefault(); onAdvance(); }}>
         <span className="text-[#7c3aed] mr-2">{">"}</span>

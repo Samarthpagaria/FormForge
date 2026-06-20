@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 
 import { sendSubmissionEmail } from "../../services/email";
 import { enrichSubmissionMeta } from "../../services/geo-enrichment";
+import { encryptIp } from "../../lib/encryption";
 
 export const responsesRouter = createTRPCRouter({
   /**
@@ -89,13 +90,17 @@ export const responsesRouter = createTRPCRouter({
 
           // Check by IP
           if (ip !== "unknown") {
+            const crypto = require("crypto");
+            const salt = process.env.NEXTAUTH_SECRET || "fallback_salt_formforge_2026";
+            const hashedIp = crypto.createHash("sha256").update(ip + salt).digest("hex");
+
             const existingByIp = await ctx.db
               .select()
               .from(submissions)
               .where(
                 and(
                   eq(submissions.formId, input.formId),
-                  sql`meta->>'ip' = ${ip}`
+                  sql`(meta->>'ipHash' = ${hashedIp} OR meta->>'ip' = ${hashedIp} OR meta->>'ip' = ${ip})`
                 )
               )
               .limit(1);
@@ -148,6 +153,28 @@ export const responsesRouter = createTRPCRouter({
 
         // create submission
         const enrichedMeta = await enrichSubmissionMeta(input.meta);
+        
+        if (enrichedMeta?.ip && enrichedMeta.ip !== "unknown") {
+           const crypto = require("crypto");
+           const salt = process.env.NEXTAUTH_SECRET || "fallback_salt_formforge_2026";
+           (enrichedMeta as any).ipHash = crypto.createHash("sha256").update(enrichedMeta.ip + salt).digest("hex");
+           
+           // Store the encrypted real IP in case of company recovery use-case
+           (enrichedMeta as any).ipEncrypted = encryptIp(enrichedMeta.ip);
+
+           // Mask the IP for UI display
+           const parts = enrichedMeta.ip.split(".");
+           if (parts.length === 4) {
+               enrichedMeta.ip = `${parts[0]}.${parts[1]}.***.***`;
+           } else {
+               const v6parts = enrichedMeta.ip.split(":");
+               if (v6parts.length > 4) {
+                   enrichedMeta.ip = `${v6parts[0]}:${v6parts[1]}:****:****`;
+               } else {
+                   enrichedMeta.ip = "Secured IP";
+               }
+           }
+        }
 
         const newSubmission = await ctx.db
           .insert(submissions)
@@ -224,13 +251,17 @@ export const responsesRouter = createTRPCRouter({
     .input(z.object({ formId: z.string(), ip: z.string(), sessionId: z.string().optional() }))
     .query(async ({ ctx, input }) => {
       if (input.ip !== "unknown") {
+        const crypto = require("crypto");
+        const salt = process.env.NEXTAUTH_SECRET || "fallback_salt_formforge_2026";
+        const hashedIp = crypto.createHash("sha256").update(input.ip + salt).digest("hex");
+
         const existingByIp = await ctx.db
           .select()
           .from(submissions)
           .where(
             and(
               eq(submissions.formId, input.formId),
-              sql`meta->>'ip' = ${input.ip}`
+              sql`(meta->>'ipHash' = ${hashedIp} OR meta->>'ip' = ${hashedIp} OR meta->>'ip' = ${input.ip})`
             )
           )
           .limit(1);
@@ -339,7 +370,30 @@ export const responsesRouter = createTRPCRouter({
           .from(submissionAnswers)
           .where(eq(submissionAnswers.submissionId, input.id));
 
-        return { ...submission[0], answers };
+        // Get form version to resolve field labels
+        let schemaFields: any[] = [];
+        if (submission[0].formVersionId) {
+          const version = await ctx.db
+            .select({ schema: formVersions.schema })
+            .from(formVersions)
+            .where(eq(formVersions.id, submission[0].formVersionId))
+            .limit(1);
+          if (version[0] && version[0].schema && Array.isArray((version[0].schema as any).fields)) {
+            schemaFields = (version[0].schema as any).fields;
+          }
+        } else if (form[0].draftSchema && Array.isArray((form[0].draftSchema as any).fields)) {
+          schemaFields = (form[0].draftSchema as any).fields;
+        }
+
+        const enrichedAnswers = answers.map(ans => {
+          const fieldDef = schemaFields.find(f => f.id === ans.fieldKey);
+          return {
+            ...ans,
+            fieldKey: fieldDef?.label || ans.fieldKey
+          };
+        });
+
+        return { ...submission[0], answers: enrichedAnswers };
       } catch (err) {
         if (err instanceof TRPCError) throw err;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch submission" });
@@ -412,8 +466,19 @@ export const responsesRouter = createTRPCRouter({
           ),
         ];
 
+        // map field keys to labels
+        let schemaFields: any[] = [];
+        if (form[0].draftSchema && Array.isArray((form[0].draftSchema as any).fields)) {
+          schemaFields = (form[0].draftSchema as any).fields;
+        }
+
+        const fieldLabels = fieldKeys.map(key => {
+          const fieldDef = schemaFields.find(f => f.id === key);
+          return fieldDef?.label || key;
+        });
+
         // build CSV
-        const headers = ["id", "submittedAt", "sessionId", ...fieldKeys];
+        const headers = ["id", "submittedAt", "sessionId", ...fieldLabels];
         const rows = allSubmissions.map((sub, i) => {
             const answers = allAnswersForAll[i];
             if (!answers) {

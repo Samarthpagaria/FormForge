@@ -15,7 +15,7 @@ export function FieldText({ field, disabled, value, onChange, error }: FieldProp
   const inputType =
     field.type === "email"
       ? "email"
-      : field.type === "phone"
+      : (field.type === "phone" || field.type === "tel")
       ? "tel"
       : field.type === "number"
       ? "number"
