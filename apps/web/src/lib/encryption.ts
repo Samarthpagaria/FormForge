@@ -45,9 +45,12 @@ export function decryptIp(encryptedText: string): string | null {
     const parts = encryptedText.split(":");
     if (parts.length !== 3) return null;
 
-    const iv = Buffer.from(parts[0], "hex");
-    const tag = Buffer.from(parts[1], "hex");
-    const encryptedData = parts[2];
+    const ivHex = parts[0] as string;
+    const tagHex = parts[1] as string;
+    const encryptedData = parts[2] as string;
+
+    const iv = Buffer.from(ivHex, "hex");
+    const tag = Buffer.from(tagHex, "hex");
     
     const key = getKey();
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
