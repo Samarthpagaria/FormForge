@@ -13,7 +13,14 @@ async function ensureCounter(db: typeof import("@formforge/db").db) {
 
 export const siteRouter = createTRPCRouter({
   getUpvoteCount: baseProcedure.query(async ({ ctx }) => {
-    await ensureCounter(ctx.db);
+    console.log(`[TRPC ROUTE] site.getUpvoteCount called`);
+    try {
+      await ensureCounter(ctx.db);
+      console.log(`[TRPC ROUTE] ensureCounter passed`);
+    } catch (e: any) {
+      console.error(`[TRPC ROUTE ERROR] ensureCounter failed in getUpvoteCount:`, e.message);
+      throw e;
+    }
 
     const [row] = await ctx.db
       .select({ count: landingUpvotes.count })

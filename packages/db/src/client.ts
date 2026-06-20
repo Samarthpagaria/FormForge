@@ -5,5 +5,7 @@ import * as schema from "./schema";
 import dotenv from "dotenv";
 dotenv.config({path: "../../.env"});
 
+console.log(`[DB INITIALIZATION] Setting up Drizzle client. DB URL present: ${!!process.env.DATABASE_URL}`);
 const client = postgres(process.env.DATABASE_URL!, { prepare: false });
 export const db = drizzle(client, {schema});
+console.log(`[DB INITIALIZATION] Drizzle client created successfully.`);
