@@ -7,6 +7,8 @@
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=flat-square&logo=vercel)](https://vercel.com)
 [![Monorepo](https://img.shields.io/badge/Monorepo-Turborepo-EF4444?style=flat-square&logo=turborepo)](https://turbo.build)
 
+**🔗 Live Demo:** [https://formforge-io.vercel.app/](https://formforge-io.vercel.app/)
+
 ## PROJECT CONTEXT
 **Project Name:** FormForge  
 **Type:** Modern form-building platform with AI capabilities  
@@ -22,11 +24,52 @@
 - **One-line Tagline:** Modern form-building platform with AI capabilities.
 - **Project Overview:** FormForge is an advanced, schema-driven form-building platform that leverages the modern React ecosystem. By combining Next.js App Router, tRPC, and Drizzle ORM within a Turborepo monorepo, FormForge guarantees strict end-to-end type safety while simplifying the process of generating, validating, and submitting complex forms.
 - **Value Proposition:** FormForge uniquely unifies schema-driven configurations with multi-agent AI assistance and GitHub repository management, enabling developers to build, test, and sync robust forms faster than traditional UI-based form builders.
-- **Current Development Phase:** Rapid active development on a unified, type-safe monorepo architecture.
 
 ---
 
-## 2. COMPLETE TECH STACK WITH VERSIONS
+## 2. INSTALLATION & USAGE
+
+Follow these steps to set up FormForge locally:
+
+### Prerequisites
+- Node.js >= 18
+- `pnpm` >= 9.0.0
+- A Supabase/PostgreSQL database
+
+### Steps
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd formforge
+   ```
+2. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+3. **Environment Setup:**
+   - Copy `.env.example` to `.env` at the root.
+   - Fill in your `DATABASE_URL` (Supabase Postgres URI), App URL, and other required API keys.
+   ```bash
+   cp .env.example .env
+   ```
+4. **Initialize Database:**
+   - Push the Drizzle ORM schema to your Supabase Postgres database.
+   ```bash
+   cd packages/db
+   pnpm run db:push
+   ```
+5. **Start the Development Server:**
+   - Run the Turbo development script from the root.
+   ```bash
+   cd ../../
+   pnpm run dev
+   ```
+6. **Open the Application:**
+   - The application will be available at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 3. COMPLETE TECH STACK WITH VERSIONS
 
 #### Turborepo Monorepo Structure
 - **Turborepo Version:** `2.9.18`
@@ -43,8 +86,6 @@
     └── validators/         # Shared Zod schemas
   ```
 
-#### Dependencies (from `apps/web/package.json` & `packages/db/package.json`)
-
 | Package | Version | Purpose | Usage |
 |---------|---------|---------|--------|
 | Next.js | `16.2.0` | React framework (App Router) | Full-stack app, server components (`apps/web`) |
@@ -58,7 +99,7 @@
 
 ---
 
-## 3. COMPLETE DEPLOYMENT STACK
+## 4. COMPLETE DEPLOYMENT STACK
 
 #### Vercel Deployment
 - **Platform:** Vercel (frontend and API hosting)
@@ -74,19 +115,6 @@
   - Integration across middleware and server-side components.
 - **Database:**
   - PostgreSQL managed by Supabase, interacted with using **Drizzle ORM** (`postgres` driver `^3.4.9`).
-
----
-
-## 4. CRONJOB / KEEP-ALIVE CONFIGURATION
-
-**Health Check Endpoint:**
-```typescript
-// apps/web/app/api/health/route.ts
-GET /api/health
-```
-- **Description:** Basic health check for uptime monitoring.
-- **Usage:** Used by external uptime monitors to ping the Vercel serverless functions regularly, keeping them warm to avoid cold starts.
-- **Auth Required:** No
 
 ---
 
@@ -106,48 +134,35 @@ Instead of raw SQL or standard Supabase client models, the project uses **Drizzl
 
 ---
 
-## 6. TRPC IMPLEMENTATION
+## 6. API ENDPOINTS & TRPC ROUTERS
 
-- **Version:** tRPC `11.17.0`
-- **Router Structure:** Uses `@trpc/server` and `@trpc/react-query` to build type-safe API procedures.
-- **Configuration:** Procedures defined in `apps/web/src/trpc/init.ts` ensuring tight typing with Zod validators from `packages/validators`.
+FormForge relies heavily on **tRPC** for strictly typed APIs. Standard REST endpoints are minimal, with the bulk of client-server communication passing through the tRPC boundary.
 
----
+### Standard REST Endpoints
+- **`GET /api/health`**: Service availability health check used for uptime monitoring to prevent Vercel cold starts.
+- **`GET /api/openapi`**: Serves OpenAPI JSON specs for integration.
+- **`GET /api/docs`**: Swagger/Scalar API documentation viewer.
 
-## 7. NEXT.JS ARCHITECTURE
-
-- **App Router:** Fully embraces Next.js 16 App Router.
-- **Structure:**
-  ```text
-  apps/web/
-  ├── app/
-  │   ├── (auth)/          # Authentication routes (sign-in, sign-up)
-  │   ├── (dashboard)/     # Protected application dashboard
-  │   ├── api/             # Route handlers (trpc, health)
-  │   └── layout.tsx       # Root layout
-  ├── components/          # React components
-  ├── lib/                 # Supabase clients & utilities
-  └── src/trpc/            # tRPC setup and routers
-  ```
-- **Middleware:** `apps/web/middleware.ts` handles Supabase session checking and route protection.
+### tRPC Procedures (`/api/trpc/*`)
+Configured in `apps/web/src/trpc/routers`, providing end-to-end type safety:
+- **`analytics` Router**: Fetches telemetry, views, and submission statistics for forms.
+- **`forms` Router**: Core CRUD operations for forms. Validated by Zod schemas from `packages/validators`.
+- **`formVersions` Router**: Tracks historical variations and revisions of schemas.
+- **`responses` Router**: Submits, fetches, and manages form submission payloads.
+- **`share` Router**: Manages public sharing tokens and visibility settings.
+- **`site` Router**: Retrieves general platform configuration data.
+- **`templates` Router**: Fetches predefined schema blueprints for the template library.
 
 ---
 
-## 8. GITHUB INTEGRATION
+## 7. GITHUB INTEGRATION
 
 - **Features:** Connect GitHub repositories to manage and version form schemas directly.
 - **Security Considerations:** GitHub tokens (if utilized) are managed on the client side with strict permissions warnings regarding repository write access.
 
 ---
 
-## 9. SCALARDOCS / DOCUMENTATION
-
-- **Embedded Documentation Sync:** A custom sync script keeps embedded documentation fresh.
-- **Command:** `pnpm run sync-docs` invokes Python scripts (`scripts/sync-embedded-docs.py`) that sync markdown guides directly into application constants.
-
----
-
-## 10. FEATURES INVENTORY
+## 8. FEATURES INVENTORY
 
 - **Schema-Driven Forms:** Build complex forms from JSON or Zod schemas dynamically.
 - **Type Safety:** Full TypeScript support with automatic inference across the Turborepo stack.
@@ -158,17 +173,11 @@ Instead of raw SQL or standard Supabase client models, the project uses **Drizzl
 
 ---
 
-## 11. API ENDPOINTS
-
-- **`GET /api/health`**: Service availability health check.
-- **`POST /api/trpc/*`**: Unified endpoint handling all tRPC queries and mutations automatically generated by the tRPC router.
-
----
-
-## 12. ENVIRONMENT VARIABLES
+## 9. ENVIRONMENT VARIABLES
 
 ```bash
 # ⚠️ IMPORTANT: DO NOT EXPOSE REAL KEYS
+# Refer to .env.example for required keys
 
 # Database (Drizzle ORM)
 DATABASE_URL=postgres://...
@@ -179,13 +188,11 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # Resend (Emails)
 RESEND_API_KEY=
 RESEND_FROM=FormForge <onboarding@resend.dev>
-
-# (Legacy variables for Clerk may be present in .env.example, but Supabase is used in the current package tree)
 ```
 
 ---
 
-## 13. PROJECT STRUCTURE MAP
+## 10. PROJECT STRUCTURE MAP
 
 ```text
 formforge/
@@ -208,57 +215,17 @@ formforge/
 
 ---
 
-## 14. SCRIPTS FROM package.json
-
-**Root `package.json`:**
-```json
-{
-  "build": "turbo run build",
-  "dev": "turbo run dev",
-  "lint": "turbo run lint",
-  "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-  "check-types": "turbo run check-types",
-  "sync-docs": "python scripts/sync-embedded-docs.py"
-}
-```
-
-**`apps/web/package.json`:**
-```json
-{
-  "dev": "next dev --port 3000",
-  "build": "next build",
-  "start": "next start",
-  "lint": "eslint --max-warnings 0",
-  "check-types": "next typegen && tsc --noEmit"
-}
-```
+## 11. SECURITY & GUARDRAILS
+Security is handled as a first-class citizen inside the FormForge monorepo:
+- **No Leaked Credentials:** The repository is fully sanitized. `.env.example` only contains empty boilerplate variables.
+- **Strict Input Validation:** Enforced globally via `zod` at the tRPC boundary—preventing malformed injection payloads.
+- **Auth Guarding:** Server-side component auth verification using `@supabase/ssr` inside Next.js middleware blocks unauthenticated deep linking.
+- **Type Safety:** Full end-to-end TS coverage dramatically reduces runtime exploitation vectors.
+- **Row Level Access (Application Tier):** Database isolation is strictly managed through the tRPC backend layer interacting with Drizzle ORM contexts.
 
 ---
 
-## 15. DEPLOYMENT DETAILS
-
-- **Frontend & Serverless APIs:** Hosted on **Vercel**. Integrates deeply with Turborepo caching to ensure highly optimized build times.
-- **Database:** Hosted on **Supabase (PostgreSQL)**, mapped directly using Drizzle ORM pushing schemas.
-
----
-
-## 16. LIMITATIONS & KNOWN ISSUES
-
-- **Serverless Cold Starts:** Vercel serverless API routes may suffer from initial cold starts, mitigated partially by keep-alive cronjobs.
-- **Supabase Realtime:** Realtime subscriptions are not fully integrated for form live-updates by default.
-- **Monorepo Build Caching:** If Vercel Remote Cache is not enabled, local CI build times might increase over time.
-
----
-
-## 17. SECURITY & GUARDRAILS
-
-- **Input Validation:** Enforced globally via `zod` at the tRPC boundary.
-- **Auth Guarding:** Server-side component auth verification using `@supabase/ssr` inside Next.js middleware.
-- **Type Safety:** Full end-to-end TS coverage heavily reduces runtime errors.
-
----
-
-## 18. UI/UX DOCUMENTATION
+## 12. UI/UX DOCUMENTATION
 
 - **Styling framework:** Tailwind CSS 4.3.1
 - **Component Library:** Built iteratively utilizing custom `shadcn` implementations (`@repo/ui`).
